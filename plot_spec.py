@@ -147,7 +147,7 @@ def plot_spectrum(audio_path, vad_path):
     new_tg.append(interval_tier)
     
     # 尝试加载C:\Users\User\Desktop\Praasper\final.TextGrid文件
-    final_tg_path = r"C:\Users\User\Desktop\Praasper\final.TextGrid"
+    final_tg_path = r"C:\Users\User\Desktop\Praasper\data\test_audio.TextGrid"
     try:
         final_tg = TextGrid.fromFile(final_tg_path)
         # 将final.TextGrid的所有tiers添加到新的TextGrid对象中
@@ -168,5 +168,5 @@ def plot_spectrum(audio_path, vad_path):
 # 使用示例
 if __name__ == "__main__":
     audio_path = r"data\test_audio.wav"  # 替换为实际音频文件路径
-    vad_path = r"final.TextGrid"  # 替换为实际VAD文件路径
+    vad_path = r"data\test_audio.TextGrid"  # 替换为实际VAD文件路径
     plot_spectrum(audio_path, vad_path)
