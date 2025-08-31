@@ -1,0 +1,708 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0
+xmax = 7.762902494331065
+tiers? <exists>
+size = 2
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "PV Intervals"
+		xmin = 0
+		xmax = 7.762902494331065
+		intervals: size = 159
+			intervals [1]:
+				xmin = 0
+				xmax = 0.30145
+				text = ""
+			intervals [2]:
+				xmin = 0.30145
+				xmax = 0.33717886297376093
+				text = "pv"
+			intervals [3]:
+				xmin = 0.33717886297376093
+				xmax = 0.3609981049562682
+				text = "pv"
+			intervals [4]:
+				xmin = 0.3609981049562682
+				xmax = 0.3848173469387755
+				text = "pv"
+			intervals [5]:
+				xmin = 0.3848173469387755
+				xmax = 0.39672696793002915
+				text = "pv"
+			intervals [6]:
+				xmin = 0.39672696793002915
+				xmax = 0.42054620991253644
+				text = "pv"
+			intervals [7]:
+				xmin = 0.42054620991253644
+				xmax = 0.4324558309037901
+				text = "pv"
+			intervals [8]:
+				xmin = 0.4324558309037901
+				xmax = 0.48009431486880466
+				text = "pv"
+			intervals [9]:
+				xmin = 0.48009431486880466
+				xmax = 0.4920039358600583
+				text = "pv"
+			intervals [10]:
+				xmin = 0.4920039358600583
+				xmax = 0.503913556851312
+				text = "pv"
+			intervals [11]:
+				xmin = 0.503913556851312
+				xmax = 0.5158231778425656
+				text = "pv"
+			intervals [12]:
+				xmin = 0.5158231778425656
+				xmax = 0.5277327988338192
+				text = "pv"
+			intervals [13]:
+				xmin = 0.5277327988338192
+				xmax = 0.5396424198250729
+				text = "pv"
+			intervals [14]:
+				xmin = 0.5396424198250729
+				xmax = 0.5515520408163266
+				text = "pv"
+			intervals [15]:
+				xmin = 0.5515520408163266
+				xmax = 0.5634616618075802
+				text = "pv"
+			intervals [16]:
+				xmin = 0.5634616618075802
+				xmax = 0.5753712827988338
+				text = "pv"
+			intervals [17]:
+				xmin = 0.5753712827988338
+				xmax = 0.5872809037900875
+				text = "pv"
+			intervals [18]:
+				xmin = 0.5872809037900875
+				xmax = 0.5991905247813412
+				text = "pv"
+			intervals [19]:
+				xmin = 0.5991905247813412
+				xmax = 0.6111001457725947
+				text = "pv"
+			intervals [20]:
+				xmin = 0.6111001457725947
+				xmax = 0.6230097667638483
+				text = "pv"
+			intervals [21]:
+				xmin = 0.6230097667638483
+				xmax = 0.63492
+				text = "pv"
+			intervals [22]:
+				xmin = 0.63492
+				xmax = 0.71587
+				text = ""
+			intervals [23]:
+				xmin = 0.71587
+				xmax = 0.7276424867724868
+				text = "pv"
+			intervals [24]:
+				xmin = 0.7276424867724868
+				xmax = 0.7511874603174603
+				text = "pv"
+			intervals [25]:
+				xmin = 0.7511874603174603
+				xmax = 0.7865049206349206
+				text = "pv"
+			intervals [26]:
+				xmin = 0.7865049206349206
+				xmax = 0.8100498941798941
+				text = "pv"
+			intervals [27]:
+				xmin = 0.8100498941798941
+				xmax = 0.8218223809523809
+				text = "pv"
+			intervals [28]:
+				xmin = 0.8218223809523809
+				xmax = 0.8689123280423281
+				text = "pv"
+			intervals [29]:
+				xmin = 0.8689123280423281
+				xmax = 0.8806848148148149
+				text = "pv"
+			intervals [30]:
+				xmin = 0.8806848148148149
+				xmax = 0.9160022751322752
+				text = "pv"
+			intervals [31]:
+				xmin = 0.9160022751322752
+				xmax = 0.9277747619047619
+				text = "pv"
+			intervals [32]:
+				xmin = 0.9277747619047619
+				xmax = 0.9513197354497355
+				text = "pv"
+			intervals [33]:
+				xmin = 0.9513197354497355
+				xmax = 0.9630922222222222
+				text = "pv"
+			intervals [34]:
+				xmin = 0.9630922222222222
+				xmax = 0.974864708994709
+				text = "pv"
+			intervals [35]:
+				xmin = 0.974864708994709
+				xmax = 0.9866371957671958
+				text = "pv"
+			intervals [36]:
+				xmin = 0.9866371957671958
+				xmax = 0.9984096825396825
+				text = "pv"
+			intervals [37]:
+				xmin = 0.9984096825396825
+				xmax = 1.021954656084656
+				text = "pv"
+			intervals [38]:
+				xmin = 1.021954656084656
+				xmax = 1.0337271428571428
+				text = "pv"
+			intervals [39]:
+				xmin = 1.0337271428571428
+				xmax = 1.0454996296296297
+				text = "pv"
+			intervals [40]:
+				xmin = 1.0454996296296297
+				xmax = 1.0572721164021164
+				text = "pv"
+			intervals [41]:
+				xmin = 1.0572721164021164
+				xmax = 1.0690446031746033
+				text = "pv"
+			intervals [42]:
+				xmin = 1.0690446031746033
+				xmax = 1.08081708994709
+				text = "pv"
+			intervals [43]:
+				xmin = 1.08081708994709
+				xmax = 1.0925895767195768
+				text = "pv"
+			intervals [44]:
+				xmin = 1.0925895767195768
+				xmax = 1.1161345502645503
+				text = "pv"
+			intervals [45]:
+				xmin = 1.1161345502645503
+				xmax = 1.127907037037037
+				text = "pv"
+			intervals [46]:
+				xmin = 1.127907037037037
+				xmax = 1.13964
+				text = "pv"
+			intervals [47]:
+				xmin = 1.13964
+				xmax = 2.16823
+				text = ""
+			intervals [48]:
+				xmin = 2.16823
+				xmax = 2.1915921376478518
+				text = "pv"
+			intervals [49]:
+				xmin = 2.1915921376478518
+				xmax = 2.2383164129435555
+				text = "pv"
+			intervals [50]:
+				xmin = 2.2383164129435555
+				xmax = 2.2616785505914074
+				text = "pv"
+			intervals [51]:
+				xmin = 2.2616785505914074
+				xmax = 2.2850406882392598
+				text = "pv"
+			intervals [52]:
+				xmin = 2.2850406882392598
+				xmax = 2.2967217570631857
+				text = "pv"
+			intervals [53]:
+				xmin = 2.2967217570631857
+				xmax = 2.3200838947110376
+				text = "pv"
+			intervals [54]:
+				xmin = 2.3200838947110376
+				xmax = 2.3901703076545933
+				text = "pv"
+			intervals [55]:
+				xmin = 2.3901703076545933
+				xmax = 2.413532445302445
+				text = "pv"
+			intervals [56]:
+				xmin = 2.413532445302445
+				xmax = 2.436894582950297
+				text = "pv"
+			intervals [57]:
+				xmin = 2.436894582950297
+				xmax = 2.460256720598149
+				text = "pv"
+			intervals [58]:
+				xmin = 2.460256720598149
+				xmax = 2.4952999270699268
+				text = "pv"
+			intervals [59]:
+				xmin = 2.4952999270699268
+				xmax = 2.5186620647177786
+				text = "pv"
+			intervals [60]:
+				xmin = 2.5186620647177786
+				xmax = 2.553705271189557
+				text = "pv"
+			intervals [61]:
+				xmin = 2.553705271189557
+				xmax = 2.565386340013483
+				text = "pv"
+			intervals [62]:
+				xmin = 2.565386340013483
+				xmax = 2.577067408837409
+				text = "pv"
+			intervals [63]:
+				xmin = 2.577067408837409
+				xmax = 2.6237916841331126
+				text = "pv"
+			intervals [64]:
+				xmin = 2.6237916841331126
+				xmax = 2.6354727529570385
+				text = "pv"
+			intervals [65]:
+				xmin = 2.6354727529570385
+				xmax = 2.6471538217809645
+				text = "pv"
+			intervals [66]:
+				xmin = 2.6471538217809645
+				xmax = 2.6821970282527423
+				text = "pv"
+			intervals [67]:
+				xmin = 2.6821970282527423
+				xmax = 2.7289213035484465
+				text = "pv"
+			intervals [68]:
+				xmin = 2.7289213035484465
+				xmax = 2.740602372372372
+				text = "pv"
+			intervals [69]:
+				xmin = 2.740602372372372
+				xmax = 2.7756455788441503
+				text = "pv"
+			intervals [70]:
+				xmin = 2.7756455788441503
+				xmax = 2.7873266476680763
+				text = "pv"
+			intervals [71]:
+				xmin = 2.7873266476680763
+				xmax = 2.799007716492002
+				text = "pv"
+			intervals [72]:
+				xmin = 2.799007716492002
+				xmax = 2.822369854139854
+				text = "pv"
+			intervals [73]:
+				xmin = 2.822369854139854
+				xmax = 2.83405092296378
+				text = "pv"
+			intervals [74]:
+				xmin = 2.83405092296378
+				xmax = 2.857413060611632
+				text = "pv"
+			intervals [75]:
+				xmin = 2.857413060611632
+				xmax = 2.869094129435558
+				text = "pv"
+			intervals [76]:
+				xmin = 2.869094129435558
+				xmax = 2.8924562670834097
+				text = "pv"
+			intervals [77]:
+				xmin = 2.8924562670834097
+				xmax = 2.9041373359073357
+				text = "pv"
+			intervals [78]:
+				xmin = 2.9041373359073357
+				xmax = 2.9158184047312616
+				text = "pv"
+			intervals [79]:
+				xmin = 2.9158184047312616
+				xmax = 2.9274994735551876
+				text = "pv"
+			intervals [80]:
+				xmin = 2.9274994735551876
+				xmax = 2.9391805423791135
+				text = "pv"
+			intervals [81]:
+				xmin = 2.9391805423791135
+				xmax = 2.9859048176748173
+				text = "pv"
+			intervals [82]:
+				xmin = 2.9859048176748173
+				xmax = 2.9975858864987437
+				text = "pv"
+			intervals [83]:
+				xmin = 2.9975858864987437
+				xmax = 3.0092669553226696
+				text = "pv"
+			intervals [84]:
+				xmin = 3.0092669553226696
+				xmax = 3.0209480241465956
+				text = "pv"
+			intervals [85]:
+				xmin = 3.0209480241465956
+				xmax = 3.03265
+				text = "pv"
+			intervals [86]:
+				xmin = 3.03265
+				xmax = 4.04136
+				text = ""
+			intervals [87]:
+				xmin = 4.04136
+				xmax = 4.053213363567649
+				text = "pv"
+			intervals [88]:
+				xmin = 4.053213363567649
+				xmax = 4.100626817838246
+				text = "pv"
+			intervals [89]:
+				xmin = 4.100626817838246
+				xmax = 4.124333544973545
+				text = "pv"
+			intervals [90]:
+				xmin = 4.124333544973545
+				xmax = 4.171746999244142
+				text = "pv"
+			intervals [91]:
+				xmin = 4.171746999244142
+				xmax = 4.20730708994709
+				text = "pv"
+			intervals [92]:
+				xmin = 4.20730708994709
+				xmax = 4.219160453514739
+				text = "pv"
+			intervals [93]:
+				xmin = 4.219160453514739
+				xmax = 4.2428671806500375
+				text = "pv"
+			intervals [94]:
+				xmin = 4.2428671806500375
+				xmax = 4.254720544217687
+				text = "pv"
+			intervals [95]:
+				xmin = 4.254720544217687
+				xmax = 4.278427271352986
+				text = "pv"
+			intervals [96]:
+				xmin = 4.278427271352986
+				xmax = 4.313987362055934
+				text = "pv"
+			intervals [97]:
+				xmin = 4.313987362055934
+				xmax = 4.325840725623583
+				text = "pv"
+			intervals [98]:
+				xmin = 4.325840725623583
+				xmax = 4.337694089191232
+				text = "pv"
+			intervals [99]:
+				xmin = 4.337694089191232
+				xmax = 4.385107543461829
+				text = "pv"
+			intervals [100]:
+				xmin = 4.385107543461829
+				xmax = 4.39696
+				text = "pv"
+			intervals [101]:
+				xmin = 4.39696
+				xmax = 4.4563
+				text = ""
+			intervals [102]:
+				xmin = 4.4563
+				xmax = 4.467953267367553
+				text = "pv"
+			intervals [103]:
+				xmin = 4.467953267367553
+				xmax = 4.491259802102659
+				text = "pv"
+			intervals [104]:
+				xmin = 4.491259802102659
+				xmax = 4.537872871572871
+				text = "pv"
+			intervals [105]:
+				xmin = 4.537872871572871
+				xmax = 4.561179406307978
+				text = "pv"
+			intervals [106]:
+				xmin = 4.561179406307978
+				xmax = 4.5728326736755305
+				text = "pv"
+			intervals [107]:
+				xmin = 4.5728326736755305
+				xmax = 4.596139208410636
+				text = "pv"
+			intervals [108]:
+				xmin = 4.596139208410636
+				xmax = 4.60779247577819
+				text = "pv"
+			intervals [109]:
+				xmin = 4.60779247577819
+				xmax = 4.631099010513296
+				text = "pv"
+			intervals [110]:
+				xmin = 4.631099010513296
+				xmax = 4.642752277880849
+				text = "pv"
+			intervals [111]:
+				xmin = 4.642752277880849
+				xmax = 4.654405545248402
+				text = "pv"
+			intervals [112]:
+				xmin = 4.654405545248402
+				xmax = 4.677712079983508
+				text = "pv"
+			intervals [113]:
+				xmin = 4.677712079983508
+				xmax = 4.71268
+				text = "pv"
+			intervals [114]:
+				xmin = 4.71268
+				xmax = 5.81277
+				text = ""
+			intervals [115]:
+				xmin = 5.81277
+				xmax = 5.824399931972789
+				text = "pv"
+			intervals [116]:
+				xmin = 5.824399931972789
+				xmax = 5.836029863945579
+				text = "pv"
+			intervals [117]:
+				xmin = 5.836029863945579
+				xmax = 5.847659795918368
+				text = "pv"
+			intervals [118]:
+				xmin = 5.847659795918368
+				xmax = 5.870919659863946
+				text = "pv"
+			intervals [119]:
+				xmin = 5.870919659863946
+				xmax = 5.894179523809524
+				text = "pv"
+			intervals [120]:
+				xmin = 5.894179523809524
+				xmax = 5.940699251700681
+				text = "pv"
+			intervals [121]:
+				xmin = 5.940699251700681
+				xmax = 5.963959115646259
+				text = "pv"
+			intervals [122]:
+				xmin = 5.963959115646259
+				xmax = 5.975589047619048
+				text = "pv"
+			intervals [123]:
+				xmin = 5.975589047619048
+				xmax = 5.987218979591837
+				text = "pv"
+			intervals [124]:
+				xmin = 5.987218979591837
+				xmax = 6.010478843537415
+				text = "pv"
+			intervals [125]:
+				xmin = 6.010478843537415
+				xmax = 6.033738707482994
+				text = "pv"
+			intervals [126]:
+				xmin = 6.033738707482994
+				xmax = 6.045368639455782
+				text = "pv"
+			intervals [127]:
+				xmin = 6.045368639455782
+				xmax = 6.056998571428572
+				text = "pv"
+			intervals [128]:
+				xmin = 6.056998571428572
+				xmax = 6.068628503401361
+				text = "pv"
+			intervals [129]:
+				xmin = 6.068628503401361
+				xmax = 6.115148231292517
+				text = "pv"
+			intervals [130]:
+				xmin = 6.115148231292517
+				xmax = 6.1500380272108846
+				text = "pv"
+			intervals [131]:
+				xmin = 6.1500380272108846
+				xmax = 6.161667959183674
+				text = "pv"
+			intervals [132]:
+				xmin = 6.161667959183674
+				xmax = 6.173297891156463
+				text = "pv"
+			intervals [133]:
+				xmin = 6.173297891156463
+				xmax = 6.266337346938776
+				text = "pv"
+			intervals [134]:
+				xmin = 6.266337346938776
+				xmax = 6.289597210884354
+				text = "pv"
+			intervals [135]:
+				xmin = 6.289597210884354
+				xmax = 6.301227142857143
+				text = "pv"
+			intervals [136]:
+				xmin = 6.301227142857143
+				xmax = 6.312857074829933
+				text = "pv"
+			intervals [137]:
+				xmin = 6.312857074829933
+				xmax = 6.3244870068027215
+				text = "pv"
+			intervals [138]:
+				xmin = 6.3244870068027215
+				xmax = 6.359376802721089
+				text = "pv"
+			intervals [139]:
+				xmin = 6.359376802721089
+				xmax = 6.371006734693878
+				text = "pv"
+			intervals [140]:
+				xmin = 6.371006734693878
+				xmax = 6.382636666666667
+				text = "pv"
+			intervals [141]:
+				xmin = 6.382636666666667
+				xmax = 6.394266598639456
+				text = "pv"
+			intervals [142]:
+				xmin = 6.394266598639456
+				xmax = 6.405896530612245
+				text = "pv"
+			intervals [143]:
+				xmin = 6.405896530612245
+				xmax = 6.417526462585035
+				text = "pv"
+			intervals [144]:
+				xmin = 6.417526462585035
+				xmax = 6.4407863265306124
+				text = "pv"
+			intervals [145]:
+				xmin = 6.4407863265306124
+				xmax = 6.452416258503402
+				text = "pv"
+			intervals [146]:
+				xmin = 6.452416258503402
+				xmax = 6.464046190476191
+				text = "pv"
+			intervals [147]:
+				xmin = 6.464046190476191
+				xmax = 6.510565918367347
+				text = "pv"
+			intervals [148]:
+				xmin = 6.510565918367347
+				xmax = 6.533825782312926
+				text = "pv"
+			intervals [149]:
+				xmin = 6.533825782312926
+				xmax = 6.557085646258503
+				text = "pv"
+			intervals [150]:
+				xmin = 6.557085646258503
+				xmax = 6.568715578231293
+				text = "pv"
+			intervals [151]:
+				xmin = 6.568715578231293
+				xmax = 6.591975442176871
+				text = "pv"
+			intervals [152]:
+				xmin = 6.591975442176871
+				xmax = 6.6036053741496605
+				text = "pv"
+			intervals [153]:
+				xmin = 6.6036053741496605
+				xmax = 6.626865238095238
+				text = "pv"
+			intervals [154]:
+				xmin = 6.626865238095238
+				xmax = 6.638495170068028
+				text = "pv"
+			intervals [155]:
+				xmin = 6.638495170068028
+				xmax = 6.650125102040817
+				text = "pv"
+			intervals [156]:
+				xmin = 6.650125102040817
+				xmax = 6.661755034013606
+				text = "pv"
+			intervals [157]:
+				xmin = 6.661755034013606
+				xmax = 6.673384965986395
+				text = "pv"
+			intervals [158]:
+				xmin = 6.673384965986395
+				xmax = 6.68501
+				text = "pv"
+			intervals [159]:
+				xmin = 6.68501
+				xmax = 7.762902494331065
+				text = ""
+	item [2]:
+		class = "IntervalTier"
+		name = "segment"
+		xmin = 0.0
+		xmax = 7.762902494331065
+		intervals: size = 13
+			intervals [1]:
+				xmin = 0.0
+				xmax = 0.30145
+				text = ""
+			intervals [2]:
+				xmin = 0.30145
+				xmax = 0.63492
+				text = "考"
+			intervals [3]:
+				xmin = 0.63492
+				xmax = 0.71587
+				text = ""
+			intervals [4]:
+				xmin = 0.71587
+				xmax = 1.13964
+				text = "察"
+			intervals [5]:
+				xmin = 1.13964
+				xmax = 2.16823
+				text = ""
+			intervals [6]:
+				xmin = 2.16823
+				xmax = 3.03265
+				text = "编辑"
+			intervals [7]:
+				xmin = 3.03265
+				xmax = 4.04136
+				text = ""
+			intervals [8]:
+				xmin = 4.04136
+				xmax = 4.39696
+				text = "机"
+			intervals [9]:
+				xmin = 4.39696
+				xmax = 4.4563
+				text = ""
+			intervals [10]:
+				xmin = 4.4563
+				xmax = 4.71268
+				text = "场"
+			intervals [11]:
+				xmin = 4.71268
+				xmax = 5.81277
+				text = ""
+			intervals [12]:
+				xmin = 5.81277
+				xmax = 6.68501
+				text = "冰箱"
+			intervals [13]:
+				xmin = 6.68501
+				xmax = 7.76288
+				text = ""
