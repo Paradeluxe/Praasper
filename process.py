@@ -93,7 +93,7 @@ def transcribe_wav_file(wav, vad):
 
 
     tg.append(tier)
-    tg.write(wav.replace(".wav", ".TextGrid"))
+    tg.write(wav.replace(".wav", "_whisper.TextGrid"))
 
 
 def word_timestamp(wav, tg_path):
@@ -257,8 +257,10 @@ def word_timestamp(wav, tg_path):
     print(tg.maxTime)
     tg.append(phon_tier)
 
+
     # 保存修改后的 TextGrid 文件
-    tg.write(tg_path.replace(".TextGrid", "_processed.TextGrid"))
+    new_tg_path = os.path.join("output", os.path.basename(wav).replace(".wav", ".TextGrid"))
+    tg.write(new_tg_path)
 
 
 
@@ -275,10 +277,10 @@ if __name__ == "__main__":
 
     for fname in fnames:
         wav_path = os.path.join(data_path, fname + ".wav")
-        tg_path = wav_path.replace(".wav", ".TextGrid")
+        tg_path = wav_path.replace(".wav", "_whisper.TextGrid")
         vad_path = wav_path.replace(".wav", "_VAD.TextGrid")
 
-        # transcribe_wav_file(wav_path, vad=vad_path)
+        transcribe_wav_file(wav_path, vad=vad_path)
         word_timestamp(wav_path, tg_path)
 
 
