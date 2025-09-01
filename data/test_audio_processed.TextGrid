@@ -4,7 +4,7 @@ Object class = "TextGrid"
 xmin = 0.0
 xmax = 7.76288
 tiers? <exists>
-size = 1
+size = 2
 item []:
 	item [1]:
 		class = "IntervalTier"
@@ -69,6 +69,132 @@ item []:
 				xmax = 6.68501
 				text = "箱"
 			intervals [15]:
+				xmin = 6.68501
+				xmax = 7.76288
+				text = ""
+	item [2]:
+		class = "IntervalTier"
+		name = "phoneme"
+		xmin = 0
+		xmax = 7.76288
+		intervals: size = 30
+			intervals [1]:
+				xmin = 0
+				xmax = 0.30145
+				text = ""
+			intervals [2]:
+				xmin = 0.30145
+				xmax = 0.3490884839650146
+				text = "k"
+			intervals [3]:
+				xmin = 0.3490884839650146
+				xmax = 0.4920039358600583
+				text = "a"
+			intervals [4]:
+				xmin = 0.4920039358600583
+				xmax = 0.63492
+				text = "o"
+			intervals [5]:
+				xmin = 0.63492
+				xmax = 0.71587
+				text = ""
+			intervals [6]:
+				xmin = 0.71587
+				xmax = 0.7865049206349206
+				text = "ch"
+			intervals [7]:
+				xmin = 0.7865049206349206
+				xmax = 1.13964
+				text = "a"
+			intervals [8]:
+				xmin = 1.13964
+				xmax = 2.16823
+				text = ""
+			intervals [9]:
+				xmin = 2.16823
+				xmax = 2.1923229705215417
+				text = "b"
+			intervals [10]:
+				xmin = 2.1923229705215417
+				xmax = 2.2646018820861675
+				text = "i"
+			intervals [11]:
+				xmin = 2.2646018820861675
+				xmax = 2.4091597052154192
+				text = "a"
+			intervals [12]:
+				xmin = 2.4091597052154192
+				xmax = 2.553705271189557
+				text = "n"
+			intervals [13]:
+				xmin = 2.553705271189557
+				xmax = 2.697378740577312
+				text = "j"
+			intervals [14]:
+				xmin = 2.697378740577312
+				xmax = 3.03265
+				text = "i"
+			intervals [15]:
+				xmin = 3.03265
+				xmax = 4.04136
+				text = ""
+			intervals [16]:
+				xmin = 4.04136
+				xmax = 4.136186908541195
+				text = "j"
+			intervals [17]:
+				xmin = 4.136186908541195
+				xmax = 4.39696
+				text = "i"
+			intervals [18]:
+				xmin = 4.39696
+				xmax = 4.4563
+				text = ""
+			intervals [19]:
+				xmin = 4.4563
+				xmax = 4.549526138940425
+				text = "ch"
+			intervals [20]:
+				xmin = 4.549526138940425
+				xmax = 4.619445743145743
+				text = "a"
+			intervals [21]:
+				xmin = 4.619445743145743
+				xmax = 4.71268
+				text = "ng"
+			intervals [22]:
+				xmin = 4.71268
+				xmax = 5.81277
+				text = ""
+			intervals [23]:
+				xmin = 5.81277
+				xmax = 5.882555452642596
+				text = "b"
+			intervals [24]:
+				xmin = 5.882555452642596
+				xmax = 5.998864540380255
+				text = "i"
+			intervals [25]:
+				xmin = 5.998864540380255
+				xmax = 6.115148231292517
+				text = "ng"
+			intervals [26]:
+				xmin = 6.115148231292517
+				xmax = 6.257608548752835
+				text = "x"
+			intervals [27]:
+				xmin = 6.257608548752835
+				xmax = 6.423812252456538
+				text = "i"
+			intervals [28]:
+				xmin = 6.423812252456538
+				xmax = 6.518785797430083
+				text = "a"
+			intervals [29]:
+				xmin = 6.518785797430083
+				xmax = 6.68501
+				text = "ng"
+			intervals [30]:
 				xmin = 6.68501
 				xmax = 7.76288
 				text = ""

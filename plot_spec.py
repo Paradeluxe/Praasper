@@ -83,6 +83,7 @@ def plot_spectrum(audio_path, vad_path):
 
         # 按频率轴求和，保持维度以方便后续绘图
         convolved_spectrogram = np.sum(np.abs(convolved_spectrogram), axis=0, keepdims=False)
+        # convolved_spectrogram = np.gradient(convolved_spectrogram)
         time_axis = np.linspace(0, len(convolved_spectrogram) * librosa.core.get_duration(y=y_vad, sr=sr) / len(convolved_spectrogram), len(convolved_spectrogram))
 
     

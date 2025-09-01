@@ -5,7 +5,7 @@ from textgrid import TextGrid, IntervalTier
 import librosa
 import numpy as np
 from scipy.signal import convolve2d, find_peaks
-
+from tool import *
 
 # Check-ups
 # 检查CUDA是否可用
@@ -95,13 +95,14 @@ def transcribe_wav_file(wav, vad):
     tg.write(wav.replace(".wav", ".TextGrid"))
 
 
-def word_timestamp(wav, tg):
+def word_timestamp(wav, tg_path):
 
     # 加载音频文件
     y, sr = librosa.load(wav)
 
     # 创建一个新的IntervalTier
     max_time = librosa.core.get_duration(y=y, sr=sr)
+    print(max_time)
 
     # 加载 TextGrid 文件
     tg = TextGrid.fromFile(tg_path)
@@ -137,6 +138,8 @@ def word_timestamp(wav, tg):
 
             # 按频率轴求和，保持维度以方便后续绘图
             convolved_spectrogram = np.sum(np.abs(convolved_spectrogram), axis=0, keepdims=False)
+            # 在保持输出信号长度不变的情况下，对卷积后的频谱图求一阶导
+            # convolved_spectrogram = np.gradient(convolved_spectrogram)
             time_axis = np.linspace(0, len(convolved_spectrogram) * librosa.core.get_duration(y=y_vad, sr=sr) / len(convolved_spectrogram), len(convolved_spectrogram))
 
             # 找到所有的波峰和波谷
@@ -173,8 +176,78 @@ def word_timestamp(wav, tg):
             current_interval.maxTime = target_boundary
             next_interval.minTime = target_boundary
     
+
+    phon_tier = IntervalTier(name="phoneme", minTime=0, maxTime=word_tier.maxTime)
+
+    for interval in word_intervals:
+        print()
+        con, vow, tone = get_pinyin_info(interval.mark)
+        expected_num = len(vow) + 1 if con else len(vow)
+        phon_series = [con] + vow if con else vow
+        print(expected_num)
+
+
+
+        start_sample = int(interval.minTime * sr)
+        end_sample = int(interval.maxTime * sr)
+        print(interval.mark, interval.minTime, interval.maxTime)
+
+        y_vad = y[start_sample:end_sample]
+
+
+        # 计算频谱图
+        spectrogram = librosa.stft(y_vad, n_fft=2048, win_length=2048, center=True)
+        spectrogram_db = librosa.amplitude_to_db(abs(spectrogram), ref=1.0)  # 使用librosa.amplitude_to_db已将y值转换为对数刻度，top_db=None确保不限制最大分贝值
+        
+        kernel = np.array([[-1, 0, 1]])
+        convolved_spectrogram = convolve2d(spectrogram_db, kernel, mode='same', boundary='symm')
+        convolved_spectrogram = np.where(np.abs(convolved_spectrogram) < 20, 0, convolved_spectrogram)
+
+        # 按频率轴求和，保持维度以方便后续绘图
+        convolved_spectrogram = np.sum(np.abs(convolved_spectrogram), axis=0, keepdims=False)
+        # 在保持输出信号长度不变的情况下，对卷积后的频谱图求一阶导
+        # convolved_spectrogram = np.gradient(convolved_spectrogram)
+        time_axis = np.linspace(0, len(convolved_spectrogram) * librosa.core.get_duration(y=y_vad, sr=sr) / len(convolved_spectrogram), len(convolved_spectrogram))
+
+
+        # 找到所有峰值，指定最小峰值高度为 0，后续再筛选最大的前几个
+        peaks, _ = find_peaks(convolved_spectrogram)
+
+        if con in ["k", 'b', 't', 'p']:
+            valid_peaks = [p for p in peaks if time_axis[p] <= len(y_vad)/sr - 0.05]
+        
+        else:
+            # 忽略掉所有头0.05s和后0.05s的peak
+            valid_peaks = [p for p in peaks if time_axis[p] >= 0.05 and time_axis[p] <= len(y_vad)/sr - 0.05]
+        
+        peaks = np.array(valid_peaks)
+
+        # 按峰值大小对峰值索引进行排序
+        sorted_peaks = sorted(peaks, key=lambda x: convolved_spectrogram[x], reverse=True)
+        # 假设前 5 个峰值最大，可根据实际需求修改数量
+        peaks = sorted_peaks[:expected_num-1]
+        
+        # 获取波峰对应的时间戳
+        peak_times = time_axis[peaks]
+
+        peak_timestamps = [interval.minTime] + [pt + interval.minTime for pt in peak_times] + [interval.maxTime]
+
+        peak_timestamps.sort()
+
+        print(peak_timestamps)
+        for t, time_stamp in enumerate(peak_timestamps):
+            if t == 0:
+                continue
+            phon_tier.add(peak_timestamps[t-1], peak_timestamps[t], phon_series[t-1])
+    print(tg.maxTime)
+    tg.append(phon_tier)
+
     # 保存修改后的 TextGrid 文件
     tg.write(tg_path.replace(".TextGrid", "_processed.TextGrid"))
+
+
+
+
 
 
 if __name__ == "__main__":
@@ -190,7 +263,7 @@ if __name__ == "__main__":
         tg_path = wav_path.replace(".wav", ".TextGrid")
         vad_path = wav_path.replace(".wav", "_VAD.TextGrid")
 
-        transcribe_wav_file(wav_path, vad=vad_path)
+        # transcribe_wav_file(wav_path, vad=vad_path)
         word_timestamp(wav_path, tg_path)
 
 
