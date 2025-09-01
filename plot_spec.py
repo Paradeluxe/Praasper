@@ -162,7 +162,7 @@ def plot_spectrum(audio_path, vad_path):
     # 构造保存路径，在原音频路径基础上添加_valley_points后缀
     save_path = os.path.splitext(audio_path)[0] + '_valley_points.TextGrid'
     # 保存TextGrid文件
-    new_tg.write(save_path)
+    # new_tg.write(save_path)
 
 
 
