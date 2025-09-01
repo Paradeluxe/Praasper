@@ -39,7 +39,7 @@ def plot_spectrum(audio_path, vad_path):
     try:
         tg = TextGrid.fromFile(vad_path)
         for tier in tg:
-            if isinstance(tier, IntervalTier):
+            if isinstance(tier, IntervalTier) and tier.name == "word":
                 for interval in tier.intervals:
                     if interval.mark.strip() != "":
                         vad_intervals.append(interval)
@@ -49,7 +49,7 @@ def plot_spectrum(audio_path, vad_path):
 
 
     # 加载音频文件
-    y, sr = librosa.load(audio_path)
+    y, sr = librosa.load(audio_path, sr=16000)
 
     # 创建一个新的IntervalTier
     max_time = librosa.core.get_duration(y=y, sr=sr)
@@ -88,8 +88,8 @@ def plot_spectrum(audio_path, vad_path):
 
     
         # 找到所有的波峰和波谷
-        peaks, _ = find_peaks(convolved_spectrogram, prominence=(10, None))
-        valleys, _ = find_peaks(-convolved_spectrogram, prominence=(10, None))
+        peaks, _ = find_peaks(convolved_spectrogram)#, prominence=(10, None))
+        valleys, _ = find_peaks(-convolved_spectrogram)#, prominence=(10, None))
 
         # 提取波峰和波谷对应的时间和值
         peak_times = time_axis[peaks]
@@ -169,5 +169,5 @@ def plot_spectrum(audio_path, vad_path):
 # 使用示例
 if __name__ == "__main__":
     audio_path = r"data\test_audio.wav"  # 替换为实际音频文件路径
-    vad_path = r"data\test_audio.TextGrid"  # 替换为实际VAD文件路径
+    vad_path = r"data\test_audio_processed.TextGrid"  # 替换为实际VAD文件路径
     plot_spectrum(audio_path, vad_path)

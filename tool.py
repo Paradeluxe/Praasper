@@ -41,6 +41,7 @@ def get_pinyin_info(character):
             i += 1
     final = new_final
 
+
     
     return (
         initial if initial else '',
@@ -50,4 +51,4 @@ def get_pinyin_info(character):
 
 
 if __name__ == '__main__':
-    print(get_pinyin_info('安'))
+    print(get_pinyin_info('边'))

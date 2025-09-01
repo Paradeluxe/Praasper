@@ -6,6 +6,7 @@ import librosa
 import numpy as np
 from scipy.signal import convolve2d, find_peaks
 from tool import *
+from matplotlib import pyplot as plt
 
 # Check-ups
 # 检查CUDA是否可用
@@ -98,7 +99,7 @@ def transcribe_wav_file(wav, vad):
 def word_timestamp(wav, tg_path):
 
     # 加载音频文件
-    y, sr = librosa.load(wav)
+    y, sr = librosa.load(wav, sr=16000)
 
     # 创建一个新的IntervalTier
     max_time = librosa.core.get_duration(y=y, sr=sr)
@@ -196,7 +197,7 @@ def word_timestamp(wav, tg_path):
 
 
         # 计算频谱图
-        spectrogram = librosa.stft(y_vad, n_fft=2048, win_length=2048, center=True)
+        spectrogram = librosa.stft(y_vad, n_fft=2048, win_length=1024, center=True)
         spectrogram_db = librosa.amplitude_to_db(abs(spectrogram), ref=1.0)  # 使用librosa.amplitude_to_db已将y值转换为对数刻度，top_db=None确保不限制最大分贝值
         
         kernel = np.array([[-1, 0, 1]])
@@ -209,12 +210,26 @@ def word_timestamp(wav, tg_path):
         # convolved_spectrogram = np.gradient(convolved_spectrogram)
         time_axis = np.linspace(0, len(convolved_spectrogram) * librosa.core.get_duration(y=y_vad, sr=sr) / len(convolved_spectrogram), len(convolved_spectrogram))
 
+        # 绘制
+        # plt.plot(time_axis, convolved_spectrogram)
+        # plt.plot(valley_times, valley_values, "go", label="Valley")
+        # plt.plot(peak_times, peak_values, "ro", label="Peak")
+        # plt.tight_layout()
+        # plt.legend()
+        # os.makedirs("pic", exist_ok=True)
+        # plt.savefig(os.path.join("pic", f"spec_{vad_interval.mark.strip()}.png"))
+        # plt.close()
 
         # 找到所有峰值，指定最小峰值高度为 0，后续再筛选最大的前几个
         peaks, _ = find_peaks(convolved_spectrogram)
 
-        if con in ["k", 'b', 't', 'p']:
+        if con in ["k", 'b', 't', 'p', 'd']:
             valid_peaks = [p for p in peaks if time_axis[p] <= len(y_vad)/sr - 0.05]
+
+            # if "i" == vow[0]:
+            #     vow = vow[0] + vow
+            #     expected_num -= 1
+            #     phon_series = [con] + vow if con else vow
         
         else:
             # 忽略掉所有头0.05s和后0.05s的peak
