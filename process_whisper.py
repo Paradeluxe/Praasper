@@ -110,7 +110,7 @@ def word_timestamp(wav, tg):
     # 计算 tg 的 segment 中 mark 不为空的 interval 的平均时长
     non_empty_intervals = [interval.maxTime - interval.minTime for tier in tg for interval in tier if interval.mark != ""]
     average_word_duration = np.mean(non_empty_intervals) if non_empty_intervals else 0
-    print(average_word_duration)
+    print(f"Speech rate (word dur) is {average_word_duration:.4f} seconds")
 
     # adjacent_pairs = []
     
@@ -190,7 +190,7 @@ if __name__ == "__main__":
         tg_path = wav_path.replace(".wav", ".TextGrid")
         vad_path = wav_path.replace(".wav", "_VAD.TextGrid")
 
-        # transcribe_wav_file(wav_path, vad=vad_path)
+        transcribe_wav_file(wav_path, vad=vad_path)
         word_timestamp(wav_path, tg_path)
 
 
