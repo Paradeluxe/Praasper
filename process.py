@@ -1,20 +1,10 @@
 import os
-import torch
 import whisper
 from textgrid import TextGrid, IntervalTier
 import librosa
 import numpy as np
 from scipy.signal import convolve2d, find_peaks
 from tool import *
-from matplotlib import pyplot as plt
-
-# Check-ups
-# 检查CUDA是否可用
-# if torch.cuda.is_available():
-#     print("CUDA可用，当前使用的设备为:", torch.cuda.get_device_name(0))
-# else:
-#     print("CUDA不可用，将使用CPU进行计算")
-
 
 
 # defs
@@ -27,8 +17,8 @@ def transcribe_wav_file(wav, vad):
     :return: 转录结果
     """
     # 加载最佳模型（large-v3）并指定使用设备
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = whisper.load_model("large-v3-turbo", device=device)
+    # device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = whisper.load_model("large-v3-turbo", device="cuda")
     # 转录音频文件
     result = model.transcribe(wav, word_timestamps=True)
     language = result["language"]
@@ -209,16 +199,6 @@ def word_timestamp(wav, tg_path):
         # 在保持输出信号长度不变的情况下，对卷积后的频谱图求一阶导
         # convolved_spectrogram = np.gradient(convolved_spectrogram)
         time_axis = np.linspace(0, len(convolved_spectrogram) * librosa.core.get_duration(y=y_vad, sr=sr) / len(convolved_spectrogram), len(convolved_spectrogram))
-
-        # 绘制
-        # plt.plot(time_axis, convolved_spectrogram)
-        # plt.plot(valley_times, valley_values, "go", label="Valley")
-        # plt.plot(peak_times, peak_values, "ro", label="Peak")
-        # plt.tight_layout()
-        # plt.legend()
-        # os.makedirs("pic", exist_ok=True)
-        # plt.savefig(os.path.join("pic", f"spec_{vad_interval.mark.strip()}.png"))
-        # plt.close()
 
         # 找到所有峰值，指定最小峰值高度为 0，后续再筛选最大的前几个
         peaks, _ = find_peaks(convolved_spectrogram)
