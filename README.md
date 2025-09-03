@@ -1,14 +1,27 @@
 <h1 align="center">Praasper</h1>
+<p align="center">
+
+  <!-- <a href="https://github.com/m-bain/whisperX/stargazers">
+    <img src="https://img.shields.io/github/stars/m-bain/whisperX.svg?colorA=orange&colorB=orange&logo=github"
+         alt="GitHub stars">
+  </a> -->
+  <!-- <a href="https://github.com/m-bain/whisperX/issues">
+        <img src="https://img.shields.io/github/issues/m-bain/whisperx.svg"
+             alt="GitHub issues">
+  </a> -->
+  <!-- <a href="https://github.com/m-bain/whisperX/blob/master/LICENSE">
+        <img src="https://img.shields.io/github/license/m-bain/whisperX.svg"
+             alt="GitHub license">
+  </a>
+    -->
+</p>
 
 
 **Praasper** is an Automatic Speech Recognition (ASR) application designed help researchers transribe audio files to both word- and phoneme-level text.
 
 ![mechanism](promote/mechanism.png)
 
-| Precision | Completed  | Developing  |
-| :---: | :---: | :---: |
-| Word  | Mandarin  |  Cantonese, English |
-|  Phoneme |  Mandarin |  Cantonese, English |
+
 
 # Mechanism
 In **Praasper**, we adopt a rather simple and straightforward pipeline to extract phoneme-level information from audio files.
@@ -26,6 +39,12 @@ To extract phoneme boundaries, we designed an **Edge detection algorithm**.
 - The audio file is first down-sampled to 16 kHz as to remove noise in the high-frequency domain. 
 - A kernel,`[-1, 0, 1]`, is then applied to the frequency domain to remove low-contrast frequency bands.
 
+# Support
+
+| Precision | Completed  | Developing  |
+| :---: | :---: | :---: |
+| Word  | Mandarin  |  Cantonese, English |
+|  Phoneme |  Mandarin |  Cantonese, English |
 
 # Setup
 We provide multiple ways to setup different versions of **Praasper**.
