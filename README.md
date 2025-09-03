@@ -3,6 +3,7 @@
 
 **Praasper** is an Automatic Speech Recognition (ASR) application designed help researchers transribe audio files to both word- and phoneme-level text.
 
+![mechanism](promote/mechanism.png)
 
 | Precision | Completed  | Developing  |
 | :---: | :---: | :---: |
@@ -21,7 +22,9 @@ result = model.transcribe(wav, word_timestamps=True)
 
 [**Praditor**](https://github.com/Paradeluxe/Praditor) is applied to perform **Voice Activity Detection (VAD)** algorithm to trim the currently existing word/character-level timestamps (at millisecond level). It is a Speech Onset Detection (SOT) algorithm we developed for langauge researchers.
 
-To extract phoneme boundaries, we designed an **Edge detection algorithm**. The audio file is first down-sampled to 16 kHz as to remove noise in the high-frequency domain. A kernel,`[-1, 0, 1]`, is then applied to the frequency domain to increase the contrast between phonemes (rather than within-phonemes).
+To extract phoneme boundaries, we designed an **Edge detection algorithm**. 
+- The audio file is first down-sampled to 16 kHz as to remove noise in the high-frequency domain. 
+- A kernel,`[-1, 0, 1]`, is then applied to the frequency domain to remove low-contrast frequency bands.
 
 
 # Setup

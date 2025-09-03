@@ -125,7 +125,7 @@ def word_timestamp(wav, tg_path):
             
             kernel = np.array([[-1, 0, 1]])
             convolved_spectrogram = convolve2d(spectrogram_db, kernel, mode='same', boundary='symm')
-            convolved_spectrogram = np.where(np.abs(convolved_spectrogram) < 20, 0, convolved_spectrogram)
+            convolved_spectrogram = np.where(np.abs(convolved_spectrogram) < 15, 0, convolved_spectrogram)
 
             # 按频率轴求和，保持维度以方便后续绘图
             convolved_spectrogram = np.sum(np.abs(convolved_spectrogram), axis=0, keepdims=False)
