@@ -1,20 +1,6 @@
-<h1 align="center">Praasper</h1>
-<p align="center">
-
-  <!-- <a href="https://github.com/m-bain/whisperX/stargazers">
-    <img src="https://img.shields.io/github/stars/m-bain/whisperX.svg?colorA=orange&colorB=orange&logo=github"
-         alt="GitHub stars">
-  </a> -->
-  <!-- <a href="https://github.com/m-bain/whisperX/issues">
-        <img src="https://img.shields.io/github/issues/m-bain/whisperx.svg"
-             alt="GitHub issues">
-  </a> -->
-  <!-- <a href="https://github.com/m-bain/whisperX/blob/master/LICENSE">
-        <img src="https://img.shields.io/github/license/m-bain/whisperX.svg"
-             alt="GitHub license">
-  </a>
-    -->
-</p>
+# Praasper
+![Python](https://img.shields.io/badge/python-3.10-blue.svg)
+![GitHub License](https://img.shields.io/github/license/Paradeluxe/Praasper)
 
 
 **Praasper** is an Automatic Speech Recognition (ASR) application designed help researchers transribe audio files to both word- and phoneme-level text.
