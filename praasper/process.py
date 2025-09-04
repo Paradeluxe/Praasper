@@ -18,7 +18,9 @@ def transcribe_wav_file(wav, vad):
     """
     # 加载最佳模型（large-v3）并指定使用设备
     # device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = whisper.load_model("large-v3-turbo", device="cuda")
+    model = whisper.load_model("large-v3-turbo")
+    print(f"Model loaded successfully. Current device in use: {model.device if hasattr(model, 'device') else 'Unknown'}")
+    
     # 转录音频文件
     result = model.transcribe(wav, word_timestamps=True)
     language = result["language"]

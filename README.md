@@ -34,4 +34,5 @@ To extract phoneme boundaries, we designed an **edge detection algorithm**.
 |  Phoneme |  Mandarin |  Cantonese, English |
 
 # Setup
-We provide multiple ways to setup different versions of **Praasper**.
+
+## pip installation
