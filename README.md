@@ -41,4 +41,65 @@ To extract phoneme boundaries, we designed an **edge detection algorithm**.
 pip install praasper
 ```
 
-`uv` is also highly recommended
+### (Advanced) uv installation
+`uv` is also highly recommended for way faster installation.
+
+If you are new to `uv`, you can install it by running the following command:
+
+First, install `uv` to your default environment:
+
+```bash
+pip install uv
+```
+
+Then, create a virtual environment (e.g., .venv):
+
+```bash
+uv venv .venv
+```
+
+You should see a new `.venv` folder pops up in your project folder now.
+
+Lastly, install `praasper` (by add a `uv` before `pip`):
+
+
+```bash
+uv pip install praasper
+```
+
+## GPU Acceleration (Windows/Linux)
+`Whisper` can automaticly detects the best currently available device to use. 
+
+- For **macOS** users, `Whisper` automatically detects CPU as the processing device.
+- For **Windows/Linux** users, the priority order should be: `CUDA` -> `CPU`.
+
+If you have no experience in installing `CUDA`, follow the steps below:
+
+1. Go to command line and check the latest CUDA version your system supports:
+
+```bash
+nvidia-smi
+```
+
+Results should pop up like this:
+```
+| NVIDIA-SMI 576.80                 Driver Version: 576.80         CUDA Version: 12.9     |
+```
+It means that this device supports CUDA up to version 12.9.
+
+2. Go to [**NVIDIA CUDA Toolkit**](https://developer.nvidia.com/cuda-toolkit) and download the latest version, or whichever version that fits your system/need.
+
+
+3. Install `torch` that fits your CUDA version. Find the correct `pip` command [**here**](https://pytorch.org/get-started/locally/).
+
+Here is an example for CUDA 12.9:
+
+```bash
+pip install torch --index-url https://download.pytorch.org/whl/cu129
+```
+
+`uv` installation works the simmilar way:
+
+```bash
+uv pip install torch --index-url https://download.pytorch.org/whl/cu129
+```
