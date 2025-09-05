@@ -7,7 +7,10 @@
 
 ![mechanism](promote/mechanism.png)
 
-In **Praasper**, we adopt a rather simple and straightforward pipeline to extract phoneme-level information from audio files. The pipeline includes [Whisper](https://github.com/openai/whisper) and [Praditor](https://github.com/Paradeluxe/Praditor).
+In **Praasper**, we adopt a rather simple and straightforward pipeline to extract phoneme-level information from audio files. The pipeline includes [Whisper](https://github.com/openai/whisper) and [Praditor](https://github.com/Paradeluxe/Praditor). 
+
+At the first stage, we plan to provide language support in **Mandarin**, **Cantonese**, and **English**.
+
 
 # How to use
 
@@ -51,7 +54,7 @@ To extract phoneme boundaries, we designed an **edge detection algorithm**.
 ```bash
 pip install praasper
 ```
-> If you have a succesful installation, and you don't care if there is CUDA accelaration, you can stop it right here.
+> If you have a succesful installation and don't care if there is CUDA accelaration, you can stop it right here.
 
 ## (Advanced) uv installation
 `uv` is also highly recommended for way faster installation. If you are new to `uv`, you can install it by running the following command:
@@ -113,8 +116,3 @@ pip install torch --index-url https://download.pytorch.org/whl/cu129
 ```bash
 uv pip install torch --index-url https://download.pytorch.org/whl/cu129
 ```
-
-
-# Language support
-
-At the first stage, we plan to provide language support in **Mandarin**, **Cantonese**, and **English**.
