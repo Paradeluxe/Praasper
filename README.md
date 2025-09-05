@@ -40,11 +40,10 @@ To extract phoneme boundaries, we designed an **edge detection algorithm**.
 ```bash
 pip install praasper
 ```
+> If you have a succesful installation, and you don't care if there is CUDA accelaration, you can stop it right here.
 
-### (Advanced) uv installation
-`uv` is also highly recommended for way faster installation.
-
-If you are new to `uv`, you can install it by running the following command:
+## (Advanced) uv installation
+`uv` is also highly recommended for way faster installation. If you are new to `uv`, you can install it by running the following command:
 
 First, install `uv` to your default environment:
 
@@ -70,12 +69,12 @@ uv pip install praasper
 ## GPU Acceleration (Windows/Linux)
 `Whisper` can automaticly detects the best currently available device to use. 
 
-- For **macOS** users, `Whisper` automatically detects CPU as the processing device.
+- For **macOS** users, `Whisper` only detects CPU as the processing device.
 - For **Windows/Linux** users, the priority order should be: `CUDA` -> `CPU`.
 
 If you have no experience in installing `CUDA`, follow the steps below:
 
-1. Go to command line and check the latest CUDA version your system supports:
+**First**, go to command line and check the latest CUDA version your system supports:
 
 ```bash
 nvidia-smi
@@ -87,10 +86,10 @@ Results should pop up like this:
 ```
 It means that this device supports CUDA up to version 12.9.
 
-2. Go to [**NVIDIA CUDA Toolkit**](https://developer.nvidia.com/cuda-toolkit) and download the latest version, or whichever version that fits your system/need.
+**Then**, go to [**NVIDIA CUDA Toolkit**](https://developer.nvidia.com/cuda-toolkit) and download the latest version, or whichever version that fits your system/need.
 
 
-3. Install `torch` that fits your CUDA version. Find the correct `pip` command [**here**](https://pytorch.org/get-started/locally/).
+**Lastly**, install `torch` that fits your CUDA version. Find the correct `pip` command [**in this link**](https://pytorch.org/get-started/locally/).
 
 Here is an example for CUDA 12.9:
 
