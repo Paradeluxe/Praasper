@@ -36,3 +36,9 @@ To extract phoneme boundaries, we designed an **edge detection algorithm**.
 # Setup
 
 ## pip installation
+
+```bash
+pip install praasper
+```
+
+`uv` is also highly recommended

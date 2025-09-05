@@ -4,8 +4,10 @@ from textgrid import TextGrid, IntervalTier
 import librosa
 import numpy as np
 from scipy.signal import convolve2d, find_peaks
-from tool import *
-
+try:
+    from .tool import *
+except ImportError:
+    from tool import *
 
 # defs
 def transcribe_wav_file(wav, vad):
