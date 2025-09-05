@@ -9,12 +9,13 @@
 
 # How to use
 
+The default model is `large-v3-turbo`.
+
 ```python
 import praasper
 
-# Default at large-v3-turbo, ok to switch to others
-model = praasper.init_model("large-v3-turbo")  
-model.annote("data")  # The folder where you store .wav and _VAD.TextGrid
+model = praasper.init_model(model_name="large-v3-turbo")  
+model.annote(input_path="data")  # The folder where you store .wav and _VAD.TextGrid
 ```
 
 

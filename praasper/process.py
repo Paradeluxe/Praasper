@@ -4,6 +4,7 @@ from textgrid import TextGrid, IntervalTier
 import librosa
 import numpy as np
 from scipy.signal import convolve2d, find_peaks
+import time
 
 try:
     from .tool import *
@@ -27,8 +28,8 @@ def transcribe_wav_file(wav_path, vad, model_name):
     # 转录音频文件
     result = model.transcribe(wav_path, word_timestamps=True)
     language = result["language"]
-
-    print(result)
+    print(f"[{time.time()}] Transcribing {wav_path} ...")
+    # print(result)
 
 
     # 加载 path_vad 对应的 TextGrid 文件
@@ -249,30 +250,6 @@ def word_timestamp(wav, tg_path):
         os.makedirs("output")
     new_tg_path = os.path.join("output", os.path.basename(wav).replace(".wav", ".TextGrid"))
     tg.write(new_tg_path)
-
-
-
-
-
-
-if __name__ == "__main__":
-    data_path = os.path.abspath("data")
-    # input_dir = os.path.abspath("input")
-    # output_dir = os.path.abspath("output")
-
-    fnames = [os.path.splitext(f)[0] for f in os.listdir(data_path) if f.endswith('.wav')]
-
-
-    for fname in fnames:
-        wav_path = os.path.join(data_path, fname + ".wav")
-        tg_path = wav_path.replace(".wav", "_whisper.TextGrid")
-        vad_path = wav_path.replace(".wav", "_VAD.TextGrid")
-
-        transcribe_wav_file(wav_path, vad=vad_path)
-        word_timestamp(wav_path, tg_path)
-
-
-
 
 
 

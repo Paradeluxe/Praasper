@@ -8,7 +8,8 @@ import whisper
 
 class init_model:
 
-    def __init__(self, model_name):
+    def __init__(self, model_name: str="large-v3-turbo"):
+
         self.name = model_name
 
 
@@ -19,13 +20,9 @@ class init_model:
             raise ValueError(f"Model {self.name} is not in the available Whisper models. Available models are: {available_models}")
 
 
-    def annote(
-        self,
-        input_path: str
-    ):
+    def annote(self, input_path: str):
 
         fnames = [os.path.splitext(f)[0] for f in os.listdir(input_path) if f.endswith('.wav')]
-
 
         for fname in fnames:
             wav_path = os.path.join(input_path, fname + ".wav")
@@ -38,6 +35,4 @@ class init_model:
 
 if __name__ == "__main__":
     model = init_model(model_name="large-v3-turbo")
-    model.annote(
-        input_path=os.path.abspath("data")
-    )
+    model.annote(input_path=os.path.abspath("data"))
