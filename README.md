@@ -1,5 +1,5 @@
 # Praasper
-![Python](https://img.shields.io/badge/python-3.10-blue.svg)
+![Python](https://img.shields.io/badge/python->=3.8-blue.svg)
 ![GitHub License](https://img.shields.io/github/license/Paradeluxe/Praasper)
 
 
@@ -7,36 +7,18 @@
 
 ![mechanism](promote/mechanism.png)
 
+# How to use
 
+```python
+import praasper
 
-# Mechanism
-In **Praasper**, we adopt a rather simple and straightforward pipeline to extract phoneme-level information from audio files. The pipeline includes [Whisper](https://github.com/openai/whisper) and [Praditor](https://github.com/Paradeluxe/Praditor).
-
-**Whisper** is used to transcribe the audio file to **word-level text**. At this point, speech onsets and offsets exhibit time deviations in seconds.
-
-```Python
-model = whisper.load_model("large-v3-turbo", device="cuda")
-result = model.transcribe(wav, word_timestamps=True)
+# Default at large-v3-turbo, ok to switch to others
+model = praasper.init_model("large-v3-turbo")  
+model.annote("data")  # The folder where you store .wav and _VAD.TextGrid
 ```
 
-**Praditor** is applied to perform **Voice Activity Detection (VAD)** algorithm to trim the currently existing word/character-level timestamps to **millisecond level**. It is a Speech Onset Detection (SOT) algorithm we developed for langauge researchers.
-
-To extract phoneme boundaries, we designed an **edge detection algorithm**. 
-- The audio file is first resampled to **16 kHz** as to remove noise in the high-frequency domain. 
-- A kernel,`[-1, 0, 1]`, is then applied to the frequency domain to enhance the edge(s) between phonetic segments.
-- The most prominent **n** peaks are then selected so as to match the wanted number of phonemes.
-
-# Language support
-
-At the first stage, we plan to provide language support in **Mandarin**, **Cantonese**, and **English**.
-
-| Precision | Completed  | Developing  |
-| :---: | :---: | :---: |
-| Word  | Mandarin  |  Cantonese, English |
-|  Phoneme |  Mandarin |  Cantonese, English |
 
 # Setup
-
 ## pip installation
 
 ```bash
@@ -61,7 +43,7 @@ uv venv .venv
 
 You should see a new `.venv` folder pops up in your project folder now.
 
-Lastly, install `praasper` (by add a `uv` before `pip`):
+Lastly, install `praasper` (by add `uv` before `pip`):
 
 
 ```bash
@@ -104,3 +86,24 @@ pip install torch --index-url https://download.pytorch.org/whl/cu129
 ```bash
 uv pip install torch --index-url https://download.pytorch.org/whl/cu129
 ```
+
+# Mechanism
+In **Praasper**, we adopt a rather simple and straightforward pipeline to extract phoneme-level information from audio files. The pipeline includes [Whisper](https://github.com/openai/whisper) and [Praditor](https://github.com/Paradeluxe/Praditor).
+
+**Whisper** is used to transcribe the audio file to **word-level text**. At this point, speech onsets and offsets exhibit time deviations in seconds.
+
+```Python
+model = whisper.load_model("large-v3-turbo", device="cuda")
+result = model.transcribe(wav, word_timestamps=True)
+```
+
+**Praditor** is applied to perform **Voice Activity Detection (VAD)** algorithm to trim the currently existing word/character-level timestamps to **millisecond level**. It is a Speech Onset Detection (SOT) algorithm we developed for langauge researchers.
+
+To extract phoneme boundaries, we designed an **edge detection algorithm**. 
+- The audio file is first resampled to **16 kHz** as to remove noise in the high-frequency domain. 
+- A kernel,`[-1, 0, 1]`, is then applied to the frequency domain to enhance the edge(s) between phonetic segments.
+- The most prominent **n** peaks are then selected so as to match the wanted number of phonemes.
+
+# Language support
+
+At the first stage, we plan to provide language support in **Mandarin**, **Cantonese**, and **English**.

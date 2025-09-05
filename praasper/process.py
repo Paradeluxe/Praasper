@@ -4,13 +4,14 @@ from textgrid import TextGrid, IntervalTier
 import librosa
 import numpy as np
 from scipy.signal import convolve2d, find_peaks
+
 try:
     from .tool import *
 except ImportError:
     from tool import *
 
 # defs
-def transcribe_wav_file(wav, vad):
+def transcribe_wav_file(wav_path, vad, model_name):
     """
     使用 Whisper 模型转录 .wav 文件
     
@@ -20,11 +21,11 @@ def transcribe_wav_file(wav, vad):
     """
     # 加载最佳模型（large-v3）并指定使用设备
     # device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = whisper.load_model("large-v3-turbo")
+    model = whisper.load_model(model_name)
     print(f"Model loaded successfully. Current device in use: {model.device if hasattr(model, 'device') else 'Unknown'}")
     
     # 转录音频文件
-    result = model.transcribe(wav, word_timestamps=True)
+    result = model.transcribe(wav_path, word_timestamps=True)
     language = result["language"]
 
     print(result)
@@ -87,7 +88,7 @@ def transcribe_wav_file(wav, vad):
 
 
     tg.append(tier)
-    tg.write(wav.replace(".wav", "_whisper.TextGrid"))
+    tg.write(wav_path.replace(".wav", "_whisper.TextGrid"))
 
 
 def word_timestamp(wav, tg_path):
@@ -243,6 +244,9 @@ def word_timestamp(wav, tg_path):
 
 
     # 保存修改后的 TextGrid 文件
+    # 检查 output 文件夹是否存在，如果不存在则创建
+    if not os.path.exists("output"):
+        os.makedirs("output")
     new_tg_path = os.path.join("output", os.path.basename(wav).replace(".wav", ".TextGrid"))
     tg.write(new_tg_path)
 
