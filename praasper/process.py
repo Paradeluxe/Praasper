@@ -8,13 +8,64 @@ from scipy.signal import convolve2d, find_peaks
 try:
     from .process import *
     from .tool import *
+    from .praditor.core_auto import *
+    # from .praditor.tool_auto import * 
 except:
     from process import *
     from tool import *
+    from praditor.core_auto import *
+
+
+def get_vad(wav_path, params="self"):
 
 
 
+    audio_obj = ReadSound(wav_path)
 
+    # 获取 wav 文件所在的文件夹路径
+    wav_folder = os.path.dirname(wav_path)
+    all_txt_path = os.path.join(wav_folder, "params.txt")
+    self_txt_path = wav_path.replace(".wav", ".txt")
+
+    default_params = {'onset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
+    
+
+    if params == "all":
+        if os.path.exists(all_txt_path):
+            with open(all_txt_path, "r") as f:
+                params = eval(f.read())
+        else:
+            params = default_params
+    
+    elif params == "self":
+        if os.path.exists(self_txt_path):
+            with open(self_txt_path, "r") as f:
+                params = eval(f.read())
+        else:
+            params = default_params
+    elif params == "default":
+        params = default_params
+
+    else:  # 具体参数
+        params = params
+    
+
+
+
+    onsets = autoPraditorWithTimeRange(params, audio_obj, "onset")
+    offsets = autoPraditorWithTimeRange(params, audio_obj, "offset")
+
+
+    tg = TextGrid()
+    interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_obj.duration_seconds)
+    for i in range(len(onsets)):
+        try:
+            interval_tier.addInterval(Interval(onsets[i], offsets[i], "sound"))
+        except ValueError:
+            continue
+    tg.append(interval_tier)
+    tg.write(wav_path.replace(".wav", "_VAD.TextGrid"))  # 将TextGrid对象写入文件
+# else:
 
 
 # defs

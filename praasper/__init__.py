@@ -30,6 +30,8 @@ class init_model:
             tg_path = wav_path.replace(".wav", "_whisper.TextGrid")
             vad_path = wav_path.replace(".wav", "_VAD.TextGrid")
 
+
+            get_vad(wav_path)
             transcribe_wav_file(wav_path, vad=vad_path, model_name=self.name)
             word_timestamp(wav_path, tg_path)
 
