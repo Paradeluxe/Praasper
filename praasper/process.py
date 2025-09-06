@@ -4,12 +4,18 @@ from textgrid import TextGrid, IntervalTier
 import librosa
 import numpy as np
 from scipy.signal import convolve2d, find_peaks
-import time
 
 try:
+    from .process import *
     from .tool import *
-except ImportError:
+except:
+    from process import *
     from tool import *
+
+
+
+
+
 
 # defs
 def transcribe_wav_file(wav_path, vad, model_name):
@@ -23,12 +29,12 @@ def transcribe_wav_file(wav_path, vad, model_name):
     # 加载最佳模型（large-v3）并指定使用设备
     # device = "cuda" if torch.cuda.is_available() else "cpu"
     model = whisper.load_model(model_name)
-    print(f"Model loaded successfully. Current device in use: {model.device if hasattr(model, 'device') else 'Unknown'}")
+    print(f"[{show_elapsed_time()}] Model loaded successfully. Current device in use: {model.device if hasattr(model, 'device') else 'Unknown'}")
     
     # 转录音频文件
     result = model.transcribe(wav_path, word_timestamps=True)
     language = result["language"]
-    print(f"[{time.time()}] Transcribing {wav_path} ...")
+    print(f"[{show_elapsed_time()}] Transcribing {wav_path} into {language}...")
     # print(result)
 
 
@@ -71,7 +77,7 @@ def transcribe_wav_file(wav_path, vad, model_name):
                 if start_time < empty_mark_interval[0] < empty_mark_interval[1] < end_time:
                     pass
 
-            print(start_time, end_time, text)
+            # print(start_time, end_time, text)
             tier.add(start_time, end_time, text)
 
     for vad_interval in vad_intervals:
@@ -99,7 +105,6 @@ def word_timestamp(wav, tg_path):
 
     # 创建一个新的IntervalTier
     max_time = librosa.core.get_duration(y=y, sr=sr)
-    print(max_time)
 
     # 加载 TextGrid 文件
     tg = TextGrid.fromFile(tg_path)
@@ -108,7 +113,7 @@ def word_timestamp(wav, tg_path):
     # 计算 tg 的 segment 中 mark 不为空的 interval 的平均时长
     non_empty_intervals = [interval.maxTime - interval.minTime for tier in tg for interval in tier if interval.mark != ""]
     average_word_duration = np.mean(non_empty_intervals) if non_empty_intervals else 0
-    print(f"Speech rate (word dur) is {average_word_duration:.4f} seconds")
+    # print(f"Speech rate (word dur) is {average_word_duration:.4f} seconds")
 
     # adjacent_pairs = []
     
@@ -177,17 +182,16 @@ def word_timestamp(wav, tg_path):
     phon_tier = IntervalTier(name="phoneme", minTime=0, maxTime=word_tier.maxTime)
 
     for interval in word_intervals:
-        print()
         con, vow, tone = get_pinyin_info(interval.mark)
         expected_num = len(vow) + 1 if con else len(vow)
         phon_series = [con] + vow if con else vow
-        print(expected_num)
+        # print(expected_num)
 
 
 
         start_sample = int(interval.minTime * sr)
         end_sample = int(interval.maxTime * sr)
-        print(interval.mark, interval.minTime, interval.maxTime)
+        # print(interval.mark, interval.minTime, interval.maxTime)
 
         y_vad = y[start_sample:end_sample]
 
@@ -235,12 +239,12 @@ def word_timestamp(wav, tg_path):
 
         peak_timestamps.sort()
 
-        print(peak_timestamps)
+        # print(peak_timestamps)
         for t, time_stamp in enumerate(peak_timestamps):
             if t == 0:
                 continue
             phon_tier.add(peak_timestamps[t-1], peak_timestamps[t], phon_series[t-1])
-    print(tg.maxTime)
+    # print(tg.maxTime)
     tg.append(phon_tier)
 
 

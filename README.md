@@ -9,7 +9,8 @@
 
 In **Praasper**, we adopt a rather simple and straightforward pipeline to extract phoneme-level information from audio files. The pipeline includes [Whisper](https://github.com/openai/whisper) and [Praditor](https://github.com/Paradeluxe/Praditor). 
 
-At the first stage, we plan to provide language support in **Mandarin**, **Cantonese**, and **English**.
+Now **Praasper** support **Mandarin**. In the near future we plan to add support for **Cantonese** and **English**.
+
 
 
 # How to use

@@ -1,7 +1,9 @@
 try:
     from .process import *
+    from .tool import *
 except:
     from process import *
+    from tool import *
 
 import os
 import whisper
@@ -12,12 +14,11 @@ class init_model:
 
         self.name = model_name
 
-
         available_models = whisper.available_models()
         if self.name in available_models:
-            print(f"Choose Whisper model: {self.name}")
+            print(f"[{show_elapsed_time()}] Choose Whisper model: {self.name}")
         else:
-            raise ValueError(f"Model {self.name} is not in the available Whisper models. Available models are: {available_models}")
+            raise ValueError(f"[{show_elapsed_time()}] Model {self.name} is not in the available Whisper models. Available models are: {available_models}")
 
 
     def annote(self, input_path: str):
