@@ -58,7 +58,7 @@ def get_vad(wav_path, params="self"):
     interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_obj.duration_seconds)
     for i in range(len(onsets)):
         try:
-            interval_tier.addInterval(Interval(onsets[i], offsets[i], "sound"))
+            interval_tier.addInterval(Interval(onsets[i], offsets[i], "+"))
         except ValueError:
             continue
     tg.append(interval_tier)
@@ -142,7 +142,9 @@ def transcribe_wav_file(wav_path, vad, model_name):
         if closest_interval.maxTime - vad_interval[1] != 0:
             closest_interval.maxTime = vad_interval[1]
 
-
+    # 检查tier里是否有mark=”+“的interval，若有则删除
+    tier.intervals = [interval for interval in tier.intervals if interval.mark != "+"]
+    
     tg.append(tier)
     tg.write(wav_path.replace(".wav", "_whisper.TextGrid"))
 

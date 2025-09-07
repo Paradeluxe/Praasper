@@ -15,7 +15,9 @@ Now **Praasper** support **Mandarin**. In the near future we plan to add support
 
 # How to use
 
-The default model is `large-v3-turbo`.  
+The default model is `large-v3-turbo`.
+
+>I personally recommend to use the SOTA model as time isn't a really big problem for offline processing.
 
 ```python
 import praasper
@@ -24,6 +26,7 @@ model = praasper.init_model(model_name="large-v3-turbo")
 model.annote(input_path="data")  # The folder where you store .wav
 
 # If you want to know what other models are available:
+
 # import whisper
 # print(whisper.available_models())
 ```

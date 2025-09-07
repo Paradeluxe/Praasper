@@ -11,9 +11,14 @@ from textgrid import TextGrid, PointTier, Point, IntervalTier, Interval
 
 try:
     from .tool_auto import bandpass_filter, get_current_time, ReadSound
-except:
+except ImportError:
     from tool_auto import bandpass_filter, get_current_time, ReadSound
 
+try:
+    from ..tool import show_elapsed_time
+except ImportError:
+    # from tool_auto import bandpass_filter, get_current_time, ReadSound
+    from tool import show_elapsed_time
 
 # plat = os.name.lower()
 # check if ffmpeg exists in the system path or the pydub package can find it
@@ -188,8 +193,9 @@ def autoPraditor(params, audio_obj, which_set):
     # print(np.cuda.get_device_id())
     # np.cuda.device = 1
     # print("---↘")
+    total_num = len(_onoffsets)
     for i, (__offset, __onset) in enumerate(_onoffsets):
-        print("-")
+        print(f"\r[{show_elapsed_time()}] ({i+1}/{total_num}, {(i+1)/total_num*100:.1f}%)", end="")
 
         # -------------------------------------------------
         # 强制跳过条件 Skip Condition
@@ -303,6 +309,8 @@ def autoPraditor(params, audio_obj, which_set):
 
     # 对 _answer_frames 进行从小到大排序
     # print(_answer_frames)
+
+    print()
     if which_set == "offset":
         _answer_frames.reverse()
     # print(_answer_frames)
