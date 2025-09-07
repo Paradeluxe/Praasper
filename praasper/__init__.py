@@ -38,8 +38,8 @@ class init_model:
             print(f"[{show_elapsed_time()}] Processing {os.path.basename(wav_path)} ({idx+1}/{len(fnames)})")
 
             get_vad(wav_path)
-            transcribe_wav_file(wav_path, vad=vad_path, whisper_model=self.whisper_model)
-            word_timestamp(wav_path, tg_path)
+            language = transcribe_wav_file(wav_path, vad=vad_path, whisper_model=self.whisper_model)
+            word_timestamp(wav_path, tg_path, language=language)
         
         print(f"[{show_elapsed_time()}] Processing completed.")
 

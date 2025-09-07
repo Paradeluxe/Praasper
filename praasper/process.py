@@ -150,8 +150,21 @@ def transcribe_wav_file(wav_path, vad, whisper_model):
     tg.write(wav_path.replace(".wav", "_whisper.TextGrid"))
     print(f"[{show_elapsed_time()}] Whisper word-level transcription saved")
 
+    return language
 
-def word_timestamp(wav, tg_path):
+
+def word_timestamp(wav, tg_path, language):
+
+    if language.lower() not in ['zh', 'en', 'yue']:
+        print(f"[{show_elapsed_time()}] Language {language} not currently supported.")
+
+        tg = TextGrid.fromFile(tg_path)
+        if not os.path.exists("output"):
+            os.makedirs("output")
+        new_tg_path = os.path.join("output", os.path.basename(wav).replace(".wav", ".TextGrid"))
+        tg.write(new_tg_path)
+        return
+
 
     print(f"[{show_elapsed_time()}] Trimming word-level annotation...")
     # 加载音频文件
