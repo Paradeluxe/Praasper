@@ -78,18 +78,12 @@ It means that this device supports CUDA up to version 12.9.
 
 **Next**, go to [**NVIDIA CUDA Toolkit**](https://developer.nvidia.com/cuda-toolkit) and download the latest version, or whichever version that fits your system/need.
 
-**Next**, uninstall the default CPU-only torch:
-
-```bash
-pip uninstall torch
-```
-
 **Lastly**, install `torch` that fits your CUDA version. Find the correct `pip` command [**in this link**](https://pytorch.org/get-started/locally/).
 
 Here is an example for CUDA 12.9:
 
 ```bash
-pip install torch --index-url https://download.pytorch.org/whl/cu129
+pip install --reinstall torch --index-url https://download.pytorch.org/whl/cu129
 ```
 
 

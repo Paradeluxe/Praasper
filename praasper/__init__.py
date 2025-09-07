@@ -40,6 +40,8 @@ class init_model:
             get_vad(wav_path)
             transcribe_wav_file(wav_path, vad=vad_path, whisper_model=self.whisper_model)
             word_timestamp(wav_path, tg_path)
+        
+        print(f"[{show_elapsed_time()}] Processing completed.")
 
 
 if __name__ == "__main__":
