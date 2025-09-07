@@ -6,14 +6,12 @@ import numpy as np
 from scipy.signal import convolve2d, find_peaks
 
 try:
-    from .process import *
     from .tool import *
-    from .praditor.core_auto import *
-    # from .praditor.tool_auto import * 
-except:
-    from process import *
+    from .VAD.core_auto import *
+# from .praditor.tool_auto import * 
+except ImportError:
     from tool import *
-    from praditor.core_auto import *
+    from VAD.core_auto import *
 
 
 def get_vad(wav_path, params="self"):

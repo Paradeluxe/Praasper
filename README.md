@@ -21,7 +21,7 @@ The default model is `large-v3-turbo`.
 import praasper
 
 model = praasper.init_model(model_name="large-v3-turbo")  
-model.annote(input_path="data")  # The folder where you store .wav and _VAD.TextGrid
+model.annote(input_path="data")  # The folder where you store .wav
 ```
 
 If you want to know all the available models,

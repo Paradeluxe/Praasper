@@ -1,7 +1,7 @@
 try:
     from .process import *
     from .tool import *
-except:
+except ImportError:
     from process import *
     from tool import *
 
