@@ -49,7 +49,7 @@ To extract phoneme boundaries, we designed an **edge detection algorithm**.
 ## pip installation
 
 ```bash
-pip install praasper
+pip install -U praasper
 ```
 > If you have a succesful installation and don't care if there is GPU accelaration, you can stop it right here.
 
@@ -117,8 +117,6 @@ uv pip install praasper
 For `CUDA` support,
 
 ```bash
-uv pip uninstall torch
-
+uv pip install --reinstall torch --index-url https://download.pytorch.org/whl/cu129
 # Or whichever version that matches your CUDA version
-uv pip install torch --index-url https://download.pytorch.org/whl/cu129
 ```

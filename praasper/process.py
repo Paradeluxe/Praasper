@@ -17,6 +17,7 @@ except ImportError:
 
 def get_vad(wav_path, params="self"):
 
+    print(f"[{show_elapsed_time()}] VAD processing started...")
 
 
     audio_obj = ReadSound(wav_path)
@@ -64,11 +65,14 @@ def get_vad(wav_path, params="self"):
             continue
     tg.append(interval_tier)
     tg.write(wav_path.replace(".wav", "_VAD.TextGrid"))  # 将TextGrid对象写入文件
+
+    print(f"[{show_elapsed_time()}] VAD results saved")
+
 # else:
 
 
 # defs
-def transcribe_wav_file(wav_path, vad, model_name):
+def transcribe_wav_file(wav_path, vad, whisper_model):
     """
     使用 Whisper 模型转录 .wav 文件
     
@@ -76,15 +80,11 @@ def transcribe_wav_file(wav_path, vad, model_name):
     :param path_vad: VAD TextGrid 文件的路径
     :return: 转录结果
     """
-    # 加载最佳模型（large-v3）并指定使用设备
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = whisper.load_model(model_name, device=device)
-    print(f"[{show_elapsed_time()}] Model loaded successfully. Current device in use: {model.device if hasattr(model, 'device') else 'Unknown'}")
-    
+
     # 转录音频文件
-    result = model.transcribe(wav_path, fp16=torch.cuda.is_available(), word_timestamps=True)
+    result = whisper_model.transcribe(wav_path, fp16=torch.cuda.is_available(), word_timestamps=True)
     language = result["language"]
-    print(f"[{show_elapsed_time()}] Transcribing {wav_path} into {language}...")
+    print(f"[{show_elapsed_time()}] Transcribing {os.path.basename(wav_path)} into {language}...")
     # print(result)
 
 
@@ -148,10 +148,12 @@ def transcribe_wav_file(wav_path, vad, model_name):
     
     tg.append(tier)
     tg.write(wav_path.replace(".wav", "_whisper.TextGrid"))
+    print(f"[{show_elapsed_time()}] Whisper word-level transcription saved")
 
 
 def word_timestamp(wav, tg_path):
 
+    print(f"[{show_elapsed_time()}] Trimming word-level annotation...")
     # 加载音频文件
     y, sr = librosa.load(wav, sr=16000)
 
@@ -306,6 +308,7 @@ def word_timestamp(wav, tg_path):
         os.makedirs("output")
     new_tg_path = os.path.join("output", os.path.basename(wav).replace(".wav", ".TextGrid"))
     tg.write(new_tg_path)
+    print(f"[{show_elapsed_time()}] Phoneme-level segmentation saved")
 
 
 
