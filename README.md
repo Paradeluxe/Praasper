@@ -22,25 +22,16 @@ import praasper
 
 model = praasper.init_model(model_name="large-v3-turbo")  
 model.annote(input_path="data")  # The folder where you store .wav
-```
 
-If you want to know all the available models,
-
-```python
-import whisper
-
-print(whisper.available_models())
+# If you want to know what other models are available:
+# import whisper
+# print(whisper.available_models())
 ```
 
 
 # Mechanism
 
 **Whisper** is used to transcribe the audio file to **word-level text**. At this point, speech onsets and offsets exhibit time deviations in seconds.
-
-```Python
-model = whisper.load_model("large-v3-turbo", device="cuda")
-result = model.transcribe(wav, word_timestamps=True)
-```
 
 **Praditor** is applied to perform **Voice Activity Detection (VAD)** algorithm to trim the currently existing word/character-level timestamps to **millisecond level**. It is a Speech Onset Detection (SOT) algorithm we developed for langauge researchers.
 
@@ -98,9 +89,7 @@ pip install torch --index-url https://download.pytorch.org/whl/cu129
 
 
 ## (Advanced) uv installation
-`uv` is also highly recommended for way faster installation. If you are new to `uv`, you can install it by running the following command:
-
-First, install `uv` to your default environment:
+`uv` is also highly recommended for way **FASTER** installation. First, make sure `uv` is installed to your default environment:
 
 ```bash
 pip install uv
@@ -114,7 +103,7 @@ uv venv .venv
 
 You should see a new `.venv` folder pops up in your project folder now. (You might also want to restart the terminal.)
 
-Lastly, install `praasper` (by add `uv` before `pip`):
+Lastly, install `praasper` (by adding `uv` before `pip`):
 
 
 ```bash
@@ -124,5 +113,7 @@ For `CUDA` support,
 
 ```bash
 uv pip uninstall torch
+
+# Or whichever version that matches your CUDA version
 uv pip install torch --index-url https://download.pytorch.org/whl/cu129
 ```

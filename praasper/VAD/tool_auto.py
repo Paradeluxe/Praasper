@@ -5,7 +5,8 @@ from datetime import datetime
 import numpy as np
 from scipy.signal import butter, filtfilt
 from textgrid import TextGrid
-import soundfile as sf
+# import soundfile as sf
+import librosa
 
 
 class ReadSound:
@@ -21,11 +22,9 @@ class ReadSound:
                 self.frame_rate = frame_rate
 
         else:  # 如果有fpath
-            self.info = sf.info(fpath)
-            # print(self.info)
-
-            self.duration_seconds = self.info.duration
-            self.arr, self.frame_rate = sf.read(fpath, dtype='int16')
+            self.arr, self.frame_rate = librosa.load(fpath, sr=None, dtype=np.float32)
+            self.arr = (self.arr * 32767).astype('int16')  # 转换为 int16 类型
+            self.duration_seconds = librosa.get_duration(y=self.arr, sr=self.frame_rate)
 
 
 
