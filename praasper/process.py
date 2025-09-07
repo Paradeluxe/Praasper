@@ -4,6 +4,7 @@ from textgrid import TextGrid, IntervalTier
 import librosa
 import numpy as np
 from scipy.signal import convolve2d, find_peaks
+import torch
 
 try:
     from .tool import *
@@ -76,12 +77,12 @@ def transcribe_wav_file(wav_path, vad, model_name):
     :return: 转录结果
     """
     # 加载最佳模型（large-v3）并指定使用设备
-    # device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = whisper.load_model(model_name)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = whisper.load_model(model_name, device=device)
     print(f"[{show_elapsed_time()}] Model loaded successfully. Current device in use: {model.device if hasattr(model, 'device') else 'Unknown'}")
     
     # 转录音频文件
-    result = model.transcribe(wav_path, word_timestamps=True)
+    result = model.transcribe(wav_path, fp16=torch.cuda.is_available(), word_timestamps=True)
     language = result["language"]
     print(f"[{show_elapsed_time()}] Transcribing {wav_path} into {language}...")
     # print(result)

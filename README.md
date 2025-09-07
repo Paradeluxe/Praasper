@@ -1,5 +1,7 @@
 # Praasper
-![Python](https://img.shields.io/badge/python->=3.8-blue.svg)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/praasper.svg?label=PyPI%20downloads)](
+https://pypi.org/project/praasper/)
+![Python](https://img.shields.io/badge/python->=3.10-blue.svg)
 ![GitHub License](https://img.shields.io/github/license/Paradeluxe/Praasper)
 
 

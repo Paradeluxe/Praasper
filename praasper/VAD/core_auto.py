@@ -3,10 +3,10 @@ import math
 import os
 
 import numpy as np
+from textgrid import TextGrid, PointTier, Point, IntervalTier, Interval
 from sklearn.cluster import DBSCAN
 # from dbscan import DBSCAN
 
-from textgrid import TextGrid, PointTier, Point, IntervalTier, Interval
 
 
 try:
@@ -195,7 +195,7 @@ def autoPraditor(params, audio_obj, which_set):
     # print("---↘")
     total_num = len(_onoffsets)
     for i, (__offset, __onset) in enumerate(_onoffsets):
-        print(f"\r[{show_elapsed_time()}] ({i+1}/{total_num}, {(i+1)/total_num*100:.1f}%)", end="")
+        print(f"\r[{show_elapsed_time()}] Drawing {which_set}(s) ({i+1}/{total_num}, {int((i+1)/total_num*100)}%)", end="")
 
         # -------------------------------------------------
         # 强制跳过条件 Skip Condition
