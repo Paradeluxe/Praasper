@@ -153,22 +153,22 @@ def transcribe_wav_file(wav_path, vad, whisper_model):
     return language
 
 
-def word_timestamp(wav, tg_path, language):
+def word_timestamp(wav_path, tg_path, language):
 
     if language.lower() not in ['zh', 'en', 'yue']:
         print(f"[{show_elapsed_time()}] Language {language} not currently supported.")
 
-        tg = TextGrid.fromFile(tg_path)
-        if not os.path.exists("output"):
-            os.makedirs("output")
-        new_tg_path = os.path.join("output", os.path.basename(wav).replace(".wav", ".TextGrid"))
+        wav_folder = os.path.dirname(wav_path)
+        output_path = os.path.join(wav_folder, "output")
+        os.makedirs(output_path, exist_ok=True)
+        new_tg_path = os.path.join(output_path, os.path.basename(wav_path).replace(".wav", ".TextGrid"))
         tg.write(new_tg_path)
         return
 
 
     print(f"[{show_elapsed_time()}] Trimming word-level annotation...")
     # 加载音频文件
-    y, sr = librosa.load(wav, sr=16000)
+    y, sr = librosa.load(wav_path, sr=16000)
 
     # 创建一个新的IntervalTier
     max_time = librosa.core.get_duration(y=y, sr=sr)
@@ -317,9 +317,10 @@ def word_timestamp(wav, tg_path, language):
 
     # 保存修改后的 TextGrid 文件
     # 检查 output 文件夹是否存在，如果不存在则创建
-    if not os.path.exists("output"):
-        os.makedirs("output")
-    new_tg_path = os.path.join("output", os.path.basename(wav).replace(".wav", ".TextGrid"))
+    wav_folder = os.path.dirname(wav_path)
+    output_path = os.path.join(wav_folder, "output")
+    os.makedirs(output_path, exist_ok=True)
+    new_tg_path = os.path.join(output_path, os.path.basename(wav_path).replace(".wav", ".TextGrid"))
     tg.write(new_tg_path)
     print(f"[{show_elapsed_time()}] Phoneme-level segmentation saved")
 

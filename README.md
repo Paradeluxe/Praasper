@@ -11,7 +11,9 @@ https://pypi.org/project/praasper/)
 
 In **Praasper**, we adopt a rather simple and straightforward pipeline to extract phoneme-level information from audio files. The pipeline includes [Whisper](https://github.com/openai/whisper) and [Praditor](https://github.com/Paradeluxe/Praditor). 
 
-Now **Praasper** support **Mandarin**. In the near future we plan to add support for **Cantonese** and **English**.
+
+Now **Praasper** support **Mandarin**. In the near future we plan to add support for **Cantonese** and **English**. 
+> For langauges that are not yet support, you can still get a result as the word-level annotation with high external boundaries. While the inner boundries could be inaccurate due to Whisper's feature.
 
 
 
@@ -32,6 +34,23 @@ model.annote(input_path="data")  # The folder where you store .wav
 # import whisper
 # print(whisper.available_models())
 ```
+The output should be like:
+```bash
+[00:00:252] Loading Whisper model: large-v3-turbo
+[00:06:745] Model loaded successfully. Current device in use: cuda:0
+[00:06:745] 1 valid audio files detected in data/data
+[00:06:745] Processing test_audio.wav (1/1)
+[00:06:745] VAD processing started...
+[00:08:268] Drawing onset(s) (7/7, 100%)
+[00:08:540] Drawing offset(s) (7/7, 100%)
+[00:08:540] VAD results saved
+[00:10:984] Transcribing test_audio.wav into zh...
+[00:10:987] Whisper word-level transcription saved
+[00:10:987] Trimming word-level annotation...
+[00:11:018] Phoneme-level segmentation saved
+[00:11:018] Processing completed.
+```
+
 
 
 # Mechanism
@@ -57,7 +76,7 @@ pip install -U praasper
 ## GPU Acceleration (Windows/Linux)
 `Whisper` can automaticly detects the best currently available device to use. But you still need to first install GPU-support version `torch` in order to enable CUDA acceleration.
 
-- For **macOS** users, `Whisper` only detects CPU as the processing device.
+- For **macOS** users, `Whisper` only supports CPU as the processing device.
 - For **Windows/Linux** users, the priority order should be: `CUDA` -> `CPU`.
 
 If you have no experience in installing `CUDA`, follow the steps below:
@@ -70,11 +89,11 @@ If you have no experience in installing `CUDA`, follow the steps below:
 nvidia-smi
 ```
 
-Results should pop up like this:
+Results should pop up like this (It means that this device supports CUDA up to version 12.9).
+
 ```bash
 | NVIDIA-SMI 576.80                 Driver Version: 576.80         CUDA Version: 12.9     |
 ```
-It means that this device supports CUDA up to version 12.9.
 
 **Next**, go to [**NVIDIA CUDA Toolkit**](https://developer.nvidia.com/cuda-toolkit) and download the latest version, or whichever version that fits your system/need.
 
@@ -106,7 +125,7 @@ Lastly, install `praasper` (by adding `uv` before `pip`):
 
 
 ```bash
-uv pip install praasper
+uv pip install -U praasper
 ```
 For `CUDA` support,
 
