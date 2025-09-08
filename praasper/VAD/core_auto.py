@@ -15,10 +15,10 @@ except ImportError:
     from tool_auto import bandpass_filter, get_current_time, ReadSound
 
 try:
-    from ..tool import show_elapsed_time
+    from ..utils import show_elapsed_time
 except ImportError:
     # from tool_auto import bandpass_filter, get_current_time, ReadSound
-    from tool import show_elapsed_time
+    from utils import show_elapsed_time
 
 # plat = os.name.lower()
 # check if ffmpeg exists in the system path or the pydub package can find it
@@ -66,8 +66,6 @@ def autoPraditor(params, audio_obj, which_set):
         highcut=params["cutoff1"],
         fs=_audio_obj.frame_rate
     )
-
-
 
     # Audio已经准备好
     # 接下来就是第一步：DBSCAN聚类找噪声片段

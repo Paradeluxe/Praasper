@@ -1,5 +1,4 @@
 import os
-import whisper
 from textgrid import TextGrid, IntervalTier
 import librosa
 import numpy as np
@@ -7,11 +6,11 @@ from scipy.signal import convolve2d, find_peaks
 import torch
 
 try:
-    from .tool import *
+    from .utils import *
     from .VAD.core_auto import *
 # from .praditor.tool_auto import * 
 except ImportError:
-    from tool import *
+    from utils import *
     from VAD.core_auto import *
 
 
@@ -59,10 +58,13 @@ def get_vad(wav_path, params="self"):
     tg = TextGrid()
     interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_obj.duration_seconds)
     for i in range(len(onsets)):
+        print(i)
         try:
             interval_tier.addInterval(Interval(onsets[i], offsets[i], "+"))
         except ValueError:
             continue
+        # except IndexError:
+        #     break
     tg.append(interval_tier)
     tg.write(wav_path.replace(".wav", "_VAD.TextGrid"))  # 将TextGrid对象写入文件
 
@@ -127,7 +129,7 @@ def transcribe_wav_file(wav_path, vad, whisper_model):
                 if start_time < empty_mark_interval[0] < empty_mark_interval[1] < end_time:
                     pass
 
-            # print(start_time, end_time, text)
+            print(start_time, end_time, text)
             tier.add(start_time, end_time, text)
 
     for vad_interval in vad_intervals:
@@ -158,7 +160,7 @@ def word_timestamp(wav_path, tg_path, language):
     if language.lower() not in ['zh', 'en', 'yue']:
         print(f"[{show_elapsed_time()}] Language {language} not currently supported.")
 
-        wav_folder = os.path.dirname(wav_path)
+        wav_folder = os.path.dirname(os.path.dirname(wav_path))
         output_path = os.path.join(wav_folder, "output")
         os.makedirs(output_path, exist_ok=True)
         new_tg_path = os.path.join(output_path, os.path.basename(wav_path).replace(".wav", ".TextGrid"))
@@ -249,7 +251,7 @@ def word_timestamp(wav_path, tg_path, language):
     phon_tier = IntervalTier(name="phoneme", minTime=0, maxTime=word_tier.maxTime)
 
     for interval in word_intervals:
-        con, vow, tone = get_pinyin_info(interval.mark)
+        con, vow, tone = extract_cvt(interval.mark, lang=language)
         expected_num = len(vow) + 1 if con else len(vow)
         phon_series = [con] + vow if con else vow
         # print(expected_num)
@@ -317,7 +319,7 @@ def word_timestamp(wav_path, tg_path, language):
 
     # 保存修改后的 TextGrid 文件
     # 检查 output 文件夹是否存在，如果不存在则创建
-    wav_folder = os.path.dirname(wav_path)
+    wav_folder = os.path.dirname(os.path.dirname(wav_path))
     output_path = os.path.join(wav_folder, "output")
     os.makedirs(output_path, exist_ok=True)
     new_tg_path = os.path.join(output_path, os.path.basename(wav_path).replace(".wav", ".TextGrid"))

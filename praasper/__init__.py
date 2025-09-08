@@ -1,9 +1,9 @@
 try:
+    from .utils import *
     from .process import *
-    from .tool import *
 except ImportError:
+    from utils import *
     from process import *
-    from tool import *
 
 import os
 import whisper
