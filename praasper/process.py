@@ -17,7 +17,7 @@ except ImportError:
 
 def get_vad(wav_path, params="self"):
 
-    print(f"[{show_elapsed_time()}] VAD processing started...")
+    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD processing started...")
 
 
     audio_obj = ReadSound(wav_path)
@@ -66,7 +66,7 @@ def get_vad(wav_path, params="self"):
     tg.append(interval_tier)
     tg.write(wav_path.replace(".wav", "_VAD.TextGrid"))  # 将TextGrid对象写入文件
 
-    print(f"[{show_elapsed_time()}] VAD results saved")
+    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD results saved")
 
 # else:
 
@@ -84,7 +84,7 @@ def transcribe_wav_file(wav_path, vad, whisper_model):
     # 转录音频文件
     result = whisper_model.transcribe(wav_path, fp16=torch.cuda.is_available(), word_timestamps=True)
     language = result["language"]
-    print(f"[{show_elapsed_time()}] Transcribing {os.path.basename(wav_path)} into {language}...")
+    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Transcribing into {language}...")
     # print(result)
 
 
@@ -148,7 +148,7 @@ def transcribe_wav_file(wav_path, vad, whisper_model):
     
     tg.append(tier)
     tg.write(wav_path.replace(".wav", "_whisper.TextGrid"))
-    print(f"[{show_elapsed_time()}] Whisper word-level transcription saved")
+    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Whisper word-level transcription saved")
 
     return language
 
@@ -166,7 +166,7 @@ def word_timestamp(wav_path, tg_path, language):
         return
 
 
-    print(f"[{show_elapsed_time()}] Trimming word-level annotation...")
+    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Trimming word-level annotation...")
     # 加载音频文件
     y, sr = librosa.load(wav_path, sr=16000)
 
@@ -322,7 +322,7 @@ def word_timestamp(wav_path, tg_path, language):
     os.makedirs(output_path, exist_ok=True)
     new_tg_path = os.path.join(output_path, os.path.basename(wav_path).replace(".wav", ".TextGrid"))
     tg.write(new_tg_path)
-    print(f"[{show_elapsed_time()}] Phoneme-level segmentation saved")
+    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Phoneme-level segmentation saved")
 
 
 

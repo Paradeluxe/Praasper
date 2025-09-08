@@ -12,7 +12,7 @@ https://pypi.org/project/praasper/)
 In **Praasper**, we adopt a rather simple and straightforward pipeline to extract phoneme-level information from audio files. The pipeline includes [Whisper](https://github.com/openai/whisper) and [Praditor](https://github.com/Paradeluxe/Praditor). 
 
 
-Now **Praasper** support **Mandarin**. In the near future we plan to add support for **Cantonese** and **English**. 
+Now **Praasper** support **Mandarin (zh)**. In the near future we plan to add support for **Cantonese (yue)** and **English (en)**. 
 > For langauges that are not yet support, you can still get a result as the word-level annotation with high external boundaries. While the inner boundries could be inaccurate due to Whisper's feature.
 
 
@@ -36,19 +36,19 @@ model.annote(input_path="data")  # The folder where you store .wav
 ```
 The output should be like:
 ```bash
-[00:00:252] Loading Whisper model: large-v3-turbo
-[00:06:745] Model loaded successfully. Current device in use: cuda:0
-[00:06:745] 1 valid audio files detected in data/data
-[00:06:745] Processing test_audio.wav (1/1)
-[00:06:745] VAD processing started...
-[00:08:268] Drawing onset(s) (7/7, 100%)
-[00:08:540] Drawing offset(s) (7/7, 100%)
-[00:08:540] VAD results saved
-[00:10:984] Transcribing test_audio.wav into zh...
-[00:10:987] Whisper word-level transcription saved
-[00:10:987] Trimming word-level annotation...
-[00:11:018] Phoneme-level segmentation saved
-[00:11:018] Processing completed.
+[00:00:242] Loading Whisper model: large-v3-turbo
+[00:07:472] Model loaded successfully. Current device in use: cuda:0
+[00:07:472] 1 valid audio files detected in C:\Users\User\Desktop\Praasper\data
+[00:07:472] Processing test_audio.wav (1/1)
+[00:07:472] (test_audio.wav) VAD processing started...
+[00:09:202] (test_audio.wav) Drawing onset(s) (7/7, 100%)
+[00:09:553] (test_audio.wav) Drawing offset(s) (7/7, 100%)
+[00:09:555] (test_audio.wav) VAD results saved
+[00:12:181] (test_audio.wav) Transcribing into zh...
+[00:12:183] (test_audio.wav) Whisper word-level transcription saved
+[00:12:183] (test_audio.wav) Trimming word-level annotation...
+[00:12:211] (test_audio.wav) Phoneme-level segmentation saved
+[00:12:213] Processing completed.
 ```
 
 
@@ -76,7 +76,7 @@ pip install -U praasper
 ## GPU Acceleration (Windows/Linux)
 `Whisper` can automaticly detects the best currently available device to use. But you still need to first install GPU-support version `torch` in order to enable CUDA acceleration.
 
-- For **macOS** users, `Whisper` only supports CPU as the processing device.
+- For **macOS** users, `Whisper` only supports `CPU` as the processing device.
 - For **Windows/Linux** users, the priority order should be: `CUDA` -> `CPU`.
 
 If you have no experience in installing `CUDA`, follow the steps below:

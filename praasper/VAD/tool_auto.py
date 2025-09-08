@@ -12,7 +12,7 @@ import librosa
 class ReadSound:
     def __init__(self, fpath=None, arr=None, duration_seconds=None, frame_rate=None):
 
-
+        self.fpath = fpath
         if fpath is None:
             if arr is None:
                 raise ValueError("Need audio input. Receive None.")

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='praasper',      # 在PyPI上唯一的包名
-    version='0.1.2.dev2',              # 版本号，遵循语义化版本规范
+    version='0.1.2',              # 版本号，遵循语义化版本规范
     description='VAD-Enhanced ASR with Word- and Phoneme-Level Timestamps',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
@@ -22,5 +22,5 @@ setup(
         'Programming Language :: Python :: 3',
         'Operating System :: OS Independent',
     ],
-    python_requires='>=3.8',      # 指定Python版本要求
+    python_requires='>=3.10',      # 指定Python版本要求
 )
