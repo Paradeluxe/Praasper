@@ -13,6 +13,30 @@ except ImportError:
     from utils import *
     from VAD.core_auto import *
 
+def compare_centroids(y, time_stamp, sr, length=0.05):
+    """
+    比较前后的音频片段的频谱能量质心
+    """
+
+    target_sample = int(time_stamp * sr)
+    start_prev = target_sample - int(length * sr)
+    end_prev = target_sample
+    start_next = target_sample
+    end_next = target_sample + int(length * sr)
+
+    # 提取前后0.01s的音频片段
+    y_prev = y[start_prev:end_prev]
+    y_next = y[start_next:end_next]
+    
+    # 计算前0.01s的频谱能量质心
+    centroid_prev = librosa.feature.spectral_centroid(y=y_prev, sr=sr)
+    centroid_prev_mean = np.mean(centroid_prev)
+    
+    # 计算后0.01s的频谱能量质心
+    centroid_next = librosa.feature.spectral_centroid(y=y_next, sr=sr)
+    centroid_next_mean = np.mean(centroid_next)
+
+    return centroid_prev_mean, centroid_next_mean
 
 def get_vad(wav_path, params="self"):
 
@@ -240,19 +264,18 @@ def word_timestamp(wav_path, tg_path, language):
 
             # 找到所有的波峰和波谷
             peaks, _ = find_peaks(convolved_spectrogram, prominence=(10, None))
-            valleys, _ = find_peaks(-convolved_spectrogram, prominence=(10, None))
-
+            # valleys, _ = find_peaks(-convolved_spectrogram, prominence=(10, None))
 
             # 只保留波峰和波谷绝对值大于100的点
             valid_peaks = peaks[np.abs(convolved_spectrogram[peaks]) > 0]
-            valid_valleys = valleys[np.abs(convolved_spectrogram[valleys]) > 0]
+            # valid_valleys = valleys[np.abs(convolved_spectrogram[valleys]) > 0]
 
             # 提取有效波峰和波谷对应的时间和值
             peak_times = time_axis[valid_peaks]
-            peak_values = convolved_spectrogram[valid_peaks]
+            # peak_values = convolved_spectrogram[valid_peaks]
 
-            valley_times = time_axis[valid_valleys]
-            valley_values = convolved_spectrogram[valid_valleys]    
+            # valley_times = time_axis[valid_valleys]
+            # valley_values = convolved_spectrogram[valid_valleys]    
 
             # 筛选出不在 current_interval.minTime 到 current_interval.minTime + 0.05s 之间的波峰
             valid_peak_times = [t for t in peak_times if t >= 0.05 and (target_boundary -  average_word_duration/2 <= t <= target_boundary + average_word_duration * 3/4)]
@@ -271,7 +294,50 @@ def word_timestamp(wav_path, tg_path, language):
 
             current_interval.maxTime = target_boundary
             next_interval.minTime = target_boundary
-    
+            print(target_boundary)
+            print("SR:", sr)
+            # 以target_boundary为0点，分别计算-0.01s到0s以及0s到0.01s的频谱能量质心
+            
+            centroid_prev_mean, centroid_next_mean = compare_centroids(y, target_boundary, sr)
+
+            print(current_interval.mark, next_interval.mark)
+            print(f"频谱能量质心（-0.01s到0s）: {centroid_prev_mean} Hz")
+            print(f"频谱能量质心（0s到0.01s）: {centroid_next_mean} Hz")
+
+            if centroid_prev_mean > centroid_next_mean:
+                next_cvt = extract_cvt(next_interval.mark, lang=language)[0]
+                print(next_interval.mark, next_cvt)
+
+
+                # 从 target_boundary 往前，在 peak_times 里找第一个左质心小于右质心的峰值
+                # 将峰值时间按从大到小排序，从靠近 target_boundary 的峰值开始检查
+                sorted_peak_times = sorted([t for t in peak_times if 0.05 < t < target_boundary - current_interval.minTime - 0.000001], reverse=True) + \
+                                    [t for t in peak_times if target_boundary - current_interval.minTime < t < next_interval.maxTime - current_interval.minTime] # 要做两个方向
+                print(sorted_peak_times)
+
+
+                for peak_time in sorted_peak_times:
+                    # 计算该峰值对应的实际时间点
+                    actual_peak_time = peak_time + current_interval.minTime
+                    
+                    new_centroid_prev_mean, new_centroid_next_mean = compare_centroids(y, actual_peak_time, sr)
+                    print("\t", actual_peak_time, f"{new_centroid_prev_mean} Hz", f"{new_centroid_next_mean} Hz")
+
+                    if new_centroid_prev_mean < new_centroid_next_mean:
+                        if next_cvt[0] in ["h"] and min(new_centroid_prev_mean, new_centroid_next_mean) > min(centroid_prev_mean, new_centroid_prev_mean):
+                            pass
+
+                        else:
+                            target_boundary = actual_peak_time
+                            print("调整后", target_boundary, f"{centroid_prev_mean} Hz", f"{centroid_next_mean} Hz")
+                            current_interval.maxTime = target_boundary
+                            next_interval.minTime = target_boundary
+                            break
+                    
+            print()
+
+
+
     tg.write(wav_path.replace(".wav", "_recali.TextGrid"))
 
     phon_tier = IntervalTier(name="phoneme", minTime=0, maxTime=word_tier.maxTime)
@@ -284,7 +350,7 @@ def word_timestamp(wav_path, tg_path, language):
         start_time = interval.minTime
 
         for idx, cvt in enumerate(cvts):
-            print(cvt)
+            # print(cvt)
             con, vow, tone = cvt
             start_sample = int((start_time + dur * idx)* sr)
             end_sample = int((start_time + dur * (idx+1)) * sr)

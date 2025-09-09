@@ -29,4 +29,4 @@ def extract_cvt(character, lang):
 
 
 if __name__ == '__main__':
-    print(extract_cvt('边'))
+    print(extract_cvt('我', 'zh'))
