@@ -7,6 +7,7 @@ except ImportError:
 
 import os
 import whisper
+# import whisper_timestamped as whisper
 import torch
 
 class init_model:

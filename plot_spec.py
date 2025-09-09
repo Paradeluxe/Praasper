@@ -49,7 +49,7 @@ def plot_spectrum(audio_path, vad_path):
 
 
     # 加载音频文件
-    y, sr = librosa.load(audio_path, sr=16000)
+    y, sr = librosa.load(audio_path, sr=8000)
 
     # 创建一个新的IntervalTier
     max_time = librosa.core.get_duration(y=y, sr=sr)

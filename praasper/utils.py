@@ -1,4 +1,3 @@
-import pypinyin
 import time
 try:
     from .cvt import *
