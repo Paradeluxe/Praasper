@@ -34,10 +34,10 @@ item []:
 				text = ""
 			intervals [6]:
 				xmin = 2.16823
-				xmax = 2.5379869444444445
+				xmax = 3.0202786111111113
 				text = "编"
 			intervals [7]:
-				xmin = 2.5379869444444445
+				xmin = 3.0202786111111113
 				xmax = 3.03637
 				text = "辑"
 			intervals [8]:
@@ -62,10 +62,10 @@ item []:
 				text = ""
 			intervals [13]:
 				xmin = 5.81256
-				xmax = 6.1035529245283024
+				xmax = 6.459210943396227
 				text = "冰"
 			intervals [14]:
-				xmin = 6.1035529245283024
+				xmin = 6.459210943396227
 				xmax = 6.66937
 				text = "箱"
 			intervals [15]:
@@ -77,7 +77,7 @@ item []:
 		name = "phoneme"
 		xmin = 0
 		xmax = 7.76288
-		intervals: size = 30
+		intervals: size = 22
 			intervals [1]:
 				xmin = 0
 				xmax = 0.30134
@@ -88,113 +88,81 @@ item []:
 				text = "k"
 			intervals [3]:
 				xmin = 0.38474625
-				xmax = 0.48483375
-				text = "a"
-			intervals [4]:
-				xmin = 0.48483375
 				xmax = 0.63494
-				text = "o"
-			intervals [5]:
+				text = "ao"
+			intervals [4]:
 				xmin = 0.63494
 				xmax = 0.7158
 				text = ""
-			intervals [6]:
+			intervals [5]:
 				xmin = 0.7158
 				xmax = 0.7958347222222222
 				text = "ch"
-			intervals [7]:
+			intervals [6]:
 				xmin = 0.7958347222222222
 				xmax = 1.14796
 				text = "a"
-			intervals [8]:
+			intervals [7]:
 				xmin = 1.14796
 				xmax = 2.16823
 				text = ""
-			intervals [9]:
+			intervals [8]:
 				xmin = 2.16823
-				xmax = 2.1843060869565214
+				xmax = 2.184306650943396
 				text = "b"
+			intervals [9]:
+				xmin = 2.184306650943396
+				xmax = 3.0202786111111113
+				text = "ian"
 			intervals [10]:
-				xmin = 2.1843060869565214
-				xmax = 2.296838695652174
-				text = "i"
-			intervals [11]:
-				xmin = 2.296838695652174
-				xmax = 2.3932952173913042
-				text = "a"
-			intervals [12]:
-				xmin = 2.3932952173913042
-				xmax = 2.5379869444444445
-				text = "n"
-			intervals [13]:
-				xmin = 2.5379869444444445
-				xmax = 2.6987530734767025
-				text = "j"
-			intervals [14]:
-				xmin = 2.6987530734767025
+				xmin = 3.0202786111111113
 				xmax = 3.03637
 				text = "i"
-			intervals [15]:
+			intervals [11]:
 				xmin = 3.03637
 				xmax = 4.04213
 				text = ""
-			intervals [16]:
+			intervals [12]:
 				xmin = 4.04213
 				xmax = 4.1389652272727275
 				text = "j"
-			intervals [17]:
+			intervals [13]:
 				xmin = 4.1389652272727275
 				xmax = 4.39721
 				text = "i"
-			intervals [18]:
+			intervals [14]:
 				xmin = 4.39721
 				xmax = 4.45594
 				text = ""
-			intervals [19]:
+			intervals [15]:
 				xmin = 4.45594
 				xmax = 4.53705328125
 				text = "ch"
-			intervals [20]:
+			intervals [16]:
 				xmin = 4.53705328125
-				xmax = 4.60194390625
-				text = "a"
-			intervals [21]:
-				xmin = 4.60194390625
 				xmax = 4.71551
-				text = "ng"
-			intervals [22]:
+				text = "ang"
+			intervals [17]:
 				xmin = 4.71551
 				xmax = 5.81256
 				text = ""
-			intervals [23]:
+			intervals [18]:
 				xmin = 5.81256
-				xmax = 5.828726666666667
+				xmax = 6.4430803125
 				text = "b"
-			intervals [24]:
-				xmin = 5.828726666666667
-				xmax = 5.893393333333334
-				text = "i"
-			intervals [25]:
-				xmin = 5.893393333333334
-				xmax = 6.1035529245283024
-				text = "ng"
-			intervals [26]:
-				xmin = 6.1035529245283024
-				xmax = 6.265213638814017
+			intervals [19]:
+				xmin = 6.4430803125
+				xmax = 6.459210943396227
+				text = "ing"
+			intervals [20]:
+				xmin = 6.459210943396227
+				xmax = 6.475374404934688
 				text = "x"
-			intervals [27]:
-				xmin = 6.265213638814017
-				xmax = 6.329877924528303
-				text = "i"
-			intervals [28]:
-				xmin = 6.329877924528303
-				xmax = 6.507704710242588
-				text = "a"
-			intervals [29]:
-				xmin = 6.507704710242588
+			intervals [21]:
+				xmin = 6.475374404934688
 				xmax = 6.66937
-				text = "ng"
-			intervals [30]:
+				text = "iang"
+			intervals [22]:
 				xmin = 6.66937
 				xmax = 7.76288
 				text = ""

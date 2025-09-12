@@ -2,8 +2,9 @@ import os
 from textgrid import TextGrid, IntervalTier
 import librosa
 import numpy as np
-from scipy.signal import convolve2d, find_peaks
+from scipy.signal import convolve2d, find_peaks, butter, filtfilt
 import torch
+import matplotlib.pyplot as plt
 
 try:
     from .utils import *
@@ -12,6 +13,78 @@ try:
 except ImportError:
     from utils import *
     from VAD.core_auto import *
+from scipy.signal import argrelextrema
+import os
+
+
+def calc_power_valley(y, sr):
+    """
+    用librosa库计算一段信号的功率曲线，并找到最低的波谷所在的时间戳
+
+    :param y: 音频信号
+    :param sr: 采样率
+    :return: 功率曲线, 最低波谷对应的时间戳
+    """
+
+    # 使用librosa计算音频的均方根能量(rms)
+    rms = librosa.feature.rms(y=y, frame_length=512, hop_length=256, center=False)[0]
+    
+    # 计算对应的时间轴
+    time = librosa.times_like(rms, sr=sr, hop_length=256)
+    # 找到所有波谷的索引
+    valley_indices = argrelextrema(rms, np.less)[0]
+        
+    # 获取所有波谷对应的时间戳
+    valley_time = time[valley_indices]
+    
+    
+    return rms, valley_time
+
+
+
+def bandpass_filter(data, lowcut, highcut, fs, order=4):
+    nyquist = 0.5 * fs
+    low = lowcut / nyquist
+    high = highcut / nyquist
+    if low == 0:
+        b, a = butter(order, high, btype='low', output="ba")
+        filtered_data = filtfilt(b, a, data)
+    else:
+        try:
+            b, a = butter(order, [low, high], btype='bandpass', output="ba")
+            filtered_data = filtfilt(b, a, data)
+        except ValueError:  # 如果设置的最高频率大于了可接受的范围
+            b, a = butter(order, low, btype='high', output="ba")
+            filtered_data = filtfilt(b, a, data)
+    return filtered_data
+
+
+def find_valid_peaks(y, sr, db_thre=20, peak_prominence=10, nfft=2048, win_length=1024):
+    # 计算频谱图
+    spectrogram = librosa.stft(y, n_fft=nfft, win_length=win_length, center=True)
+    spectrogram_db = librosa.amplitude_to_db(abs(spectrogram), ref=1.0)  # 使用librosa.amplitude_to_db已将y值转换为对数刻度，top_db=None确保不限制最大分贝值
+    
+    kernel = np.array([[-1, 0, 1]])
+    convolved_spectrogram = convolve2d(spectrogram_db, kernel, mode='same', boundary='symm')
+    convolved_spectrogram = np.where(np.abs(convolved_spectrogram) < db_thre, 0, convolved_spectrogram)
+
+    # 按频率轴求和，保持维度以方便后续绘图
+    convolved_spectrogram = np.sum(np.abs(convolved_spectrogram), axis=0, keepdims=False)
+    # 在保持输出信号长度不变的情况下，对卷积后的频谱图求一阶导
+    # convolved_spectrogram = np.gradient(convolved_spectrogram)
+    time_axis = np.linspace(0, len(convolved_spectrogram) * librosa.core.get_duration(y=y, sr=sr) / len(convolved_spectrogram), len(convolved_spectrogram))
+
+    # 找到所有的波峰和波谷
+    peaks, _ = find_peaks(convolved_spectrogram, prominence=(peak_prominence, None))
+    # valleys, _ = find_peaks(-convolved_spectrogram, prominence=(10, None))
+
+    # valid_valleys = valleys[np.abs(convolved_spectrogram[valleys]) > 0]
+
+    # 提取有效波峰和波谷对应的时间和值
+    # peak_times = time_axis[valid_peaks]
+
+    return peaks, time_axis, convolved_spectrogram
+
 
 def compare_centroids(y, time_stamp, sr, length=0.05):
     """
@@ -36,7 +109,14 @@ def compare_centroids(y, time_stamp, sr, length=0.05):
     centroid_next = librosa.feature.spectral_centroid(y=y_next, sr=sr)
     centroid_next_mean = np.mean(centroid_next)
 
-    return centroid_prev_mean, centroid_next_mean
+
+    # 计算前0.01s的音频能量总量
+    energy_prev = np.sum(y_prev ** 2)
+    
+    # 计算后0.01s的音频能量总量
+    energy_next = np.sum(y_next ** 2)
+
+    return centroid_prev_mean, centroid_next_mean, energy_prev, energy_next
 
 def get_vad(wav_path, params="self"):
 
@@ -82,7 +162,6 @@ def get_vad(wav_path, params="self"):
     tg = TextGrid()
     interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_obj.duration_seconds)
     for i in range(len(onsets)):
-        print(i)
         try:
             interval_tier.addInterval(Interval(onsets[i], offsets[i], "+"))
         except ValueError:
@@ -139,7 +218,6 @@ def transcribe_wav_file(wav_path, vad, whisper_model):
     for segment in result["segments"]:
         
         for idx, word in enumerate(segment["words"]):
-            print(word)
             start_time = word["start"]
             end_time = word["end"]
             
@@ -178,8 +256,6 @@ def transcribe_wav_file(wav_path, vad, whisper_model):
     # 遍历 word_tier 中的每一个 interval
     new_intervals = []
     for interval in tier.intervals:
-        print(interval)
-        # chinese_count = sum(1 for char in text if '\u4e00' <= char <= '\u9fff')
         if len(interval.mark) > 1:
             # 计算每个新 interval 的时长
             duration = (interval.maxTime - interval.minTime) / len(interval.mark)
@@ -196,11 +272,44 @@ def transcribe_wav_file(wav_path, vad, whisper_model):
     tier.intervals = new_intervals
     # print(tier.intervals)
     # exit()
+
+    
+    # y, sr = librosa.load(wav_path, sr=16000, mono=False)
+    # y = y[0]
+
+    # power, valleys = calc_power_valley(y, sr)
+    # print(valleys)
+
+    # word_intervals = [interval for interval in tier.intervals if interval.mark != ""]
+    # print(word_intervals)
+    # for i in range(len(word_intervals) - 1):
+    #     current_interval = word_intervals[i]
+    #     next_interval = word_intervals[i + 1]
+    #     if current_interval.maxTime == next_interval.minTime:
+    #         # start_sample = int((current_interval.minTime) * sr)
+    #         # end_sample = int((next_interval.maxTime) * sr)
+    #         # y_vad = y[start_sample:end_sample]
+    #         valid_valleys = [v for v in valleys if current_interval.minTime < v < next_interval.maxTime]
+    #         print(valid_valleys)
+    #         for valley in valid_valleys:
+    #             current_interval.maxTime = valley
+    #             next_interval.minTime = current_interval.maxTime
+    #             print(current_interval.mark, next_interval.mark, valley)
+
+    #             break
+
+            # print(current_interval.mark, next_interval.mark, valley + current_interval.minTime+0.05)
+            # current_interval.maxTime = valley + current_interval.minTime
+            # next_interval.minTime = current_interval.maxTime
+
+
+
+
     
     tg.append(tier)
     tg.write(wav_path.replace(".wav", "_whisper.TextGrid"))
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Whisper word-level transcription saved")
-
+    exit()
     return language
 
 
@@ -218,22 +327,18 @@ def word_timestamp(wav_path, tg_path, language):
 
 
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Trimming word-level annotation...")
-    # 加载音频文件
-    y, sr = librosa.load(wav_path, sr=16000)
+    
+    
+    y, sr = librosa.load(wav_path, sr=16000)  # 加载音频文件
+    # y = bandpass_filter(y, 200, 8000, sr)
+    
+    tg = TextGrid.fromFile(tg_path)  # 加载 TextGrid 文件
 
-    # 创建一个新的IntervalTier
-    max_time = librosa.core.get_duration(y=y, sr=sr)
-
-    # 加载 TextGrid 文件
-    tg = TextGrid.fromFile(tg_path)
     word_tier = [tier for tier in tg if tier.name == 'word'][0]
 
     # 计算 tg 的 segment 中 mark 不为空的 interval 的平均时长
     non_empty_intervals = [interval.maxTime - interval.minTime for tier in tg for interval in tier if interval.mark != ""]
     average_word_duration = np.mean(non_empty_intervals) if non_empty_intervals else 0
-    # print(f"Speech rate (word dur) is {average_word_duration:.4f} seconds")
-
-    # adjacent_pairs = []
     
     word_intervals = [interval for interval in word_tier.intervals if interval.mark != ""]
     for i in range(len(word_intervals) - 1):
@@ -248,34 +353,9 @@ def word_timestamp(wav_path, tg_path, language):
             end_sample = int(next_interval.maxTime * sr)
             y_vad = y[start_sample:end_sample]
 
-            # 计算频谱图
-            spectrogram = librosa.stft(y_vad, n_fft=2048, win_length=1024, center=True)
-            spectrogram_db = librosa.amplitude_to_db(abs(spectrogram), ref=1.0)  # 使用librosa.amplitude_to_db已将y值转换为对数刻度，top_db=None确保不限制最大分贝值
-            
-            kernel = np.array([[-1, 0, 1]])
-            convolved_spectrogram = convolve2d(spectrogram_db, kernel, mode='same', boundary='symm')
-            convolved_spectrogram = np.where(np.abs(convolved_spectrogram) < 15, 0, convolved_spectrogram)
+            peaks, time_axis, convolved_spectrogram = find_valid_peaks(y_vad, sr)
 
-            # 按频率轴求和，保持维度以方便后续绘图
-            convolved_spectrogram = np.sum(np.abs(convolved_spectrogram), axis=0, keepdims=False)
-            # 在保持输出信号长度不变的情况下，对卷积后的频谱图求一阶导
-            # convolved_spectrogram = np.gradient(convolved_spectrogram)
-            time_axis = np.linspace(0, len(convolved_spectrogram) * librosa.core.get_duration(y=y_vad, sr=sr) / len(convolved_spectrogram), len(convolved_spectrogram))
-
-            # 找到所有的波峰和波谷
-            peaks, _ = find_peaks(convolved_spectrogram, prominence=(10, None))
-            # valleys, _ = find_peaks(-convolved_spectrogram, prominence=(10, None))
-
-            # 只保留波峰和波谷绝对值大于100的点
-            valid_peaks = peaks[np.abs(convolved_spectrogram[peaks]) > 0]
-            # valid_valleys = valleys[np.abs(convolved_spectrogram[valleys]) > 0]
-
-            # 提取有效波峰和波谷对应的时间和值
-            peak_times = time_axis[valid_peaks]
-            # peak_values = convolved_spectrogram[valid_peaks]
-
-            # valley_times = time_axis[valid_valleys]
-            # valley_values = convolved_spectrogram[valid_valleys]    
+            peak_times = time_axis[peaks]
 
             # 筛选出不在 current_interval.minTime 到 current_interval.minTime + 0.05s 之间的波峰
             valid_peak_times = [t for t in peak_times if t >= 0.05 and (target_boundary -  average_word_duration/2 <= t <= target_boundary + average_word_duration * 3/4)]
@@ -298,44 +378,53 @@ def word_timestamp(wav_path, tg_path, language):
             print("SR:", sr)
             # 以target_boundary为0点，分别计算-0.01s到0s以及0s到0.01s的频谱能量质心
             
-            centroid_prev_mean, centroid_next_mean = compare_centroids(y, target_boundary, sr)
+            centroid_prev_mean, centroid_next_mean, energy_prev, energy_next = compare_centroids(y, target_boundary, sr)
 
-            print(current_interval.mark, next_interval.mark)
-            print(f"频谱能量质心（-0.01s到0s）: {centroid_prev_mean} Hz")
-            print(f"频谱能量质心（0s到0.01s）: {centroid_next_mean} Hz")
+            print(current_interval.mark, next_interval.mark, f"{centroid_prev_mean:.2f} Hz", f"{centroid_next_mean:.2f} Hz", f"{energy_prev:.2f}", f"{energy_next:.2f}")
 
-            if centroid_prev_mean > centroid_next_mean:
+            if centroid_prev_mean > centroid_next_mean and energy_prev < energy_next:
                 next_cvt = extract_cvt(next_interval.mark, lang=language)[0]
                 print(next_interval.mark, next_cvt)
+                if next_cvt[0] in ["d", "l"]:
+                    y_alt = bandpass_filter(y, 4000, 6000, sr)
+                elif not next_cvt[0]:
+                    y_alt = bandpass_filter(y, 0, 2000, sr)
+                else:
+                    y_alt = y
 
 
                 # 从 target_boundary 往前，在 peak_times 里找第一个左质心小于右质心的峰值
                 # 将峰值时间按从大到小排序，从靠近 target_boundary 的峰值开始检查
-                sorted_peak_times = sorted([t for t in peak_times if 0.05 < t < target_boundary - current_interval.minTime - 0.000001], reverse=True) + \
-                                    [t for t in peak_times if target_boundary - current_interval.minTime < t < next_interval.maxTime - current_interval.minTime] # 要做两个方向
+                sorted_peak_times = sorted([t for t in peak_times if target_boundary - current_interval.minTime < t < next_interval.maxTime - current_interval.minTime]) + \
+                                    sorted([t for t in peak_times if 0.05 < t < target_boundary - current_interval.minTime - 0.000001], reverse=True) # 要做两个方向
                 print(sorted_peak_times)
-
+# !
 
                 for peak_time in sorted_peak_times:
                     # 计算该峰值对应的实际时间点
                     actual_peak_time = peak_time + current_interval.minTime
                     
-                    new_centroid_prev_mean, new_centroid_next_mean = compare_centroids(y, actual_peak_time, sr)
-                    print("\t", actual_peak_time, f"{new_centroid_prev_mean} Hz", f"{new_centroid_next_mean} Hz")
-
-                    if new_centroid_prev_mean < new_centroid_next_mean:
-                        if next_cvt[0] in ["h"] and min(new_centroid_prev_mean, new_centroid_next_mean) > min(centroid_prev_mean, new_centroid_prev_mean):
-                            pass
-
-                        else:
+                    new_centroid_prev_mean, new_centroid_next_mean, new_energy_prev, new_energy_next = compare_centroids(y_alt, actual_peak_time, sr)
+                    print("\t", actual_peak_time, f"{new_centroid_prev_mean:.2f} Hz", f"{new_centroid_next_mean:.2f} Hz", f"{new_energy_prev:.2f}", f"{new_energy_next:.2f}")
+                    if next_cvt[0] in ["d", "l"]:
+                        if new_energy_prev < new_energy_next:
                             target_boundary = actual_peak_time
-                            print("调整后", target_boundary, f"{centroid_prev_mean} Hz", f"{centroid_next_mean} Hz")
+                            # print("调整后", target_boundary, f"{centroid_prev_mean} Hz", f"{centroid_next_mean} Hz")
+                            current_interval.maxTime = target_boundary
+                            next_interval.minTime = target_boundary
+                            break
+                    
+                    else:
+                        if new_centroid_prev_mean < new_centroid_next_mean: # and new_energy_prev < new_energy_next:
+                            target_boundary = actual_peak_time
+                            # print("调整后", target_boundary, f"{centroid_prev_mean} Hz", f"{centroid_next_mean} Hz")
                             current_interval.maxTime = target_boundary
                             next_interval.minTime = target_boundary
                             break
                     
             print()
 
+    # y, sr = librosa.load(wav_path, sr=18000)
 
 
     tg.write(wav_path.replace(".wav", "_recali.TextGrid"))
@@ -344,71 +433,52 @@ def word_timestamp(wav_path, tg_path, language):
 
     for interval in word_intervals:
 
-        cvts = extract_cvt(interval.mark, lang=language)
+        con, vow, tone = extract_cvt(interval.mark, lang=language)[0]
+        # !先尝试分开声韵母
 
-        dur = (interval.maxTime - interval.minTime) / len(cvts)
-        start_time = interval.minTime
+        # print(cvt)
+        start_sample = int(interval.minTime * sr)
+        end_sample = int(interval.maxTime * sr)
+        # print(interval.mark, interval.minTime, interval.maxTime)
 
-        for idx, cvt in enumerate(cvts):
-            # print(cvt)
-            con, vow, tone = cvt
-            start_sample = int((start_time + dur * idx)* sr)
-            end_sample = int((start_time + dur * (idx+1)) * sr)
-            # print(interval.mark, interval.minTime, interval.maxTime)
+        y_vad = y[start_sample:end_sample]
 
-            y_vad = y[start_sample:end_sample]
+        expected_num = 2 if con else 1 #len(vow) + 1 if con else len(vow)
+        # print(expected_num)
 
-            expected_num = len(vow) + 1 if con else len(vow)
-            phon_series = [con] + vow if con else vow
-            # print(expected_num)
-            # 计算频谱图
-            spectrogram = librosa.stft(y_vad, n_fft=2048, win_length=1024, center=True)
-            spectrogram_db = librosa.amplitude_to_db(abs(spectrogram), ref=1.0)  # 使用librosa.amplitude_to_db已将y值转换为对数刻度，top_db=None确保不限制最大分贝值
-            
-            kernel = np.array([[-1, 0, 1]])
-            convolved_spectrogram = convolve2d(spectrogram_db, kernel, mode='same', boundary='symm')
-            convolved_spectrogram = np.where(np.abs(convolved_spectrogram) < 20, 0, convolved_spectrogram)
+        peaks, time_axis, convolved_spectrogram = find_valid_peaks(y_vad, sr)
 
-            # 按频率轴求和，保持维度以方便后续绘图
-            convolved_spectrogram = np.sum(np.abs(convolved_spectrogram), axis=0, keepdims=False)
-            # 在保持输出信号长度不变的情况下，对卷积后的频谱图求一阶导
-            # convolved_spectrogram = np.gradient(convolved_spectrogram)
-            time_axis = np.linspace(0, len(convolved_spectrogram) * librosa.core.get_duration(y=y_vad, sr=sr) / len(convolved_spectrogram), len(convolved_spectrogram))
+        # 按峰值大小对峰值索引进行排序
+        # 筛选出左能量质心高于右能量质心的 peak
+        valid_peaks = []
+        for peak in peaks:
+            peak_time = time_axis[peak] + interval.minTime
+            centroid_prev_mean, centroid_next_mean, energy_prev, energy_next = compare_centroids(y, peak_time, sr)
+            # print(f"频谱能量质心（-0.01s到0s）: {centroid_prev_mean} Hz | 频谱能量质心（0s到0.01s）: {centroid_next_mean} Hz | 频谱能量（-0.01s到0s）: {energy_prev} | 频谱能量（0s到0.01s）: {energy_next}")
+            if centroid_prev_mean > centroid_next_mean: # and energy_prev > energy_next:
+                valid_peaks.append(peak)
+        
+        # 获取前 expected_num-1 个最大的符合条件的 peak
+        sorted_peaks = sorted(valid_peaks, key=lambda x: convolved_spectrogram[x], reverse=True)[:expected_num-1]
 
-            # 找到所有峰值，指定最小峰值高度为 0，后续再筛选最大的前几个
-            peaks, _ = find_peaks(convolved_spectrogram)
 
-            if con in ["k", 'b', 't', 'p', 'd']:
-                valid_peaks = [p for p in peaks if time_axis[p] <= len(y_vad)/sr - 0.05]
+        # 获取波峰对应的时间戳
+        peak_times = time_axis[sorted_peaks]
 
-                # if "i" == vow[0]:
-                #     vow = vow[0] + vow
-                #     expected_num -= 1
-                #     phon_series = [con] + vow if con else vow
-            
+        peak_timestamps = [interval.minTime] + [pt + interval.minTime for pt in peak_times] + [interval.maxTime]
+
+        # peak_timestamps.sort()
+        peak_timestamps = sorted(peak_timestamps, reverse=True)
+        # print(peak_timestamps)
+
+        for t, time_stamp in enumerate(peak_timestamps):
+            if t == 0:
+                phon_tier.add(peak_timestamps[t+1], peak_timestamps[t], "".join(vow))
             else:
-                # 忽略掉所有头0.05s和后0.05s的peak
-                valid_peaks = [p for p in peaks if time_axis[p] >= 0.05 and time_axis[p] <= len(y_vad)/sr - 0.05]
-            
-            peaks = np.array(valid_peaks)
-
-            # 按峰值大小对峰值索引进行排序
-            sorted_peaks = sorted(peaks, key=lambda x: convolved_spectrogram[x], reverse=True)
-            # 假设前 5 个峰值最大，可根据实际需求修改数量
-            peaks = sorted_peaks[:expected_num-1]
-            
-            # 获取波峰对应的时间戳
-            peak_times = time_axis[peaks]
-
-            peak_timestamps = [interval.minTime] + [pt + interval.minTime for pt in peak_times] + [interval.maxTime]
-
-            peak_timestamps.sort()
-
-            # print(peak_timestamps)
-            for t, time_stamp in enumerate(peak_timestamps):
-                if t == 0:
-                    continue
-                phon_tier.add(peak_timestamps[t-1], peak_timestamps[t], phon_series[t-1])
+                try:
+                    phon_tier.add(peak_timestamps[t+1], peak_timestamps[t], con)
+                except IndexError:
+                    pass
     # print(tg.maxTime)
     tg.append(phon_tier)
 
