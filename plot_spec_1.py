@@ -7,6 +7,40 @@ from textgrid import TextGrid
 import pypinyin
 
 
+
+import numpy as np
+from scipy.ndimage import uniform_filter1d
+
+def remove_low_frequency_drift(signal, window_size, padding_mode='reflect'):
+    """
+    使用平均池化去除信号中的低频漂移
+    
+    参数:
+    signal -- 输入信号 (1D numpy数组)
+    window_size -- 池化窗口大小(奇数)
+    padding_mode -- 边界填充模式 ('reflect', 'nearest', 'mirror', 'constant')
+    
+    返回:
+    corrected_signal -- 去除低频漂移后的信号
+    drift_component -- 提取出的漂移分量
+    """
+    # 验证输入
+    if window_size % 2 == 0:
+        raise ValueError("窗口大小应为奇数，以保证对称性")
+    if window_size > len(signal):
+        raise ValueError("窗口大小不能超过信号长度")
+    
+    # 使用Scipy的高效1D均匀滤波器实现滑动平均
+    drift_component = uniform_filter1d(signal, size=window_size, mode=padding_mode)
+    
+    # 从原始信号中减去漂移分量
+    corrected_signal = signal - drift_component
+    
+    return corrected_signal, drift_component
+
+
+
+
 def extract_cvt_zh(character):
     """
     给定一个中文单字，返回其对应的拼音（声母、韵母、声调）
@@ -165,8 +199,8 @@ def plot_audio_power_curve(audio_path):
     y = y[0]
 
 
-    # y = np.gradient(y)
-    y = np.gradient(np.gradient(y))
+    y = np.gradient(y)
+    # y = np.gradient(np.gradient(y))
 
     # y = bandpass_filter(y, 50, sr, sr, order=4)
 
@@ -180,7 +214,7 @@ def plot_audio_power_curve(audio_path):
     plt.figure(figsize=(10, 4))
     
     # 绘制功率曲线
-    plt.plot(time, rms, alpha=0.3)
+    # plt.plot(time, rms, alpha=0.3)
     plt.title('Audio Power Curve')
     plt.xlabel('Time (s)')
     plt.ylabel('Power')
@@ -192,12 +226,33 @@ def plot_audio_power_curve(audio_path):
         plt.axvline(x=v, color='r', linestyle='--')
 
     # 找到波谷的索引
-    valley_indices = find_peaks(-rms, width=(6, None), distance=30)[0]
+    valley_indices = find_peaks(-rms, width=(1, None), distance=1)[0]
+
+
+    # 获取当前函数中的采样率（假设在 plot_audio_power_curve 函数中 sr 变量可用）
+    # 根据当前上下文，sr 在 plot_audio_power_curve 函数开头已定义
+    # 开始时间和结束时间
+    start_time = 0  
+    end_time = time[-1]
+    
+    # 生成插值时间点
+    num_samples = int((end_time - start_time) * sr)
+    interpolated_time = np.linspace(start_time, end_time, num_samples)
+    
+    # 进行线性插值
+    interpolated_rms = np.interp(interpolated_time, time[valley_indices], rms[valley_indices])
+
+    # interpolated_rms = bandpass_filter(interpolated_rms, 10, sr, sr, order=4)
+    
+    # 绘制插值结果
+    plt.plot(interpolated_time, interpolated_rms, color='green', label='Interpolated RMS', alpha=0.5)
+
 
     # 标出波谷
     plt.scatter(time[valley_indices], rms[valley_indices], color='orange', label='Valley')
-    # 绘制波谷连线
-    plt.plot(time[valley_indices], rms[valley_indices], color='orange', linestyle='--', label='Valley Connection')
+    plt.show()
+    exit()
+
 
     tg_vad = TextGrid()
     tg_vad.read(r"C:\Users\User\Desktop\Praasper\data\mandarin_sent_whisper.TextGrid")

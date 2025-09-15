@@ -17,6 +17,89 @@ from scipy.signal import argrelextrema
 import os
 
 
+
+
+def detect_energy_valleys(wav_path, tg_path):
+    try:
+        y, sr = librosa.load(wav_path, mono=False, sr=16000)
+        y = y[0]
+        y = np.gradient(np.gradient(y))
+    except ValueError:
+        y, sr = librosa.load(wav_path, mono=True, sr=16000)
+        y = np.gradient(np.gradient(y))
+
+    
+
+    # 使用librosa计算音频的均方根能量(rms)
+    rms = librosa.feature.rms(y=y, frame_length=128, hop_length=32, center=True)[0]
+    
+    # 计算对应的时间轴
+    time = librosa.times_like(rms, sr=sr, hop_length=32)
+
+    
+    # 找到波谷的索引
+    valley_indices = find_peaks(-rms, width=(5, None))[0]
+
+
+    tg_vad = TextGrid()
+    tg_vad.read(tg_path)
+    intervals = [interval for interval in tg_vad.tiers[0] if interval.mark != ""]
+
+
+    # 定义筛选规则：
+    # 1. 波谷中的波谷/拐点
+    # 2. 不允许左高右低
+    for idx, interval in enumerate(intervals):
+        if idx == len(intervals) - 1:
+            break
+        
+        current_interval = intervals[idx]
+        next_interval = intervals[idx+1]
+
+        if current_interval.maxTime != next_interval.minTime:
+            continue
+
+        cand_valleys = [t for t in time[valley_indices] if current_interval.minTime + 0.01 < t < next_interval.maxTime - 0.01]
+
+        # 获取 cand_valleys 对应的 rms 值
+        cand_valleys_rms = [rms[np.where(time == t)[0][0]] for t in cand_valleys]
+        print()
+        print(cand_valleys, cand_valleys_rms)
+
+        # 筛选出左相邻小于右相邻的波谷
+        valid_valleys = []
+        valid_valleys_rms = []
+        if len(cand_valleys) >= 3:
+
+            for idx_in_time, t in enumerate(cand_valleys):
+                if idx_in_time == len(cand_valleys) - 1:
+                    continue
+                else:
+
+                    if cand_valleys_rms[idx_in_time] < cand_valleys_rms[idx_in_time+1]:
+                        valid_valleys.append(t)
+                        valid_valleys_rms.append(rms[idx_in_time])
+            
+            if not valid_valleys:
+                valid_valleys = cand_valleys
+                valid_valleys_rms = cand_valleys_rms
+
+        else:
+            valid_valleys = cand_valleys
+            valid_valleys_rms = cand_valleys_rms
+
+
+
+
+        min_valley_time = valid_valleys[np.argmin(valid_valleys_rms)]
+        
+        current_interval.maxTime = min_valley_time
+        next_interval.minTime = current_interval.maxTime
+             
+        # print(valid_valleys, valid_valleys_rms)
+    tg_vad.write(tg_path.replace(".TextGrid", "_recali.TextGrid"))
+
+
 def calc_power_valley(y, sr):
     """
     用librosa库计算一段信号的功率曲线，并找到最低的波谷所在的时间戳
@@ -117,6 +200,7 @@ def compare_centroids(y, time_stamp, sr, length=0.05):
     energy_next = np.sum(y_next ** 2)
 
     return centroid_prev_mean, centroid_next_mean, energy_prev, energy_next
+
 
 def get_vad(wav_path, params="self"):
 
@@ -302,14 +386,10 @@ def transcribe_wav_file(wav_path, vad, whisper_model):
             # current_interval.maxTime = valley + current_interval.minTime
             # next_interval.minTime = current_interval.maxTime
 
-
-
-
-    
     tg.append(tier)
     tg.write(wav_path.replace(".wav", "_whisper.TextGrid"))
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Whisper word-level transcription saved")
-    exit()
+    # exit()
     return language
 
 
@@ -327,8 +407,10 @@ def word_timestamp(wav_path, tg_path, language):
 
 
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Trimming word-level annotation...")
-    
-    
+    print(wav_path, tg_path)
+    detect_energy_valleys(wav_path, tg_path)
+
+    return
     y, sr = librosa.load(wav_path, sr=16000)  # 加载音频文件
     # y = bandpass_filter(y, 200, 8000, sr)
     
