@@ -2,126 +2,19 @@ import librosa
 import librosa.display
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.signal import argrelextrema, butter, filtfilt, find_peaks
+from scipy.signal import butter, filtfilt, find_peaks
 from textgrid import TextGrid
 import pypinyin
 import parselmouth
-import numpy as np
-from scipy.ndimage import uniform_filter1d
 from pydub import AudioSegment
+try:
+    from .utils import *
+    from .cvt import *
+except ImportError:
+    from utils import *
+    from cvt import *
 
 
-def read_audio(audio_path):
-
-    audio = AudioSegment.from_wav(audio_path).split_to_mono()[0]
-    # y = audio.split_to_mono()[0]
-    y = audio.get_array_of_samples()
-    # 将Python列表转换为numpy数组
-    y = np.array(y, dtype=np.float32)
-    print(y.shape)
-    sr = audio.frame_rate
-
-    return y, sr
-
-
-
-def find_internsity_valley(audio_path, start_time, end_time):
-    sound = parselmouth.Sound(audio_path)
-
-    # 计算整个音频的强度对象
-    intensity = sound.to_intensity(time_step=0.02)  # 时间步长0.01秒（可调整）
-
-    intensity_points = np.array(intensity.as_array()).flatten()
-    time_points = np.array(intensity.xs())
-    # 筛选出 current_interval.minTime 和 next_interval.maxTime 之间的时间点和对应的强度值
-    mask = (time_points >= start_time) & (time_points <= end_time)
-    time_points = time_points[mask]
-    intensity_points = intensity_points[mask]
-    # 找到强度曲线的波谷索引
-    intensity_valley_indices = find_peaks(-intensity_points)[0]
-
-    midpoint = (start_time + end_time) / 2
-    # 按照距离 midpoint 的绝对距离对波谷索引排序
-    intensity_valley_indices = sorted(intensity_valley_indices, key=lambda idx: abs(time_points[idx] - midpoint))
-    # 获取波谷对应的时间点
-    valley_times = time_points[intensity_valley_indices]
-
-    min_valley_time = valley_times[0]
-
-    return min_valley_time
-
-
-
-
-
-
-def extract_cvt_zh(character):
-    """
-    给定一个中文单字，返回其对应的拼音（声母、韵母、声调）
-    
-    :param character: 单个中文字符
-    :return: 包含声母、韵母、声调的字典
-    """
-    # if len(character) != 1:
-        # raise ValueError("只能输入单个中文字符")
-    cvts = []
-    for char in character:
-        # 获取拼音信息
-        pinyin_result = pypinyin.pinyin(char, style=pypinyin.TONE3, heteronym=False)[0][0]
-        
-        # 提取声母、韵母和声调
-        initial = pypinyin.pinyin(char, style=pypinyin.INITIALS, heteronym=False)[0][0]
-        final_with_tone = pypinyin.pinyin(char, style=pypinyin.FINALS_TONE3, heteronym=False)[0][0]
-        
-        # 分离韵母和声调
-        tone = ''
-        final = final_with_tone
-        for char in final_with_tone:
-            if char.isdigit():
-                tone = char
-                final = final_with_tone.replace(char, '')
-                break
-        
-        
-
-        final = list(final)
-        # 如果n和g相邻，合并成ng
-        new_final = []
-        i = 0
-        while i < len(final):
-            if i < len(final) - 1 and final[i] == 'n' and final[i+1] == 'g':
-                new_final.append('ng')
-                i += 2
-            else:
-                new_final.append(final[i])
-                i += 1
-        final = new_final
-
-        cvts.append((
-            initial if initial else '',
-            final,
-            tone if tone else ''
-        ))
-    
-    return cvts
-
-
-
-def bandpass_filter(data, lowcut, highcut, fs, order=4):
-    nyquist = 0.5 * fs
-    low = lowcut / nyquist
-    high = highcut / nyquist
-    if low == 0:
-        b, a = butter(order, high, btype='low', output="ba")
-        filtered_data = filtfilt(b, a, data)
-    else:
-        try:
-            b, a = butter(order, [low, high], btype='bandpass', output="ba")
-            filtered_data = filtfilt(b, a, data)
-        except ValueError:  # 如果设置的最高频率大于了可接受的范围
-            b, a = butter(order, low, btype='high', output="ba")
-            filtered_data = filtfilt(b, a, data)
-    return filtered_data
 
 
 def find_spec_peak(audio_path, start_time, end_time, if_plot=False):
@@ -180,6 +73,33 @@ def find_spec_peak(audio_path, start_time, end_time, if_plot=False):
         plt.show()
     print(time[np.argmax(spectral_peaks)])
     return time[np.argmax(spectral_peaks)]
+
+
+
+def find_internsity_valley(audio_path, start_time, end_time):
+    sound = parselmouth.Sound(audio_path)
+
+    # 计算整个音频的强度对象
+    intensity = sound.to_intensity(time_step=0.02)  # 时间步长0.01秒（可调整）
+
+    intensity_points = np.array(intensity.as_array()).flatten()
+    time_points = np.array(intensity.xs())
+    # 筛选出 current_interval.minTime 和 next_interval.maxTime 之间的时间点和对应的强度值
+    mask = (time_points >= start_time) & (time_points <= end_time)
+    time_points = time_points[mask]
+    intensity_points = intensity_points[mask]
+    # 找到强度曲线的波谷索引
+    intensity_valley_indices = find_peaks(-intensity_points)[0]
+
+    midpoint = (start_time + end_time) / 2
+    # 按照距离 midpoint 的绝对距离对波谷索引排序
+    intensity_valley_indices = sorted(intensity_valley_indices, key=lambda idx: abs(time_points[idx] - midpoint))
+    # 获取波谷对应的时间点
+    valley_times = time_points[intensity_valley_indices]
+
+    min_valley_time = valley_times[0]
+
+    return min_valley_time
 
 
 
@@ -390,6 +310,9 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000):
     # 显示图形
     plt.tight_layout()
     plt.show()
+
+
+
 
 # 使用示例
 if __name__ == "__main__":

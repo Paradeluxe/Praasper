@@ -1,4 +1,5 @@
 import time
+import librosa
 try:
     from .cvt import *
 except ImportError:
@@ -16,6 +17,30 @@ def show_elapsed_time():
     return f"{minutes:02d}:{int(seconds):02d}:{milliseconds:03d}"
 
 
+def read_audio(audio_path):
+    y, sr = librosa.load(audio_path, mono=False)
+
+    if y.ndim >= 2:
+        y = y[0]
+        
+    return y, sr
+
+
+def bandpass_filter(data, lowcut, highcut, fs, order=4):
+    nyquist = 0.5 * fs
+    low = lowcut / nyquist
+    high = highcut / nyquist
+    if low == 0:
+        b, a = butter(order, high, btype='low', output="ba")
+        filtered_data = filtfilt(b, a, data)
+    else:
+        try:
+            b, a = butter(order, [low, high], btype='bandpass', output="ba")
+            filtered_data = filtfilt(b, a, data)
+        except ValueError:  # 如果设置的最高频率大于了可接受的范围
+            b, a = butter(order, low, btype='high', output="ba")
+            filtered_data = filtfilt(b, a, data)
+    return filtered_data
 
 
 
