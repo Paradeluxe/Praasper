@@ -4,7 +4,11 @@ import librosa
 import numpy as np
 from scipy.signal import convolve2d, find_peaks, butter, filtfilt
 import torch
-import matplotlib.pyplot as plt
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    pass
 
 try:
     from .utils import *

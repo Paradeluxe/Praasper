@@ -1,5 +1,8 @@
 import pypinyin
-from pycantonese import characters_to_jyutping
+try:
+    from pycantonese import characters_to_jyutping
+except ImportError:
+    pass
 
 
 def extract_cvt_yue(character):

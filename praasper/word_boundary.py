@@ -1,17 +1,16 @@
-import librosa
-import librosa.display
-import numpy as np
-from scipy.signal import butter, filtfilt, find_peaks
-from textgrid import TextGrid
-import pypinyin
-import parselmouth
-from pydub import AudioSegment
 try:
     from .utils import *
     from .cvt import *
 except ImportError:
     from utils import *
     from cvt import *
+
+import librosa
+import numpy as np
+from scipy.signal import find_peaks
+from textgrid import TextGrid
+import parselmouth
+
 
 
 
