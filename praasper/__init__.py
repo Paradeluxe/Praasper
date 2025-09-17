@@ -1,13 +1,14 @@
 try:
     from .utils import *
     from .process import *
+    from .word_boundary import *
 except ImportError:
     from utils import *
     from process import *
+    from word_boundary import *
 
 import os
 import whisper
-# import whisper_timestamped as whisper
 import torch
 
 class init_model:
@@ -40,7 +41,8 @@ class init_model:
 
             get_vad(wav_path)
             language = transcribe_wav_file(wav_path, vad=vad_path, whisper_model=self.whisper_model)
-            word_timestamp(wav_path, tg_path, language=language)
+            # word_timestamp(wav_path, tg_path, language=language)
+            plot_audio_power_curve(wav_path, tg_path, tar_sr=10000, verbose=False)
         
         print(f"[{show_elapsed_time()}] Processing completed.")
 

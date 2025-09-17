@@ -1,6 +1,5 @@
 import librosa
 import librosa.display
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import butter, filtfilt, find_peaks
 from textgrid import TextGrid
@@ -17,7 +16,7 @@ except ImportError:
 
 
 
-def find_spec_peak(audio_path, start_time, end_time, if_plot=False):
+def find_spec_peak(audio_path, start_time, end_time, verbose=False):
     """
     绘制音频的频谱质心曲线
     
@@ -56,7 +55,9 @@ def find_spec_peak(audio_path, start_time, end_time, if_plot=False):
     # 使用 np.convolve 进行平均池化
     spectral_peaks = np.convolve(spectral_peaks, kernel, mode='same')
     
-    if if_plot:
+    if verbose:
+        import matplotlib.pyplot as plt
+
         # 创建图形
         plt.figure(figsize=(10, 4))
         
@@ -71,7 +72,7 @@ def find_spec_peak(audio_path, start_time, end_time, if_plot=False):
         # 显示图形
         plt.tight_layout()
         plt.show()
-    print(time[np.argmax(spectral_peaks)])
+    # print(time[np.argmax(spectral_peaks)])
     return time[np.argmax(spectral_peaks)]
 
 
@@ -104,7 +105,7 @@ def find_internsity_valley(audio_path, start_time, end_time):
 
 
 
-def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000):
+def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000, verbose=False):
     """
     绘制整段音频的功率曲线
     
@@ -126,20 +127,23 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000):
     # 计算对应的时间轴
     time = librosa.times_like(rms, sr=sr, hop_length=32)
     
-    # 创建图形
-    plt.figure(figsize=(10, 4))
-    
-    # 绘制功率曲线
-    plt.plot(time, rms, alpha=0.3)
-    plt.title('Audio Power Curve')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Power')
-    plt.grid(True)
+    if verbose:
+        import matplotlib.pyplot as plt
 
-    vertical_line = [.688, .80, .88, 1.16, 1.25, 1.55, 1.75, 1.84, 1.94, 2.22, 2.49,
-                    3.51, 3.75, 3.97, 4.10, 4.29, 4.46, 4.58, 4.72, 4.958]
-    for v in vertical_line:
-        plt.axvline(x=v, color='r', linestyle='--')
+        # 创建图形
+        plt.figure(figsize=(10, 4))
+        
+        # 绘制功率曲线
+        plt.plot(time, rms, alpha=0.3)
+        plt.title('Audio Power Curve')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Power')
+        plt.grid(True)
+
+        vertical_line = [.688, .80, .88, 1.16, 1.25, 1.55, 1.75, 1.84, 1.94, 2.22, 2.49,
+                        3.51, 3.75, 3.97, 4.10, 4.29, 4.46, 4.58, 4.72, 4.958]
+        for v in vertical_line:
+            plt.axvline(x=v, color='r', linestyle='--')
 
     # 找到波谷的索引
     valley_indices = find_peaks(-rms, width=(1, None), distance=1)[0]
@@ -156,14 +160,14 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000):
     # 进行线性插值
     interpolated_rms = np.interp(interpolated_time, time[valley_indices], rms[valley_indices])
     # interpolated_rms = bandpass_filter(interpolated_rms, 10, sr, sr, order=4)
-    # 绘制插值结果
-    plt.plot(interpolated_time, interpolated_rms, color='green', label='Interpolated RMS', alpha=0.5)
+    if verbose:
+        # 绘制插值结果
+        plt.plot(interpolated_time, interpolated_rms, color='green', label='Interpolated RMS', alpha=0.5)
 
-
-    # 标出波谷
-    plt.scatter(time[valley_indices], rms[valley_indices], color='orange', label='Valley')
-    # plt.show()
-    # exit()
+        # 标出波谷
+        plt.scatter(time[valley_indices], rms[valley_indices], color='orange', label='Valley')
+        # plt.show()
+        # exit()
 
     # 找到所有的rms[valley_indices]中的valley中的valley
     # 先获取波谷对应的rms值
@@ -176,8 +180,9 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000):
     valley_valleys_time = time[valley_valleys_original_indices]
     valley_valleys_rms = rms[valley_valleys_original_indices]
 
-    # 绘制波谷中的波谷
-    plt.scatter(valley_valleys_time, valley_valleys_rms, color='red', label='Valley of Valleys')
+    if verbose:
+        # 绘制波谷中的波谷
+        plt.scatter(valley_valleys_time, valley_valleys_rms, color='red', label='Valley of Valleys')
 
 
 
@@ -200,7 +205,7 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000):
         current_con, current_vow, current_tone = extract_cvt_zh(current_interval.mark)[0]
         next_con, next_vow, next_tone = extract_cvt_zh(next_interval.mark)[0]
 
-        print(current_interval.mark, next_interval.mark)
+        # print(current_interval.mark, next_interval.mark)
         if current_interval.maxTime != next_interval.minTime:
             continue
             
@@ -240,12 +245,12 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000):
         sorted_indices = np.argsort(valid_valleys_rms)
         # sorted_indices_nocon = np.argsort(cand_valleys_rms_nocon)
 
-        print(f"Current: {isCurrentConFlag}; Next: {isNextConFlag}")
+        # print(f"Current: {isCurrentConFlag}; Next: {isNextConFlag}")
         if next_con not in ["k", "t", "p"] and next_con:
 
             if isNextConFlag and not isCurrentConFlag:
                 # min_valley_time = sorted([valid_valleys[sorted_indices[idx_v]] for idx_v in range(2)])[0]
-                mid_peak = find_spec_peak(audio_path, current_interval.minTime, next_interval.maxTime, if_plot=False)
+                mid_peak = find_spec_peak(audio_path, current_interval.minTime, next_interval.maxTime, verbose=False)
                 try:
                     valid_points = [valid_valleys[idx] for idx, time in enumerate(valid_valleys) if time < mid_peak]
                     if valid_points:
@@ -276,7 +281,7 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000):
                 except IndexError:
                     valid_points = valid_valleys
                 # valid_points = sorted(valid_points)
-                print(valid_points)
+                # print(valid_points)
 
                 min_valley_time = valid_points[0]
             
@@ -293,23 +298,25 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000):
 
 
         
-        print(f"最小波谷时间: {min_valley_time}")
+        # print(f"最小波谷时间: {min_valley_time}")
         
         current_interval.maxTime = min_valley_time
         next_interval.minTime = current_interval.maxTime
 
-
-        # for v in valid_valleys:
-        plt.axvline(x=min_valley_time, color='b', label="Valid" if idx == 0 else "", alpha=0.3, linewidth=2)
-        print()
+        if verbose:
+            # for v in valid_valleys:
+            plt.axvline(x=min_valley_time, color='b', label="Valid" if idx == 0 else "", alpha=0.3, linewidth=2)
+            # print()
 
 
     tg.write(tg_path.replace("_whisper.TextGrid", "_whisper_recali.TextGrid"))
-    plt.legend()
-    
-    # 显示图形
-    plt.tight_layout()
-    plt.show()
+
+    if verbose:
+        plt.legend()
+        
+        # 显示图形
+        plt.tight_layout()
+        plt.show()
 
 
 

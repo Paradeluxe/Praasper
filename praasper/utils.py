@@ -18,8 +18,8 @@ def show_elapsed_time():
 
 
 def read_audio(audio_path):
-    y, sr = librosa.load(audio_path, mono=False)
-
+    y, sr = librosa.load(audio_path, mono=False, sr=None)
+    # print(y.shape, sr)
     if y.ndim >= 2:
         y = y[0]
         
