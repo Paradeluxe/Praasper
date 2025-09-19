@@ -112,7 +112,7 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000, verbose=False):
     audio_path (str): 音频文件的路径
     """
     # 加载音频文件
-    y, sr = read_audio(audio_path)
+    y, sr = read_audio(audio_path, tar_sr=tar_sr)
 
 
     y = np.gradient(y)
@@ -188,8 +188,6 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000, verbose=False):
     tg = TextGrid()
     tg.read(tg_path)
     intervals = [interval for interval in tg.tiers[0] if interval.mark != ""]
-
-
 
     for idx, interval in enumerate(intervals):
         if idx == len(intervals) - 1:
@@ -322,10 +320,10 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000, verbose=False):
 
 # 使用示例
 if __name__ == "__main__":
-    audio_file_path = r"C:\Users\User\Desktop\Praasper\data\mandarin_sent.wav" 
-    # audio_file_path = r"C:\Users\User\Desktop\Praasper\data\test_audio.wav" 
+    # audio_file_path = r"C:\Users\User\Desktop\Praasper\data\mandarin_sent.wav" 
+    audio_file_path = r"C:\Users\User\Desktop\Praasper\data\test_audio.wav" 
 
     # peak = find_spec_peak(audio_file_path, 0., 7.74, if_plot=True)
     # exit()
     tg_path = audio_file_path.replace(".wav", "_whisper.TextGrid")
-    plot_audio_power_curve(audio_file_path, tg_path, tar_sr=10000)
+    plot_audio_power_curve(audio_file_path, tg_path, tar_sr=10000, verbose=True)

@@ -39,10 +39,10 @@ class init_model:
 
             print(f"[{show_elapsed_time()}] Processing {os.path.basename(wav_path)} ({idx+1}/{len(fnames)})")
 
-            get_vad(wav_path)
+            get_vad(wav_path, min_pause=0.2)
             language = transcribe_wav_file(wav_path, vad=vad_path, whisper_model=self.whisper_model)
             # word_timestamp(wav_path, tg_path, language=language)
-            plot_audio_power_curve(wav_path, tg_path, tar_sr=10000, verbose=False)
+            plot_audio_power_curve(wav_path, tg_path, verbose=False)
         
         print(f"[{show_elapsed_time()}] Processing completed.")
 

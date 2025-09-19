@@ -206,7 +206,7 @@ def compare_centroids(y, time_stamp, sr, length=0.05):
     return centroid_prev_mean, centroid_next_mean, energy_prev, energy_next
 
 
-def get_vad(wav_path, params="self"):
+def get_vad(wav_path, min_pause=0.2, params="self"):
 
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD processing started...")
 
@@ -245,7 +245,26 @@ def get_vad(wav_path, params="self"):
 
     onsets = autoPraditorWithTimeRange(params, audio_obj, "onset")
     offsets = autoPraditorWithTimeRange(params, audio_obj, "offset")
+    
 
+    valid_onsets = onsets[:1]
+    valid_offsets = []
+    for idx, xset in enumerate(onsets):
+        if idx == len(onsets) - 1:
+            break
+        onset = onsets[idx+1]
+        offset = offsets[idx]
+
+        if onset - offset < min_pause:
+            onsets.remove(onset)
+            offsets.remove(offset)
+        else:
+            valid_onsets.append(onset)
+            valid_offsets.append(offset)
+    valid_offsets.append(offsets[-1])
+
+    onsets = valid_onsets
+    offsets = valid_offsets
 
     tg = TextGrid()
     interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_obj.duration_seconds)
@@ -275,11 +294,14 @@ def transcribe_wav_file(wav_path, vad, whisper_model):
     """
 
     # 转录音频文件
+    result = whisper_model.transcribe(wav_path, fp16=torch.cuda.is_available())#, word_timestamps=True)
+    language = result["language"]
+    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Transcribing into {language}...")
+    print(result)
     result = whisper_model.transcribe(wav_path, fp16=torch.cuda.is_available(), word_timestamps=True)
     language = result["language"]
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Transcribing into {language}...")
-    # print(result)
-
+    print(result)
 
     # 加载 path_vad 对应的 TextGrid 文件
     try:
