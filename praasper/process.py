@@ -294,14 +294,13 @@ def transcribe_wav_file(wav_path, vad, whisper_model):
     """
 
     # 转录音频文件
-    result = whisper_model.transcribe(wav_path, fp16=torch.cuda.is_available())#, word_timestamps=True)
+    initial_prompt = """
+    请保留所有语气词，比如嗯、啊、呃、唉、呵、呼、哼、咳、呜、哇、呀、喔、哦、哎、嘛。
+    """
+    result = whisper_model.transcribe(wav_path, initial_prompt=initial_prompt, fp16=torch.cuda.is_available(), word_timestamps=True)
     language = result["language"]
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Transcribing into {language}...")
-    print(result)
-    result = whisper_model.transcribe(wav_path, fp16=torch.cuda.is_available(), word_timestamps=True)
-    language = result["language"]
-    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Transcribing into {language}...")
-    print(result)
+    # print(result)
 
     # 加载 path_vad 对应的 TextGrid 文件
     try:
@@ -331,7 +330,8 @@ def transcribe_wav_file(wav_path, vad, whisper_model):
             start_time = word["start"]
             end_time = word["end"]
             
-            text = word["word"]
+            text = ''.join(c for c in word["word"] if c.isalpha() or c.isspace() or c.isnumeric())  # 去掉标点符号
+
             # print(start_time, end_time, text)
             for empty_mark_interval in empty_mark_intervals:
                 # print(empty_mark_interval)
@@ -344,7 +344,6 @@ def transcribe_wav_file(wav_path, vad, whisper_model):
                 if start_time < empty_mark_interval[0] < empty_mark_interval[1] < end_time:
                     pass
 
-            # print(start_time, end_time, text)
             tier.add(start_time, end_time, text)
 
     for vad_interval in vad_intervals:
@@ -380,37 +379,19 @@ def transcribe_wav_file(wav_path, vad, whisper_model):
             new_intervals.append(interval)
     # 替换原有的 intervals
     tier.intervals = new_intervals
-    # print(tier.intervals)
-    # exit()
 
-    
-    # y, sr = librosa.load(wav_path, sr=16000, mono=False)
-    # y = y[0]
 
-    # power, valleys = calc_power_valley(y, sr)
-    # print(valleys)
+    for idx, interval in enumerate(tier.intervals):
+        if idx == len(tier.intervals) -1:
+            break
 
-    # word_intervals = [interval for interval in tier.intervals if interval.mark != ""]
-    # print(word_intervals)
-    # for i in range(len(word_intervals) - 1):
-    #     current_interval = word_intervals[i]
-    #     next_interval = word_intervals[i + 1]
-    #     if current_interval.maxTime == next_interval.minTime:
-    #         # start_sample = int((current_interval.minTime) * sr)
-    #         # end_sample = int((next_interval.maxTime) * sr)
-    #         # y_vad = y[start_sample:end_sample]
-    #         valid_valleys = [v for v in valleys if current_interval.minTime < v < next_interval.maxTime]
-    #         print(valid_valleys)
-    #         for valley in valid_valleys:
-    #             current_interval.maxTime = valley
-    #             next_interval.minTime = current_interval.maxTime
-    #             print(current_interval.mark, next_interval.mark, valley)
 
-    #             break
+        current_interval = tier.intervals[idx]
+        next_interval = tier.intervals[idx + 1]
 
-            # print(current_interval.mark, next_interval.mark, valley + current_interval.minTime+0.05)
-            # current_interval.maxTime = valley + current_interval.minTime
-            # next_interval.minTime = current_interval.maxTime
+        if next_interval.minTime < current_interval.maxTime and next_interval.mark != "":
+            current_interval.maxTime = next_interval.minTime
+
 
     tg.append(tier)
     tg.write(wav_path.replace(".wav", "_whisper.TextGrid"))

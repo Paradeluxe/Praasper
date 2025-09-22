@@ -6,6 +6,7 @@ except ImportError:
     from cvt import *
 
 import librosa
+from numba.core.unsafe.eh import end_try_block
 import numpy as np
 from scipy.signal import find_peaks
 from textgrid import TextGrid
@@ -15,7 +16,7 @@ import parselmouth
 
 
 
-def find_spec_peak(audio_path, start_time, end_time, verbose=False):
+def find_spec_peak(audio_path, verbose=False):
     """
     绘制音频的频谱质心曲线
     
@@ -43,9 +44,9 @@ def find_spec_peak(audio_path, start_time, end_time, verbose=False):
 
 
     # 筛选出 start_time 到 end_time 之间的数据
-    mask = (time >= start_time) & (time <= end_time)
-    time = time[mask]
-    spectral_peaks = spectral_peaks[mask]
+    # mask = (time >= start_time) & (time <= end_time)
+    # time = time[mask]
+    # spectral_peaks = spectral_peaks[mask]
     
     # 定义平均池化的窗口大小
     window_size = int(0.0001 * sr)
@@ -53,7 +54,53 @@ def find_spec_peak(audio_path, start_time, end_time, verbose=False):
     kernel = np.ones(window_size) / window_size
     # 使用 np.convolve 进行平均池化
     spectral_peaks = np.convolve(spectral_peaks, kernel, mode='same')
+
+
+
+    basline = get_baseline_freq_peak(audio_path)
+
+
+    # 找到所有大于基线的点
+    above_baseline_mask = spectral_peaks > basline
+
+    # 初始化存储连续区间的列表
+    continuous_intervals = []
+    start_index = None
+
+    # 遍历掩码，找到连续大于基线的区间
+    for idx, is_above in enumerate(above_baseline_mask):
+        if is_above and start_index is None:
+            start_index = idx
+        elif not is_above and start_index is not None:
+            continuous_intervals.append((start_index, idx))
+            start_index = None
+
+    # 处理最后一个区间
+    if start_index is not None:
+        continuous_intervals.append((start_index, len(above_baseline_mask)))
+
+    # 存储每个区间最大值的索引
+    max_indices = []
+    interval_indices = []
+    for idx, (start, end) in enumerate(continuous_intervals):
+        interval_data = spectral_peaks[start:end]
+        max_index_in_interval = np.argmax(interval_data)
+        max_indices.append(start + max_index_in_interval)
+
+        if idx == 0:
+            interval_indices.append([0.0, time[start]])
+            interval_indices.append([time[end]])
+        elif idx == len(continuous_intervals) - 1:
+            interval_indices[-1].append(time[start])
+            interval_indices.append([time[end], len(y)/sr])
+        else:
+            interval_indices[-1].append(time[start])
+            interval_indices.append([time[end]])
+
+    # max_indices = np.array(max_indices)
+    # print(interval_indices)
     
+
     if verbose:
         import matplotlib.pyplot as plt
 
@@ -65,18 +112,21 @@ def find_spec_peak(audio_path, start_time, end_time, verbose=False):
         plt.title('Audio Spectral Centroid Curve')
         plt.xlabel('Time (s)')
         plt.ylabel('Spectral Centroid (Hz)')
-        plt.axvline(x=time[np.argmax(spectral_peaks)], color='r', linestyle='--')
+        for start, end in interval_indices:
+            plt.axvline(x=start, color='b', linestyle='--')
+            plt.axvline(x=end, color='g', linestyle='--')
         plt.grid(True)
         
         # 显示图形
         plt.tight_layout()
         plt.show()
     # print(time[np.argmax(spectral_peaks)])
-    return time[np.argmax(spectral_peaks)]
+
+    return interval_indices
 
 
 
-def find_internsity_valley(audio_path, start_time, end_time):
+def find_internsity_valley(audio_path, start_time, end_time, verbose=False):
     sound = parselmouth.Sound(audio_path)
 
     # 计算整个音频的强度对象
@@ -88,6 +138,19 @@ def find_internsity_valley(audio_path, start_time, end_time):
     mask = (time_points >= start_time) & (time_points <= end_time)
     time_points = time_points[mask]
     intensity_points = intensity_points[mask]
+
+    if verbose:
+        import matplotlib.pyplot as plt
+
+        # 创建图形
+        plt.figure(figsize=(10, 4))
+        
+        # 绘制功率曲线
+        plt.plot(time_points, intensity_points, alpha=0.3)
+        plt.title('Audio Power Curve')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Power')
+        plt.grid(True)
     # 找到强度曲线的波谷索引
     intensity_valley_indices = find_peaks(-intensity_points)[0]
 
@@ -98,6 +161,9 @@ def find_internsity_valley(audio_path, start_time, end_time):
     valley_times = time_points[intensity_valley_indices]
 
     min_valley_time = valley_times[0]
+    if verbose:
+        plt.axvline(x=min_valley_time, color='b', linestyle='--')
+        plt.show()
 
     return min_valley_time
 
@@ -111,6 +177,10 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000, verbose=False):
     参数:
     audio_path (str): 音频文件的路径
     """
+
+    shifted_peaks_indices = find_spec_peak(audio_path, verbose=verbose)
+    # print(shifted_peaks_indices)
+
     # 加载音频文件
     y, sr = read_audio(audio_path, tar_sr=tar_sr)
 
@@ -139,13 +209,13 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000, verbose=False):
         plt.ylabel('Power')
         plt.grid(True)
 
-        vertical_line = [.688, .80, .88, 1.16, 1.25, 1.55, 1.75, 1.84, 1.94, 2.22, 2.49,
+        vertical_line = [.688, .80, .88, 1.16, 1.25, 1.55, 1.75, 1.84, 1.94, 2.224, 2.49,
                         3.51, 3.75, 3.97, 4.10, 4.29, 4.46, 4.58, 4.72, 4.958]
         for v in vertical_line:
             plt.axvline(x=v, color='r', linestyle='--')
 
     # 找到波谷的索引
-    valley_indices = find_peaks(-rms, width=(1, None), distance=1)[0]
+    valley_indices = find_peaks(-rms, width=(1, None), distance=10)[0]
 
 
 
@@ -168,21 +238,21 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000, verbose=False):
         # plt.show()
         # exit()
 
-    # 找到所有的rms[valley_indices]中的valley中的valley
-    # 先获取波谷对应的rms值
-    valley_rms = rms[valley_indices]
-    # 再在这些波谷值中寻找极小值点，即波谷中的波谷
-    valley_valleys_indices = find_peaks(-valley_rms, width=(0, None), distance=1)[0]
-    # 获取对应的原始时间索引
-    valley_valleys_original_indices = valley_indices[valley_valleys_indices]
-    # 获取对应的时间和rms值
-    valley_valleys_time = time[valley_valleys_original_indices]
-    valley_valleys_rms = rms[valley_valleys_original_indices]
-
-    if verbose:
-        # 绘制波谷中的波谷
-        plt.scatter(valley_valleys_time, valley_valleys_rms, color='red', label='Valley of Valleys')
-
+    # # 找到所有的rms[valley_indices]中的valley中的valley
+    # # 先获取波谷对应的rms值
+    # valley_rms = rms[valley_indices]
+    # # 再在这些波谷值中寻找极小值点，即波谷中的波谷
+    # valley_valleys_indices = find_peaks(-valley_rms, width=(0, None), distance=1)[0]
+    # # 获取对应的原始时间索引
+    # valley_valleys_original_indices = valley_indices[valley_valleys_indices]
+    # # 获取对应的时间和rms值
+    # valley_valleys_time = time[valley_valleys_original_indices]
+    # valley_valleys_rms = rms[valley_valleys_original_indices]
+    # print(time[valley_indices])
+    # print(valley_valleys_time)
+    # if verbose:
+    #     # 绘制波谷中的波谷
+    #     plt.scatter(valley_valleys_time, valley_valleys_rms, color='red', label='Valley of Valleys')
 
 
     tg = TextGrid()
@@ -197,7 +267,7 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000, verbose=False):
         current_interval = intervals[idx]
         next_interval = intervals[idx+1]
 
-        midpoint = (current_interval.minTime + next_interval.maxTime) / 2
+        # midpoint = (current_interval.minTime + next_interval.maxTime) / 2
 
         current_con, current_vow, current_tone = extract_cvt_zh(current_interval.mark)[0]
         next_con, next_vow, next_tone = extract_cvt_zh(next_interval.mark)[0]
@@ -207,7 +277,11 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000, verbose=False):
             continue
             
 
-        cand_valleys = [t for t in time[valley_indices] if current_interval.minTime + 0.05 < t < next_interval.maxTime - 0.05]
+        # cand_valleys = [t for t in valley_valleys_time if current_interval.minTime + 0.05 < t < next_interval.maxTime - 0.05]
+        # cand_valleys_rms = [rms[np.where(time == t)[0][0]] for t in cand_valleys]
+
+        # if not cand_valleys:
+        cand_valleys = [t for t in time[valley_indices] if current_interval.minTime + 0.05 < t < next_interval.maxTime]
         cand_valleys_rms = [rms[np.where(time == t)[0][0]] for t in cand_valleys]
 
         # print(cand_valleys)
@@ -218,22 +292,22 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000, verbose=False):
         cand_valleys_rms = np.array(cand_valleys_rms)
         
         # 若候选波谷数量少于3个，无法形成波谷，直接使用原数据
-        if len(cand_valleys_rms) < 3:
-            valid_valleys = cand_valleys
-            valid_valleys_rms = cand_valleys_rms
-        else:
-            # 找到 cand_valleys_rms 中的波谷索引
-            valley_indices_in_cand = find_peaks(-cand_valleys_rms)[0]#, width=(1, None), distance=1)[0]
-            # 获取对应的波谷时间和 rms 值
-            valid_valleys = cand_valleys[valley_indices_in_cand]
-            valid_valleys_rms = cand_valleys_rms[valley_indices_in_cand]
+        # if len(cand_valleys_rms) < 3:
+        #     valid_valleys = cand_valleys
+        #     valid_valleys_rms = cand_valleys_rms
+        # else:
+        #     # 找到 cand_valleys_rms 中的波谷索引
+        #     valley_indices_in_cand = find_peaks(-cand_valleys_rms)[0]#, width=(1, None), distance=1)[0]
+        #     # 获取对应的波谷时间和 rms 值
+        #     valid_valleys = cand_valleys[valley_indices_in_cand]
+        #     valid_valleys_rms = cand_valleys_rms[valley_indices_in_cand]
         
-        if not valid_valleys.any():
-            valid_valleys = cand_valleys
-            valid_valleys_rms = cand_valleys_rms
+        # if not valid_valleys.any():
+        valid_valleys = cand_valleys
+        valid_valleys_rms = cand_valleys_rms
 
-        # print(valid_valleys)
-        # print(valid_valleys_rms)
+        print(valid_valleys)
+        print(valid_valleys_rms)
 
 
         isNextConFlag = next_con in ["z", "zh", "s", "c", "ch", "sh", "x", "j"]
@@ -243,55 +317,153 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000, verbose=False):
         # sorted_indices_nocon = np.argsort(cand_valleys_rms_nocon)
 
         # print(f"Current: {isCurrentConFlag}; Next: {isNextConFlag}")
-        if next_con not in ["k", "t", "p"] and next_con:
 
-            if isNextConFlag and not isCurrentConFlag:
-                # min_valley_time = sorted([valid_valleys[sorted_indices[idx_v]] for idx_v in range(2)])[0]
-                mid_peak = find_spec_peak(audio_path, current_interval.minTime, next_interval.maxTime, verbose=False)
+
+        # valid_shifted_peaks_indices = []
+
+        best_dur = 0
+        left_boundary = None
+        right_boundary = None
+
+        for start, end in shifted_peaks_indices:
+            if isCurrentConFlag and isNextConFlag:
+                if (current_interval.minTime <= start <= next_interval.maxTime) and (current_interval.minTime <= end <= next_interval.maxTime):
+                # valid_shifted_peaks_indices.append((start, end))]
+                    dur = min(end, next_interval.maxTime) - max(start, current_interval.minTime)
+
+                    if dur > best_dur:
+                        best_dur = dur
+
+                        left_boundary = max(start, current_interval.minTime)
+                        right_boundary = min(end, next_interval.maxTime)
+            
+            elif isCurrentConFlag and not isNextConFlag:
+                if current_interval.minTime <= start <= next_interval.maxTime:
+                
+                    dur = next_interval.maxTime - max(start, current_interval.minTime)
+
+                    if dur > best_dur:
+                        best_dur = dur
+
+                        left_boundary = max(start, current_interval.minTime)
+                        right_boundary = next_interval.maxTime
+
+            
+            elif not isCurrentConFlag and isNextConFlag:
+                if current_interval.minTime <= end <= next_interval.maxTime:
+                    dur = min(end, next_interval.maxTime) - current_interval.minTime
+
+                    if dur > best_dur:
+                        best_dur = dur
+
+                        left_boundary = current_interval.minTime
+                        right_boundary = min(end, next_interval.maxTime)
+            
+        if left_boundary is None or right_boundary is None:
+            left_boundary = current_interval.minTime
+            right_boundary = next_interval.maxTime
+
+        # valid_valleys = []
+        # valley_valleys_rms = []
+        mask = (valid_valleys >= left_boundary) & (valid_valleys <= right_boundary)
+
+        while not valid_valleys[mask].any():
+            right_boundary += 0.001
+            left_boundary -= 0.001
+            mask = (valid_valleys >= left_boundary) & (valid_valleys <= right_boundary)
+        
+        valid_valleys = valid_valleys[mask]
+        valid_valleys_rms = valid_valleys_rms[mask]
+
+        sorted_indices = np.argsort(valid_valleys_rms)
+
+
+
+        # if next_con not in ["k", "t", "p", "h"] and next_con:
+
+            # if isNextConFlag and not isCurrentConFlag:
+            #     # min_valley_time = sorted([valid_valleys[sorted_indices[idx_v]] for idx_v in range(2)])[0]
+            #     # valid_shifted_peaks_indices = [(start, end) for start, end in shifted_peaks_indices if (current_interval.minTime <= start <= next_interval.maxTime) or (current_interval.minTime <= end <= next_interval.maxTime)]
+            #     # print(valid_shifted_peaks_indices)
+            #     # exit()
+            #     mid_peak = None#find_spec_peak(audio_path, current_interval.minTime, next_interval.maxTime)
+            #     try:
+            #         valid_points = [valid_valleys[idx] for idx, time in enumerate(valid_valleys) if time < mid_peak]
+            #         if valid_points:
+            #             valid_points = [valid_valleys[np.argmin(valid_valleys_rms[valid_valleys < mid_peak])]]
+            #         else:
+            #             valid_points = valid_valleys
+                    
+            #     except:
+            #         valid_points = valid_valleys
+            #     min_valley_time = valid_points[0]
+                
+
+            # elif isNextConFlag and isCurrentConFlag:
+
+            #     try:
+            #         valid_points = [valid_valleys[sorted_indices[idx_v]] for idx_v in range(1)]#, key=lambda x: abs(x - midpoint))
+            #         if valid_points:
+            #             valid_points = [valid_valleys[np.argmin(valid_valleys_rms)]]
+            #         else:
+            #             valid_points = valid_valleys
+            #     except IndexError:
+            #         valid_points = valid_valleys
+
+            #     min_valley_time = valid_points[0]
+            
+
+            # elif not isNextConFlag and isCurrentConFlag:
+            #     # min_valley_time = sorted([valid_valleys[sorted_indices[idx_v]] for idx_v in range(2)])[1]
+            #     try:
+            #         valid_points = sorted([valid_valleys[sorted_indices[idx_v]] for idx_v in range(2)], key=lambda x: abs(x - midpoint))
+            #     except IndexError:
+            #         valid_points = valid_valleys
+            #     # valid_points = sorted(valid_points)
+            #     # print(valid_points)
+
+            #     min_valley_time = valid_points[0]
+        
+
+        print(current_interval.mark, next_interval.mark)
+        print(current_interval.minTime, next_interval.maxTime)
+        print(left_boundary, right_boundary)
+        if isNextConFlag or isCurrentConFlag:# or next_con in ["h", "d", "t", "k", "p", "f", "g", "n", "m", "b", "l"]:
+            if next_con:
                 try:
-                    valid_points = [valid_valleys[idx] for idx, time in enumerate(valid_valleys) if time < mid_peak]
+                    print(valid_valleys[sorted_indices])
+                    valid_points = [valid_valleys[sorted_indices[idx_v]] for idx_v in range(1)]#, key=lambda x: abs(x - midpoint))
+                    print(f"找到最小值{valid_points}")
                     if valid_points:
-                        valid_points = [valid_valleys[np.argmin(valid_valleys_rms[valid_valleys < mid_peak])]]
+                        valid_points = [valid_valleys[np.argmin(valid_valleys_rms)]]
                     else:
                         valid_points = valid_valleys
-                    
-                except:
-                    valid_points = valid_valleys
-                min_valley_time = valid_points[0]
-                
-
-            elif isNextConFlag and isCurrentConFlag:
-                try:
-                    valid_points = sorted([valid_valleys[sorted_indices[idx_v]] for idx_v in range(3)], key=lambda x: abs(x - midpoint))
-                except:
-                    valid_points = valid_valleys
-                
-                try:
-                    min_valley_time = valid_points[1]
-                except IndexError:
-                    min_valley_time = valid_valleys[0]
-
-            elif not isNextConFlag and isCurrentConFlag:
-                # min_valley_time = sorted([valid_valleys[sorted_indices[idx_v]] for idx_v in range(2)])[1]
-                try:
-                    valid_points = sorted([valid_valleys[sorted_indices[idx_v]] for idx_v in range(2)], key=lambda x: abs(x - midpoint))
                 except IndexError:
                     valid_points = valid_valleys
-                # valid_points = sorted(valid_points)
-                # print(valid_points)
-
-                min_valley_time = valid_points[0]
-            
+                # if isCurrentConFlag and not isNextConFlag:
+                #     min_valley_time = valid_points[0]
+                if not isCurrentConFlag and isNextConFlag:
+                    min_valley_time = valid_valleys[-1]
+                else:
+                    min_valley_time = valid_points[0]
             else:
-                min_valley_time = find_internsity_valley(audio_path, current_interval.minTime - 0.01, next_interval.maxTime)
+                min_valley_time = find_internsity_valley(audio_path, left_boundary, right_boundary, verbose=False)
 
+
+        else: # 两个都不是
+            if not next_con:
+                min_valley_time = find_internsity_valley(audio_path, left_boundary, right_boundary, verbose=False)
+            else:
+                min_valley_time = find_internsity_valley(audio_path, left_boundary, right_boundary, verbose=False)
+
+        print()
         
         
-        elif next_con in ["k", "t", "p"]:
-            min_valley_time = valid_valleys[np.argmin(valid_valleys_rms)]
+        # elif next_con in ["k", "t", "p"]:
+        #     min_valley_time = valid_valleys[np.argmin(valid_valleys_rms)]
         
-        elif not next_con:
-            min_valley_time = find_internsity_valley(audio_path, current_interval.minTime, next_interval.maxTime)
+        # elif not next_con or next_con in ["h"]:
+        #     min_valley_time = find_internsity_valley(audio_path, current_interval.minTime, next_interval.maxTime)
 
 
         
@@ -309,7 +481,7 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000, verbose=False):
     tg.write(tg_path.replace("_whisper.TextGrid", "_whisper_recali.TextGrid"))
 
     if verbose:
-        plt.legend()
+        # plt.legend()
         
         # 显示图形
         plt.tight_layout()
@@ -317,13 +489,46 @@ def plot_audio_power_curve(audio_path, tg_path, tar_sr=10000, verbose=False):
 
 
 
+def get_baseline_freq_peak(audio_path):
+    y, sr = read_audio(audio_path)
+    # 计算每个帧的频谱
+    stft = librosa.stft(y)#, win_length=win_length, hop_length=hop_length)
+    # 计算每个帧的幅度谱
+    magnitude = np.abs(stft)
+    # 找到每个帧中频谱幅度最大的索引
+    max_magnitude_indices = np.argmax(magnitude, axis=0)
+    # 将索引转换为对应的频率
+    spectral_peaks = librosa.fft_frequencies(sr=sr)[max_magnitude_indices]
+    
+    # 计算对应的时间轴
+    time = librosa.times_like(spectral_peaks, sr=sr)#, hop_length=hop_length)
+
+    
+    vad_path = audio_path.replace(".wav", "_VAD.TextGrid")
+    tg = TextGrid()
+    tg.read(vad_path)
+    
+    vad_tiers = [(i.minTime, i.maxTime) for i in tg.tiers[0] if i.mark == ""]
+    freq_peaks = []
+    for start_time, end_time in vad_tiers:
+        mask = (time >= start_time) & (time <= end_time)
+        time = time[mask]
+        spectral_peaks = spectral_peaks[mask]
+
+        freq_peaks += list(spectral_peaks)
+    return np.mean(freq_peaks) * 2.5
+    
+    
+
 
 # 使用示例
 if __name__ == "__main__":
     # audio_file_path = r"C:\Users\User\Desktop\Praasper\data\mandarin_sent.wav" 
-    audio_file_path = r"C:\Users\User\Desktop\Praasper\data\test_audio.wav" 
-
-    # peak = find_spec_peak(audio_file_path, 0., 7.74, if_plot=True)
-    # exit()
+    audio_file_path = r"C:\Users\User\Desktop\Praasper\data\mandarin_sent.wav" 
     tg_path = audio_file_path.replace(".wav", "_whisper.TextGrid")
-    plot_audio_power_curve(audio_file_path, tg_path, tar_sr=10000, verbose=True)
+
+    # min_valley_time = find_internsity_valley(audio_file_path, 0, 8.0, verbose=True)
+    # peak = find_spec_peak(audio_file_path, verbose=True)
+    # get_baseline_freq_peak(audio_file_path)
+    # exit()
+    plot_audio_power_curve(audio_file_path, tg_path, tar_sr=24000, verbose=True)
