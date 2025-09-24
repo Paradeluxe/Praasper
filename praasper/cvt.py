@@ -115,3 +115,6 @@ def extract_cvt_zh(character):
         ))
     
     return cvts
+
+if __name__ == "__main__":
+    print(extract_cvt_zh('我'))

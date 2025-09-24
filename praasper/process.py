@@ -246,6 +246,8 @@ def get_vad(wav_path, min_pause=0.2, params="self"):
     onsets = autoPraditorWithTimeRange(params, audio_obj, "onset")
     offsets = autoPraditorWithTimeRange(params, audio_obj, "offset")
     
+    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD onsets: {onsets}")
+    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD offsets: {offsets}")
 
     valid_onsets = onsets[:1]
     valid_offsets = []
@@ -255,10 +257,7 @@ def get_vad(wav_path, min_pause=0.2, params="self"):
         onset = onsets[idx+1]
         offset = offsets[idx]
 
-        if onset - offset < min_pause:
-            onsets.remove(onset)
-            offsets.remove(offset)
-        else:
+        if onset - offset > min_pause:
             valid_onsets.append(onset)
             valid_offsets.append(offset)
     valid_offsets.append(offsets[-1])
@@ -270,21 +269,20 @@ def get_vad(wav_path, min_pause=0.2, params="self"):
     interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_obj.duration_seconds)
     for i in range(len(onsets)):
         try:
-            interval_tier.addInterval(Interval(onsets[i], offsets[i], "+"))
+            interval_tier.add(onsets[i], offsets[i], "+")
         except ValueError:
             continue
         # except IndexError:
         #     break
     tg.append(interval_tier)
     tg.write(wav_path.replace(".wav", "_VAD.TextGrid"))  # 将TextGrid对象写入文件
-
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD results saved")
 
 # else:
 
 
 # defs
-def transcribe_wav_file(wav_path, vad, whisper_model):
+def transcribe_wav_file(wav_path, vad, whisper_model, language):
     """
     使用 Whisper 模型转录 .wav 文件
     
@@ -297,7 +295,11 @@ def transcribe_wav_file(wav_path, vad, whisper_model):
     initial_prompt = """
     请保留所有语气词，比如嗯、啊、呃、唉、呵、呼、哼、咳、呜、哇、呀、喔、哦、哎、嘛。
     """
-    result = whisper_model.transcribe(wav_path, initial_prompt=initial_prompt, fp16=torch.cuda.is_available(), word_timestamps=True)
+    if language != None:
+        result = whisper_model.transcribe(wav_path, initial_prompt=initial_prompt, fp16=torch.cuda.is_available(), word_timestamps=True, language=language)
+    else:
+        result = whisper_model.transcribe(wav_path, initial_prompt=initial_prompt, fp16=torch.cuda.is_available(), word_timestamps=True)
+    
     language = result["language"]
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Transcribing into {language}...")
     # print(result)
@@ -392,11 +394,9 @@ def transcribe_wav_file(wav_path, vad, whisper_model):
         if next_interval.minTime < current_interval.maxTime and next_interval.mark != "":
             current_interval.maxTime = next_interval.minTime
 
-
     tg.append(tier)
     tg.write(wav_path.replace(".wav", "_whisper.TextGrid"))
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Whisper word-level transcription saved")
-    # exit()
     return language
 
 
@@ -414,7 +414,6 @@ def word_timestamp(wav_path, tg_path, language):
 
 
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Trimming word-level annotation...")
-    print(wav_path, tg_path)
     detect_energy_valleys(wav_path, tg_path)
 
     return
