@@ -42,7 +42,7 @@ class init_model:
             get_vad(wav_path)
             language = transcribe_wav_file(wav_path, vad=vad_path, whisper_model=self.whisper_model, language=language)
             # word_timestamp(wav_path, tg_path, language=language)
-            plot_audio_power_curve(wav_path, tar_sr=16000, verbose=verbose)
+            find_word_boundary(wav_path, tar_sr=16000, verbose=verbose)
         
         print(f"[{show_elapsed_time()}] Processing completed.")
 

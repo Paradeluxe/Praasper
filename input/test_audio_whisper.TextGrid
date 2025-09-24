@@ -18,22 +18,22 @@ item []:
 				text = ""
 			intervals [2]:
 				xmin = 0.30134
-				xmax = 0.58
-				text = "烤"
+				xmax = 0.5
+				text = "考"
 			intervals [3]:
-				xmin = 0.58
+				xmin = 0.5
 				xmax = 1.14796
-				text = "茶"
+				text = "察"
 			intervals [4]:
 				xmin = 1.14796
 				xmax = 2.16823
 				text = ""
 			intervals [5]:
 				xmin = 2.16823
-				xmax = 2.4
+				xmax = 2.42
 				text = "编"
 			intervals [6]:
-				xmin = 2.4
+				xmin = 2.42
 				xmax = 3.03637
 				text = "辑"
 			intervals [7]:
@@ -54,10 +54,10 @@ item []:
 				text = ""
 			intervals [11]:
 				xmin = 5.81256
-				xmax = 6.04
+				xmax = 6.06
 				text = "冰"
 			intervals [12]:
-				xmin = 6.04
+				xmin = 6.06
 				xmax = 6.66937
 				text = "箱"
 			intervals [13]:

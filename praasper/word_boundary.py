@@ -29,7 +29,7 @@ def get_expected_num(audio_path):
     return count
 
 
-def find_spec_peak(audio_path, min_pause=0.2, verbose=False):
+def get_spectral_peak_interval(audio_path, min_pause=0.2, verbose=False):
     """
     绘制音频的频谱质心曲线
     
@@ -193,10 +193,9 @@ def find_spec_peak(audio_path, min_pause=0.2, verbose=False):
         # 显示图形
         plt.tight_layout()
         plt.show()
-    # print(time[np.argmax(spectral_peaks)])
+    print(time[np.argmax(spectral_peaks)])
 
     return interval_indices
-
 
 
 def find_internsity_valley(audio_path, start_time, end_time, verbose=False):
@@ -212,18 +211,18 @@ def find_internsity_valley(audio_path, start_time, end_time, verbose=False):
     time_points = time_points[mask]
     intensity_points = intensity_points[mask]
 
-    if verbose:
-        import matplotlib.pyplot as plt
+    # if verbose:
+    #     import matplotlib.pyplot as plt
 
-        # 创建图形
-        plt.figure(figsize=(10, 4))
+    #     # 创建图形
+    #     plt.figure(figsize=(10, 4))
         
-        # 绘制功率曲线
-        plt.plot(time_points, intensity_points, alpha=0.3)
-        plt.title('Audio Power Curve')
-        plt.xlabel('Time (s)')
-        plt.ylabel('Power')
-        plt.grid(True)
+    #     # 绘制功率曲线
+    #     plt.plot(time_points, intensity_points, alpha=0.3)
+    #     plt.title('Audio Power Curve')
+    #     plt.xlabel('Time (s)')
+    #     plt.ylabel('Power')
+    #     plt.grid(True)
     # 找到强度曲线的波谷索引
     intensity_valley_indices = find_peaks(-intensity_points)[0]
 
@@ -235,16 +234,16 @@ def find_internsity_valley(audio_path, start_time, end_time, verbose=False):
     valley_times = time_points[intensity_valley_indices]
 
     min_valley_time = valley_times[0]
-    if verbose:
-        plt.axvline(x=min_valley_time, color='b', linestyle='--')
-        plt.show()
+    # if verbose:
+    #     plt.axvline(x=min_valley_time, color='b', linestyle='--')
+    #     plt.show()
 
     return min_valley_time
 
 
 
 
-def plot_audio_power_curve(audio_path, tar_sr=10000, verbose=False):
+def find_word_boundary(audio_path, tar_sr=10000, verbose=False):
     """
     绘制整段音频的功率曲线
     
@@ -252,7 +251,7 @@ def plot_audio_power_curve(audio_path, tar_sr=10000, verbose=False):
     audio_path (str): 音频文件的路径
     """
     tg_path = audio_path.replace(".wav", "_whisper.TextGrid")
-    shifted_peaks_indices = find_spec_peak(audio_path, verbose=verbose)
+    shifted_peaks_indices = get_spectral_peak_interval(audio_path, verbose=verbose)
     # print(shifted_peaks_indices)
 
     # 加载音频文件
@@ -424,15 +423,17 @@ def plot_audio_power_curve(audio_path, tar_sr=10000, verbose=False):
         sorted_indices = np.argsort(valid_valleys_rms)
         
 
-        # print(current_interval.mark, next_interval.mark)
-        # print(current_interval.minTime, next_interval.maxTime)
-        # print(left_boundary, right_boundary)
+        print(current_interval.mark, next_interval.mark)
+        print(current_interval.minTime, next_interval.maxTime)
+        print(left_boundary, right_boundary)
+
+
         if isNextConFlag or isCurrentConFlag:# or next_con in ["h", "d", "t", "k", "p", "f", "g", "n", "m", "b", "l"]:
             if next_con:
                 try:
-                    # print(valid_valleys[sorted_indices])
+                    print(valid_valleys[sorted_indices])
                     valid_points = [valid_valleys[sorted_indices[idx_v]] for idx_v in range(1)]#, key=lambda x: abs(x - midpoint))
-                    # print(f"找到最小值{valid_points}")
+                    print(f"找到最小值{valid_points}")
                     # if valid_points:
                     #     valid_points = [valid_valleys[np.argmin(valid_valleys_rms)]]
                     # else:
@@ -448,10 +449,10 @@ def plot_audio_power_curve(audio_path, tar_sr=10000, verbose=False):
 
                 else:
                     min_valley_time = valid_points[0]
-                # print(min_valley_time)
+                print(min_valley_time)
             else:
                 min_valley_time = find_internsity_valley(audio_path, left_boundary, right_boundary, verbose=verbose)
-                # print(min_valley_time)
+                print(min_valley_time)
 
 
         else: # 两个都不是
@@ -460,7 +461,7 @@ def plot_audio_power_curve(audio_path, tar_sr=10000, verbose=False):
             # else:
             min_valley_time = find_internsity_valley(audio_path, left_boundary, right_boundary, verbose=verbose)
 
-        # print()
+        print()
         
         
         # elif next_con in ["k", "t", "p"]:
@@ -527,11 +528,11 @@ def get_baseline_freq_peak(audio_path):
 
 # 使用示例
 if __name__ == "__main__":
-    audio_file_path = r"C:\Users\User\Desktop\Praasper\data\mandarin_sent.wav" 
-    # audio_file_path = r"C:\Users\User\Desktop\Praasper\data\man_clip.wav" 
+    # audio_file_path = r"C:\Users\User\Desktop\Praasper\data\mandarin_sent.wav" 
+    audio_file_path = r"C:\Users\User\Desktop\Praasper\data\man_clip.wav" 
 
     # min_valley_time = find_internsity_valley(audio_file_path, 0, 8.0, verbose=True)
     # peak = find_spec_peak(audio_file_path, verbose=False)
     # get_baseline_freq_peak(audio_file_path)
     # exit()
-    plot_audio_power_curve(audio_file_path, tar_sr=32000, verbose=False)
+    find_word_boundary(audio_file_path, tar_sr=32000, verbose=True)
