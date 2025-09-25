@@ -42,11 +42,11 @@ class init_model:
             get_vad(wav_path)
             language = transcribe_wav_file(wav_path, vad=vad_path, whisper_model=self.whisper_model, language=language)
             # word_timestamp(wav_path, tg_path, language=language)
-            find_word_boundary(wav_path, tar_sr=16000, verbose=verbose)
+            find_word_boundary(wav_path, tar_sr=12000, verbose=verbose)
         
         print(f"[{show_elapsed_time()}] Processing completed.")
 
 
 if __name__ == "__main__":
     model = init_model(model_name="large-v3-turbo")
-    model.annote(input_path=os.path.abspath("input"), language=None, verbose=False)
+    model.annote(input_path=os.path.abspath("data"), language=None, verbose=False)

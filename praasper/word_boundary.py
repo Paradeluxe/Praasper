@@ -29,7 +29,7 @@ def get_expected_num(audio_path):
     return count
 
 
-def get_spectral_peak_interval(audio_path, min_pause=0.2, verbose=False):
+def get_spectral_peak_interval(audio_path, verbose=False):
     """
     绘制音频的频谱质心曲线
     
@@ -72,11 +72,9 @@ def get_spectral_peak_interval(audio_path, min_pause=0.2, verbose=False):
     spectral_peaks = np.convolve(spectral_peaks, kernel, mode='same')
 
 
-
-    # basline = get_baseline_freq_peak(audio_path)  # 方法一：获取baseline
-    # expected_num = get_expected_num(audio_path)  # 方法二：根据whisper的标注获取预期的音节数
-
-
+    # 方法一：获取baseline
+    # basline = get_baseline_freq_peak(audio_path)  
+    # 方法二：根据whisper的标注获取预期的音节数
 
     tg = TextGrid.fromFile(audio_path.replace(".wav", "_whisper.TextGrid"))
     tier = tg.tiers[0]
@@ -90,7 +88,7 @@ def get_spectral_peak_interval(audio_path, min_pause=0.2, verbose=False):
         c, v, t = extract_cvt(word, lang="zh")[0]
         if c in ["z", "zh", "s", "c", "ch", "sh", "x", "j"]:
             count += 1
-
+    print(f"[{show_elapsed_time()}] Expected number of syllables: {count}")
     expected_num = count
 
 
@@ -100,19 +98,39 @@ def get_spectral_peak_interval(audio_path, min_pause=0.2, verbose=False):
     # 从spectral_peaks的最大值往0遍历，找到最后一个符合expected_num的baseline
     max_peak = np.max(spectral_peaks)
     step = max_peak / 100  # 设置遍历步长
-    for baseline in np.arange(max_peak, 0, -step):
+
+    # for baseline in np.arange(max_peak, 0, -step):
+    for baseline in np.arange(0, max_peak, step):
         # 找到所有大于基线的点
         above_baseline_mask = spectral_peaks > baseline
         # 找到所有大于基线的点的连续区间
         continuous_count = 0
         in_interval = False
-        for is_above in above_baseline_mask:
-            if is_above and not in_interval:
-                continuous_count += 1
-                in_interval = True
-            elif not is_above and in_interval:
-                in_interval = False
 
+        cand_timestamps = []
+        for idx, is_above in enumerate(above_baseline_mask):
+            if is_above and not in_interval:
+                # continuous_count += 1
+                in_interval = True
+                cand_timestamps.append([time[idx]])
+            elif not is_above and in_interval:
+                cand_timestamps[-1].append(time[idx])
+                in_interval = False
+            # elif not in_interval:
+                # below_frm_num += 1
+        # if len(cand_timestamps) >= 1:
+        #     continuous_count += 1
+        # # 检查从false到true之间的距离是否够大，若够大，才考虑切换
+        # for idx in range(1, len(cand_timestamps)):
+
+        #     if cand_timestamps[idx][0] - cand_timestamps[idx-1][1] > 0.005:
+        #         continuous_count += 1
+        if len(cand_timestamps) == 1 and len(cand_timestamps[0]) == 1:
+            cand_timestamps[-1].append(time[-1])
+        continuous_count = len(cand_timestamps)
+
+
+        print(cand_timestamps, continuous_count, expected_num)
         # 检查最后一个区间是否以大于基线的值结束
         if len(above_baseline_mask) > 0 and above_baseline_mask[-1] and in_interval:
             pass
@@ -120,15 +138,22 @@ def get_spectral_peak_interval(audio_path, min_pause=0.2, verbose=False):
         # 若连续区间数量等于预期数量，则使用当前基线
         if ifMeetNum is None:
             if continuous_count == expected_num:
+                break
                 ifMeetNum = True
     
         elif ifMeetNum:
             if continuous_count != expected_num:
+                # print(continuous_count, expected_num, "-")
                 ifMeetNum = False
+                break
         
-        elif not ifMeetNum:
-            break
-    baseline += step
+        # elif not ifMeetNum:
+        #     print(continuous_count, expected_num, "!")
+        #     print()
+        #     break
+    # print(baseline)
+    # baseline -= step
+    print(baseline)
     if verbose:
         print(f"Baseline: {baseline:.2f}, Continuous Count: {continuous_count}, Expected Num: {expected_num}, ifMeetNum: {ifMeetNum}")
 
@@ -152,24 +177,37 @@ def get_spectral_peak_interval(audio_path, min_pause=0.2, verbose=False):
         continuous_intervals.append((start_index, len(above_baseline_mask)))
 
     # 存储每个区间最大值的索引
-    max_indices = []
+    # max_indices = []
     interval_indices = []
     for idx, (start, end) in enumerate(continuous_intervals):
-        interval_data = spectral_peaks[start:end]
-        max_index_in_interval = np.argmax(interval_data)
-        max_indices.append(start + max_index_in_interval)
+        # interval_data = spectral_peaks[start:end]
+        # max_index_in_interval = np.argmax(interval_data)
+        # max_indices.append(start + max_index_in_interval)
+
+        # 找到start和end之间的time上的所有波峰
+        interval_spectral_peaks = spectral_peaks[start:end]
+        peak_indices, _ = find_peaks(interval_spectral_peaks)
+        peak_indices = list(sorted(peak_indices))
+        if peak_indices:
+            start = start + peak_indices[0]
+            end = start + peak_indices[-1]
+
+        dur = (time[end] - time[start]) * 0.  # 也可以去找最近的波峰!!!
+
+        left = time[start] + dur
+        right = time[end] - dur
 
         if idx == 0:
-            interval_indices.append([0.0, time[start]])
-            interval_indices.append([time[end]])
+            interval_indices.append([0.0, left])
+            interval_indices.append([right])
         elif idx == len(continuous_intervals) - 1:
-            interval_indices[-1].append(time[start])
-            interval_indices.append([time[end], len(y)/sr])
+            interval_indices[-1].append(left)
+            interval_indices.append([right, len(y)/sr])
         else:
-            interval_indices[-1].append(time[start])
-            interval_indices.append([time[end]])
+            interval_indices[-1].append(left)
+            interval_indices.append([right])
     # print(interval_indices)
-    interval_indices = [i for i in interval_indices if min_pause < i[1] - i[0]]
+    # interval_indices = [i for i in interval_indices if min_pause < i[1] - i[0]]
     # max_indices = np.array(max_indices)
     # print(interval_indices)
     
@@ -193,7 +231,7 @@ def get_spectral_peak_interval(audio_path, min_pause=0.2, verbose=False):
         # 显示图形
         plt.tight_layout()
         plt.show()
-    print(time[np.argmax(spectral_peaks)])
+    # print(time[np.argmax(spectral_peaks)])
 
     return interval_indices
 
@@ -232,8 +270,11 @@ def find_internsity_valley(audio_path, start_time, end_time, verbose=False):
     intensity_valley_indices = sorted(intensity_valley_indices, key=lambda idx: intensity_points[idx])
     # 获取波谷对应的时间点
     valley_times = time_points[intensity_valley_indices]
-
-    min_valley_time = valley_times[0]
+    try:
+        min_valley_time = valley_times[0]
+    except IndexError:
+        min_valley_time = time_points[np.argmin(intensity_points)]
+    
     # if verbose:
     #     plt.axvline(x=min_valley_time, color='b', linestyle='--')
     #     plt.show()
@@ -243,15 +284,17 @@ def find_internsity_valley(audio_path, start_time, end_time, verbose=False):
 
 
 
-def find_word_boundary(audio_path, tar_sr=10000, verbose=False):
+def find_word_boundary(audio_path, tar_sr=10000, min_pause=0.1, verbose=False):
     """
     绘制整段音频的功率曲线
     
     参数:
     audio_path (str): 音频文件的路径
     """
-    tg_path = audio_path.replace(".wav", "_whisper.TextGrid")
     shifted_peaks_indices = get_spectral_peak_interval(audio_path, verbose=verbose)
+
+
+    tg_path = audio_path.replace(".wav", "_whisper.TextGrid")
     # print(shifted_peaks_indices)
 
     # 加载音频文件
@@ -290,27 +333,8 @@ def find_word_boundary(audio_path, tar_sr=10000, verbose=False):
     # 找到波谷的索引
     valley_indices = find_peaks(-rms, width=(1, None), distance=10)[0]
 
-
-
-    # 开始时间和结束时间
-    # start_time = 0  
-    # end_time = time[-1]
-    # 生成插值时间点
-    # num_samples = int((end_time - start_time) * sr)
-    # interpolated_time = np.linspace(start_time, end_time, num_samples)
-
-    # 进行线性插值
-    # interpolated_rms = np.interp(interpolated_time, time[valley_indices], rms[valley_indices])
-    # interpolated_rms = bandpass_filter(interpolated_rms, 10, sr, sr, order=4)
     if verbose:
-        # 绘制插值结果
-        # plt.plot(interpolated_time, interpolated_rms, color='green', label='Interpolated RMS', alpha=0.5)
-
-        # 标出波谷
         plt.scatter(time[valley_indices], rms[valley_indices], color='orange', label='Valley')
-        # plt.show()
-        # exit()
-
 
 
     tg = TextGrid()
@@ -325,46 +349,26 @@ def find_word_boundary(audio_path, tar_sr=10000, verbose=False):
         current_interval = intervals[idx]
         next_interval = intervals[idx+1]
 
-        # midpoint = (current_interval.minTime + next_interval.maxTime) / 2
-
         current_con, current_vow, current_tone = extract_cvt_zh(current_interval.mark)[0]
         next_con, next_vow, next_tone = extract_cvt_zh(next_interval.mark)[0]
 
-        # print(current_interval.mark, next_interval.mark)
         if current_interval.maxTime != next_interval.minTime:
             continue
             
 
-        # cand_valleys = [t for t in valley_valleys_time if current_interval.minTime + 0.05 < t < next_interval.maxTime - 0.05]
-        # cand_valleys_rms = [rms[np.where(time == t)[0][0]] for t in cand_valleys]
-
-        # if not cand_valleys:
         cand_valleys = [t for t in time[valley_indices] if current_interval.minTime + 0.05 < t < next_interval.maxTime]
         cand_valleys_rms = [rms[np.where(time == t)[0][0]] for t in cand_valleys]
 
-        # print(cand_valleys)
-        # print(cand_valleys_rms)
 
         # 将候选波谷时间转换为 numpy 数组以便后续操作
         valid_valleys = np.array(cand_valleys)
         valid_valleys_rms = np.array(cand_valleys_rms)
         
 
-
-        # print(valid_valleys)
-        # print(valid_valleys_rms)
-
-
         isNextConFlag = next_con in ["z", "zh", "s", "c", "ch", "sh", "x", "j"]
         isCurrentConFlag = current_con in ["z", "zh", "s", "c", "ch", "sh", "x", "j"]
 
         sorted_indices = np.argsort(valid_valleys_rms)
-        # sorted_indices_nocon = np.argsort(cand_valleys_rms_nocon)
-
-        # print(f"Current: {isCurrentConFlag}; Next: {isNextConFlag}")
-
-
-        # valid_shifted_peaks_indices = []
 
         best_dur = 0
         left_boundary = None
@@ -373,7 +377,6 @@ def find_word_boundary(audio_path, tar_sr=10000, verbose=False):
         for start, end in shifted_peaks_indices:
             if isCurrentConFlag and isNextConFlag:
                 if (current_interval.minTime <= start <= next_interval.maxTime) and (current_interval.minTime <= end <= next_interval.maxTime):
-                # valid_shifted_peaks_indices.append((start, end))]
                     dur = min(end, next_interval.maxTime) - max(start, current_interval.minTime)
 
                     if dur > best_dur:
@@ -407,6 +410,13 @@ def find_word_boundary(audio_path, tar_sr=10000, verbose=False):
         if left_boundary is None or right_boundary is None:
             left_boundary = current_interval.minTime
             right_boundary = next_interval.maxTime
+        
+        try:
+            if intervals[idx+1].maxTime != intervals[idx+2].minTime and not isNextConFlag:
+                right_boundary -= min_pause
+                # print("触发最后一个intervalinterval")
+        except IndexError:
+            pass
 
         # valid_valleys = []
         # valley_valleys_rms = []
@@ -430,6 +440,10 @@ def find_word_boundary(audio_path, tar_sr=10000, verbose=False):
 
         if isNextConFlag or isCurrentConFlag:# or next_con in ["h", "d", "t", "k", "p", "f", "g", "n", "m", "b", "l"]:
             if next_con:
+            # if isNextConFlag:
+            #     valid_points = valid_valleys
+            #     min_valley_time = valid_points[-1]
+            # elif next_con and not isNextConFlag:
                 try:
                     print(valid_valleys[sorted_indices])
                     valid_points = [valid_valleys[sorted_indices[idx_v]] for idx_v in range(1)]#, key=lambda x: abs(x - midpoint))
@@ -528,11 +542,12 @@ def get_baseline_freq_peak(audio_path):
 
 # 使用示例
 if __name__ == "__main__":
-    # audio_file_path = r"C:\Users\User\Desktop\Praasper\data\mandarin_sent.wav" 
-    audio_file_path = r"C:\Users\User\Desktop\Praasper\data\man_clip.wav" 
+    audio_file_path = r"C:\Users\User\Desktop\Praasper\data\mandarin_sent.wav" 
+    # audio_file_path = r"C:\Users\User\Desktop\Praasper\data\test_audio.wav" 
+    # audio_file_path = r"C:\Users\User\Desktop\Praasper\data\man_clip.wav" 
 
     # min_valley_time = find_internsity_valley(audio_file_path, 0, 8.0, verbose=True)
     # peak = find_spec_peak(audio_file_path, verbose=False)
     # get_baseline_freq_peak(audio_file_path)
     # exit()
-    find_word_boundary(audio_file_path, tar_sr=32000, verbose=True)
+    find_word_boundary(audio_file_path, tar_sr=12000, verbose=True)
