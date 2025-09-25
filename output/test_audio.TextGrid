@@ -4,165 +4,63 @@ Object class = "TextGrid"
 xmin = 0.0
 xmax = 7.76288
 tiers? <exists>
-size = 2
+size = 1
 item []:
 	item [1]:
 		class = "IntervalTier"
 		name = "word"
 		xmin = 0.0
 		xmax = 7.76288
-		intervals: size = 15
+		intervals: size = 13
 			intervals [1]:
 				xmin = 0.0
 				xmax = 0.30134
 				text = ""
 			intervals [2]:
 				xmin = 0.30134
-				xmax = 0.63494
+				xmax = 0.7013333333333334
 				text = "考"
 			intervals [3]:
-				xmin = 0.63494
-				xmax = 0.7158
-				text = ""
-			intervals [4]:
-				xmin = 0.7158
+				xmin = 0.7013333333333334
 				xmax = 1.14796
 				text = "察"
-			intervals [5]:
+			intervals [4]:
 				xmin = 1.14796
 				xmax = 2.16823
 				text = ""
-			intervals [6]:
+			intervals [5]:
 				xmin = 2.16823
-				xmax = 3.0202786111111113
+				xmax = 2.5493333333333332
 				text = "编"
-			intervals [7]:
-				xmin = 3.0202786111111113
+			intervals [6]:
+				xmin = 2.5493333333333332
 				xmax = 3.03637
 				text = "辑"
-			intervals [8]:
+			intervals [7]:
 				xmin = 3.03637
 				xmax = 4.04213
 				text = ""
-			intervals [9]:
+			intervals [8]:
 				xmin = 4.04213
-				xmax = 4.39721
+				xmax = 4.448
 				text = "机"
-			intervals [10]:
-				xmin = 4.39721
-				xmax = 4.45594
-				text = ""
-			intervals [11]:
-				xmin = 4.45594
+			intervals [9]:
+				xmin = 4.448
 				xmax = 4.71551
 				text = "场"
-			intervals [12]:
+			intervals [10]:
 				xmin = 4.71551
 				xmax = 5.81256
 				text = ""
-			intervals [13]:
+			intervals [11]:
 				xmin = 5.81256
-				xmax = 6.459210943396227
+				xmax = 6.12
 				text = "冰"
-			intervals [14]:
-				xmin = 6.459210943396227
+			intervals [12]:
+				xmin = 6.12
 				xmax = 6.66937
 				text = "箱"
-			intervals [15]:
-				xmin = 6.66937
-				xmax = 7.76288
-				text = ""
-	item [2]:
-		class = "IntervalTier"
-		name = "phoneme"
-		xmin = 0
-		xmax = 7.76288
-		intervals: size = 22
-			intervals [1]:
-				xmin = 0
-				xmax = 0.30134
-				text = ""
-			intervals [2]:
-				xmin = 0.30134
-				xmax = 0.38474625
-				text = "k"
-			intervals [3]:
-				xmin = 0.38474625
-				xmax = 0.63494
-				text = "ao"
-			intervals [4]:
-				xmin = 0.63494
-				xmax = 0.7158
-				text = ""
-			intervals [5]:
-				xmin = 0.7158
-				xmax = 0.7958347222222222
-				text = "ch"
-			intervals [6]:
-				xmin = 0.7958347222222222
-				xmax = 1.14796
-				text = "a"
-			intervals [7]:
-				xmin = 1.14796
-				xmax = 2.16823
-				text = ""
-			intervals [8]:
-				xmin = 2.16823
-				xmax = 2.184306650943396
-				text = "b"
-			intervals [9]:
-				xmin = 2.184306650943396
-				xmax = 3.0202786111111113
-				text = "ian"
-			intervals [10]:
-				xmin = 3.0202786111111113
-				xmax = 3.03637
-				text = "i"
-			intervals [11]:
-				xmin = 3.03637
-				xmax = 4.04213
-				text = ""
-			intervals [12]:
-				xmin = 4.04213
-				xmax = 4.1389652272727275
-				text = "j"
 			intervals [13]:
-				xmin = 4.1389652272727275
-				xmax = 4.39721
-				text = "i"
-			intervals [14]:
-				xmin = 4.39721
-				xmax = 4.45594
-				text = ""
-			intervals [15]:
-				xmin = 4.45594
-				xmax = 4.53705328125
-				text = "ch"
-			intervals [16]:
-				xmin = 4.53705328125
-				xmax = 4.71551
-				text = "ang"
-			intervals [17]:
-				xmin = 4.71551
-				xmax = 5.81256
-				text = ""
-			intervals [18]:
-				xmin = 5.81256
-				xmax = 6.4430803125
-				text = "b"
-			intervals [19]:
-				xmin = 6.4430803125
-				xmax = 6.459210943396227
-				text = "ing"
-			intervals [20]:
-				xmin = 6.459210943396227
-				xmax = 6.475374404934688
-				text = "x"
-			intervals [21]:
-				xmin = 6.475374404934688
-				xmax = 6.66937
-				text = "iang"
-			intervals [22]:
 				xmin = 6.66937
 				xmax = 7.76288
 				text = ""

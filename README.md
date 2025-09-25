@@ -5,7 +5,7 @@ https://pypi.org/project/praasper/)
 ![GitHub License](https://img.shields.io/github/license/Paradeluxe/Praasper)
 
 
-**Praasper** is an Automatic Speech Recognition (ASR) application designed help researchers transribe audio files to both **word-** and **phoneme-level** text.
+**Praasper** is an Automatic Speech Recognition (ASR) framework designed to help researchers transribe audio files to **word-level** text with accurate transcriptoin and timestamps.
 
 ![mechanism](promote/mechanism.png)
 
@@ -34,24 +34,19 @@ model.annote(input_path="data")  # The folder where you store .wav
 # import whisper
 # print(whisper.available_models())
 ```
-The output should be like:
-```bash
-[00:00:242] Loading Whisper model: large-v3-turbo
-[00:07:472] Model loaded successfully. Current device in use: cuda:0
-[00:07:472] 1 valid audio files detected in C:\Users\User\Desktop\Praasper\data
-[00:07:472] Processing test_audio.wav (1/1)
-[00:07:472] (test_audio.wav) VAD processing started...
-[00:09:202] (test_audio.wav) Drawing onset(s) (7/7, 100%)
-[00:09:553] (test_audio.wav) Drawing offset(s) (7/7, 100%)
-[00:09:555] (test_audio.wav) VAD results saved
-[00:12:181] (test_audio.wav) Transcribing into zh...
-[00:12:183] (test_audio.wav) Whisper word-level transcription saved
-[00:12:183] (test_audio.wav) Trimming word-level annotation...
-[00:12:211] (test_audio.wav) Phoneme-level segmentation saved
-[00:12:213] Processing completed.
+
+If you want to designate the sample rate for **resampling**, you can pass the `sr` argument to the `annote` method.
+```python
+model.annote(input_path="data", sr=12000)
+# sr=None will use audio's original sample rate
 ```
 
-
+If you want to designate the **language** for transcription, you can pass the `language` argument to the `annote` method.
+```python
+model.annote(input_path="data", language="zh")
+# "zh" for Mandarin, "yue" for Cantonese, "en" for English
+# language=None will use Whisper's automatic language detection
+```
 
 # Mechanism
 
@@ -59,10 +54,7 @@ The output should be like:
 
 **Praditor** is applied to perform **Voice Activity Detection (VAD)** algorithm to trim the currently existing word/character-level timestamps to **millisecond level**. It is a Speech Onset Detection (SOT) algorithm we developed for langauge researchers.
 
-To extract phoneme boundaries, we designed an **edge detection algorithm**. 
-- The audio file is first resampled to **16 kHz** as to remove noise in the high-frequency domain. 
-- A kernel,`[-1, 0, 1]`, is then applied to the frequency domain to enhance the edge(s) between phonetic segments.
-- The most prominent **n** peaks are then selected so as to match the wanted number of phonemes.
+The in-utterance word timestamps are first generated from Whisper's results (i.e., `word_timestamps=True`) and then recalibrated using neighboring acoustic cues, including drifted frequency peak, power valley, and intensity valley.
 
 # Setup
 ## pip installation

@@ -206,7 +206,7 @@ def compare_centroids(y, time_stamp, sr, length=0.05):
     return centroid_prev_mean, centroid_next_mean, energy_prev, energy_next
 
 
-def get_vad(wav_path, min_pause=0.2, params="self"):
+def get_vad(wav_path, min_pause=0.2, params="self", verbose=False):
 
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD processing started...")
 
@@ -245,9 +245,9 @@ def get_vad(wav_path, min_pause=0.2, params="self"):
 
     onsets = autoPraditorWithTimeRange(params, audio_obj, "onset")
     offsets = autoPraditorWithTimeRange(params, audio_obj, "offset")
-    
-    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD onsets: {onsets}")
-    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD offsets: {offsets}")
+    if verbose:
+        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD onsets: {onsets}")
+        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD offsets: {offsets}")
 
     valid_onsets = onsets[:1]
     valid_offsets = []
@@ -397,7 +397,7 @@ def transcribe_wav_file(wav_path, vad, whisper_model, language):
     tg.append(tier)
     tg.write(wav_path.replace(".wav", "_whisper.TextGrid"))
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Whisper word-level transcription saved")
-    return language
+    return language, tg
 
 
 def word_timestamp(wav_path, tg_path, language):
@@ -579,6 +579,8 @@ def word_timestamp(wav_path, tg_path, language):
     new_tg_path = os.path.join(output_path, os.path.basename(wav_path).replace(".wav", ".TextGrid"))
     tg.write(new_tg_path)
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Phoneme-level segmentation saved")
+
+    return tg
 
 
 

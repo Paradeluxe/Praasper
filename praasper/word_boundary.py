@@ -88,7 +88,8 @@ def get_spectral_peak_interval(audio_path, verbose=False):
         c, v, t = extract_cvt(word, lang="zh")[0]
         if c in ["z", "zh", "s", "c", "ch", "sh", "x", "j"]:
             count += 1
-    print(f"[{show_elapsed_time()}] Expected number of syllables: {count}")
+    if verbose:
+        print(f"[{show_elapsed_time()}] Expected number of syllables: {count}")
     expected_num = count
 
 
@@ -129,8 +130,8 @@ def get_spectral_peak_interval(audio_path, verbose=False):
             cand_timestamps[-1].append(time[-1])
         continuous_count = len(cand_timestamps)
 
-
-        print(cand_timestamps, continuous_count, expected_num)
+        if verbose:
+            print(cand_timestamps, continuous_count, expected_num)
         # 检查最后一个区间是否以大于基线的值结束
         if len(above_baseline_mask) > 0 and above_baseline_mask[-1] and in_interval:
             pass
@@ -153,7 +154,6 @@ def get_spectral_peak_interval(audio_path, verbose=False):
         #     break
     # print(baseline)
     # baseline -= step
-    print(baseline)
     if verbose:
         print(f"Baseline: {baseline:.2f}, Continuous Count: {continuous_count}, Expected Num: {expected_num}, ifMeetNum: {ifMeetNum}")
 
@@ -432,10 +432,10 @@ def find_word_boundary(audio_path, tar_sr=10000, min_pause=0.1, verbose=False):
 
         sorted_indices = np.argsort(valid_valleys_rms)
         
-
-        print(current_interval.mark, next_interval.mark)
-        print(current_interval.minTime, next_interval.maxTime)
-        print(left_boundary, right_boundary)
+        if verbose:
+            print(current_interval.mark, next_interval.mark)
+            print(current_interval.minTime, next_interval.maxTime)
+            print(left_boundary, right_boundary)
 
 
         if isNextConFlag or isCurrentConFlag:# or next_con in ["h", "d", "t", "k", "p", "f", "g", "n", "m", "b", "l"]:
@@ -445,9 +445,10 @@ def find_word_boundary(audio_path, tar_sr=10000, min_pause=0.1, verbose=False):
             #     min_valley_time = valid_points[-1]
             # elif next_con and not isNextConFlag:
                 try:
-                    print(valid_valleys[sorted_indices])
                     valid_points = [valid_valleys[sorted_indices[idx_v]] for idx_v in range(1)]#, key=lambda x: abs(x - midpoint))
-                    print(f"找到最小值{valid_points}")
+                    if verbose:
+                        print(valid_valleys[sorted_indices])
+                        print(f"找到最小值{valid_points}")
                     # if valid_points:
                     #     valid_points = [valid_valleys[np.argmin(valid_valleys_rms)]]
                     # else:
@@ -463,10 +464,8 @@ def find_word_boundary(audio_path, tar_sr=10000, min_pause=0.1, verbose=False):
 
                 else:
                     min_valley_time = valid_points[0]
-                print(min_valley_time)
             else:
                 min_valley_time = find_internsity_valley(audio_path, left_boundary, right_boundary, verbose=verbose)
-                print(min_valley_time)
 
 
         else: # 两个都不是
@@ -474,8 +473,9 @@ def find_word_boundary(audio_path, tar_sr=10000, min_pause=0.1, verbose=False):
             #     min_valley_time = find_internsity_valley(audio_path, left_boundary, right_boundary, verbose=False)
             # else:
             min_valley_time = find_internsity_valley(audio_path, left_boundary, right_boundary, verbose=verbose)
-
-        print()
+        if verbose:
+            print(min_valley_time)
+            print()
         
         
         # elif next_con in ["k", "t", "p"]:
@@ -497,7 +497,6 @@ def find_word_boundary(audio_path, tar_sr=10000, min_pause=0.1, verbose=False):
             # print()
 
 
-    tg.write(tg_path.replace("_whisper.TextGrid", "_whisper_recali.TextGrid"))
 
     if verbose:
         # plt.legend()
@@ -506,7 +505,8 @@ def find_word_boundary(audio_path, tar_sr=10000, min_pause=0.1, verbose=False):
         plt.tight_layout()
         plt.show()
 
-
+        tg.write(tg_path.replace("_whisper.TextGrid", "_whisper_recali.TextGrid"))
+    return tg
 
 def get_baseline_freq_peak(audio_path):
     y, sr = read_audio(audio_path)
@@ -521,7 +521,7 @@ def get_baseline_freq_peak(audio_path):
     
     # 计算对应的时间轴
     time = librosa.times_like(spectral_peaks, sr=sr)#, hop_length=hop_length)
-
+    
     
     vad_path = audio_path.replace(".wav", "_VAD.TextGrid")
     tg = TextGrid()
