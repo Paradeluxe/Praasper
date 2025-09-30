@@ -17,12 +17,22 @@ def show_elapsed_time():
     return f"{minutes:02d}:{int(seconds):02d}:{milliseconds:03d}"
 
 
-def read_audio(audio_path, tar_sr=None):
-    y, sr = librosa.load(audio_path, mono=False, sr=tar_sr)
-    # print(y.shape, sr)
+def read_audio(audio, tar_sr=None, time_cip=None):
+
+    if isinstance(audio, str):
+        y, sr = librosa.load(audio, mono=False, sr=tar_sr)
+    else:
+        y, sr = audio, tar_sr
+    
     if y.ndim >= 2:
         y = y[0]
-        
+
+    if time_cip is not None:
+        start, end = time_cip
+        start_sample = int(start * sr)
+        end_sample = int(end * sr)
+        y = y[start_sample:end_sample]
+
     return y, sr
 
 

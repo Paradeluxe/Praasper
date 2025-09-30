@@ -21,6 +21,7 @@ from scipy.signal import argrelextrema
 import os
 
 
+default_params = {'onset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
 
 
 def detect_energy_valleys(wav_path, tg_path):
@@ -206,7 +207,92 @@ def compare_centroids(y, time_stamp, sr, length=0.05):
     return centroid_prev_mean, centroid_next_mean, energy_prev, energy_next
 
 
-def get_vad(wav_path, min_pause=0.2, params="self", verbose=False):
+
+
+def segment_audio(wav_path, segment_duration=10, min_pause=0.2, params="self", verbose=False):
+
+    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Start segmentation (<= {segment_duration}s)...")
+
+
+    audio_obj = ReadSound(wav_path)
+
+    # 获取 wav 文件所在的文件夹路径
+    wav_folder = os.path.dirname(wav_path)
+    all_txt_path = os.path.join(wav_folder, "params.txt")
+    self_txt_path = wav_path.replace(".wav", ".txt")
+
+    
+
+    if params == "all":
+        if os.path.exists(all_txt_path):
+            with open(all_txt_path, "r") as f:
+                params = eval(f.read())
+        else:
+            params = default_params
+    
+    elif params == "self":
+        if os.path.exists(self_txt_path):
+            with open(self_txt_path, "r") as f:
+                params = eval(f.read())
+        else:
+            params = default_params
+    elif params == "default":
+        params = default_params
+
+    else:  # 具体参数
+        params = params
+    
+
+    segments = []
+
+    y = audio_obj.arr
+    sr = audio_obj.frame_rate
+
+    audio_len = len(y) /sr
+
+    start = 0.0 * 1000
+    end = segment_duration * 1000
+    while end < audio_len * 1000:
+        segment = audio_obj[start:end]
+        # print(type(segment) == type(audio_obj))
+        onsets = autoPraditorWithTimeRange(params, segment, "onset", verbose=False)
+        offsets = autoPraditorWithTimeRange(params, segment, "offset", verbose=False)
+
+        valid_onsets = onsets[:1]
+        valid_offsets = []
+        for idx, xset in enumerate(onsets):
+            if idx == len(onsets) - 1:
+                break
+            onset = onsets[idx+1]
+            offset = offsets[idx]
+
+            if onset - offset > min_pause:
+                valid_onsets.append(onset)
+                valid_offsets.append(offset)
+        valid_offsets.append(offsets[-1])
+
+
+        # onsets, offsets = get_vad(segment, sr)
+
+
+        end = start + (valid_onsets[-1] + valid_offsets[-1]) / 2 * 1000
+
+        segments.append([start, end])
+
+        start = end
+        end = start + segment_duration * 1000
+
+        if end > audio_len * 1000:
+            segments.append([start, audio_len * 1000])
+            break
+    if not segments:
+        segments.append([0.0, audio_len * 1000])
+    return segments
+    
+
+
+
+def get_vad(wav_path, min_pause=0.2, params="self", if_save=True, verbose=False):
 
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD processing started...")
 
@@ -218,7 +304,6 @@ def get_vad(wav_path, min_pause=0.2, params="self", verbose=False):
     all_txt_path = os.path.join(wav_folder, "params.txt")
     self_txt_path = wav_path.replace(".wav", ".txt")
 
-    default_params = {'onset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
     
 
     if params == "all":
@@ -243,9 +328,9 @@ def get_vad(wav_path, min_pause=0.2, params="self", verbose=False):
 
 
 
-    onsets = autoPraditorWithTimeRange(params, audio_obj, "onset")
-    offsets = autoPraditorWithTimeRange(params, audio_obj, "offset")
-    if verbose:
+    onsets = autoPraditorWithTimeRange(params, audio_obj, "onset", verbose=False)
+    offsets = autoPraditorWithTimeRange(params, audio_obj, "offset", verbose=False)
+    if verbose:   
         print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD onsets: {onsets}")
         print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD offsets: {offsets}")
 
@@ -262,21 +347,27 @@ def get_vad(wav_path, min_pause=0.2, params="self", verbose=False):
             valid_offsets.append(offset)
     valid_offsets.append(offsets[-1])
 
-    onsets = valid_onsets
-    offsets = valid_offsets
 
-    tg = TextGrid()
-    interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_obj.duration_seconds)
-    for i in range(len(onsets)):
-        try:
-            interval_tier.add(onsets[i], offsets[i], "+")
-        except ValueError:
-            continue
-        # except IndexError:
-        #     break
-    tg.append(interval_tier)
-    tg.write(wav_path.replace(".wav", "_VAD.TextGrid"))  # 将TextGrid对象写入文件
-    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD results saved")
+
+    if if_save:
+        onsets = valid_onsets
+        offsets = valid_offsets
+
+        tg = TextGrid()
+        interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_obj.duration_seconds)
+        for i in range(len(onsets)):
+            try:
+                interval_tier.add(onsets[i], offsets[i], "+")
+            except ValueError:
+                continue
+            # except IndexError:
+            #     break
+        tg.append(interval_tier)
+        tg.write(wav_path.replace(".wav", "_VAD.TextGrid"))  # 将TextGrid对象写入文件
+        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD results saved")
+    
+    
+    return valid_onsets, valid_offsets
 
 # else:
 
@@ -583,4 +674,6 @@ def word_timestamp(wav_path, tg_path, language):
     return tg
 
 
-
+if __name__ == "__main__":
+    segments = segment_audio("data/test_audio.wav", segment_duration=3.5)
+    # print(segments)

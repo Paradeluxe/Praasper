@@ -25,17 +25,17 @@ except ImportError:
 # os.environ["PATH"] += os.pathsep + resource_path(f".\\ffmpeg\\{plat}")
 # print(resource_path(f".\\ffmpeg\\{plat}"))
 
-def autoPraditorWithTimeRange(params, audio_obj, which_set, stime=0, etime=-1):
+def autoPraditorWithTimeRange(params, audio_obj, which_set, stime=0, etime=-1,verbose=False):
     if etime == -1:
-        ans_tps = autoPraditor(params, audio_obj, which_set)
+        ans_tps = autoPraditor(params, audio_obj, which_set, verbose=False)
 
     else:
-        ans_tps = autoPraditor(params, audio_obj[stime*1000:etime*1000], which_set)
+        ans_tps = autoPraditor(params, audio_obj[stime*1000:etime*1000], which_set, verbose=False)
         ans_tps = [tp + stime for tp in ans_tps if 5 < tp <ans_tps[-1] - 5]
     return ans_tps
 
 
-def autoPraditor(params, audio_obj, which_set):
+def autoPraditor(params, audio_obj, which_set, verbose=False):
     # 导入数据，并且遵循一定之格式
     for xset in params:
         for item in params[xset]:
@@ -193,7 +193,8 @@ def autoPraditor(params, audio_obj, which_set):
     # print("---↘")
     total_num = len(_onoffsets)
     for i, (__offset, __onset) in enumerate(_onoffsets):
-        print(f"\r[{show_elapsed_time()}] ({os.path.basename(audio_obj.fpath)}) Drawing {which_set}(s) ({i+1}/{total_num}, {int((i+1)/total_num*100)}%)", end="")
+        if verbose:
+            print(f"\r[{show_elapsed_time()}] ({os.path.basename(audio_obj.fpath)}) Drawing {which_set}(s) ({i+1}/{total_num}, {int((i+1)/total_num*100)}%)")
 
         # -------------------------------------------------
         # 强制跳过条件 Skip Condition
@@ -308,7 +309,6 @@ def autoPraditor(params, audio_obj, which_set):
     # 对 _answer_frames 进行从小到大排序
     # print(_answer_frames)
 
-    print()
     if which_set == "offset":
         _answer_frames.reverse()
     # print(_answer_frames)
