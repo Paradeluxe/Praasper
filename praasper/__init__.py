@@ -10,6 +10,7 @@ except ImportError:
 import os
 import whisper
 import torch
+import shutil
 
 class init_model:
 
@@ -27,29 +28,40 @@ class init_model:
         self.whisper_model = whisper.load_model(self.name, device=device)
         print(f"[{show_elapsed_time()}] Model loaded successfully. Current device in use: {self.whisper_model.device if hasattr(self.whisper_model, 'device') else 'Unknown'}")
 
-    def annote(self, input_path: str, sr=None, language=None, verbose: bool=False):
+    def annote(self, input_path: str, sr=None, seg_dur=10., language=None, verbose: bool=False):
 
         fnames = [os.path.splitext(f)[0] for f in os.listdir(input_path) if f.endswith('.wav')]
         print(f"[{show_elapsed_time()}] {len(fnames)} valid audio files detected in {input_path}")
 
         for idx, fname in enumerate(fnames):
             wav_path = os.path.join(input_path, fname + ".wav")
-            tg_path = wav_path.replace(".wav", "_whisper.TextGrid")
-            vad_path = wav_path.replace(".wav", "_VAD.TextGrid")
 
-            output_path = os.path.join(os.path.dirname(os.path.dirname(tg_path)), "output")
+            dir_name = os.path.dirname(os.path.dirname(wav_path))
+
+            tmp_path = os.path.join(dir_name, "tmp")
+            if os.path.exists(tmp_path):
+                shutil.rmtree(tmp_path)
+                print(f"[{show_elapsed_time()}] Temporary directory {tmp_path} removed.")
+
+            os.makedirs(tmp_path, exist_ok=False)
+
+            output_path = os.path.join(dir_name, "output")
             os.makedirs(output_path, exist_ok=True)
+            
             final_path = os.path.join(output_path, os.path.basename(wav_path).replace(".wav", ".TextGrid"))
 
             audio_obj = ReadSound(wav_path)
 
-
             final_tg = TextGrid()
             final_tg.tiers.append(IntervalTier(name="words", minTime=0., maxTime=audio_obj.duration_seconds))
+
             print(f"--------------- Processing {os.path.basename(wav_path)} ({idx+1}/{len(fnames)}) ---------------")
-            for start, end in segment_audio(audio_obj, segment_duration=3.5):
+            count = 0
+            for start, end in segment_audio(audio_obj, segment_duration=seg_dur):
+                count += 1
+                print(f"[{show_elapsed_time()}] Processing segment: {start/1000:.3f} - {end/1000:.3f} ({count})")
                 audio_clip = audio_obj[start:end]
-                clip_path = os.path.join(os.path.dirname(wav_path), os.path.basename(wav_path).replace(".wav", "_temp.wav"))
+                clip_path = os.path.join(tmp_path, os.path.basename(wav_path).replace(".wav", f"_{count}.wav"))
                 audio_clip.save(clip_path)
 
 
@@ -82,9 +94,10 @@ class init_model:
             # if final_tg:
                 # final_tg.write(final_path)
         
+        shutil.rmtree(tmp_path)
         print(f"--------------- Processing completed ---------------")
 
 
 if __name__ == "__main__":
     model = init_model(model_name="large-v3-turbo")
-    model.annote(input_path=os.path.abspath("data"), sr=12000, language=None, verbose=False)
+    model.annote(input_path=os.path.abspath("data"), sr=12000, seg_dur=3.5, language=None, verbose=False)
