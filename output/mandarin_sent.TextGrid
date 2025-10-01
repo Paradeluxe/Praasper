@@ -2,30 +2,30 @@ File type = "ooTextFile"
 Object class = "TextGrid"
 
 xmin = 0.0
-xmax = 6.09977
+xmax = 6.099773242630386
 tiers? <exists>
 size = 1
 item []:
 	item [1]:
 		class = "IntervalTier"
-		name = "word"
+		name = "words"
 		xmin = 0.0
-		xmax = 6.09977
-		intervals: size = 25
+		xmax = 6.099773242630386
+		intervals: size = 15
 			intervals [1]:
 				xmin = 0.0
-				xmax = 0.57451
+				xmax = 0.58082
 				text = ""
 			intervals [2]:
-				xmin = 0.57451
-				xmax = 0.699886621315193
+				xmin = 0.58082
+				xmax = 0.6956122448979593
 				text = "那"
 			intervals [3]:
-				xmin = 0.699886621315193
-				xmax = 0.799886621315193
+				xmin = 0.6956122448979593
+				xmax = 0.7956122448979592
 				text = "个"
 			intervals [4]:
-				xmin = 0.799886621315193
+				xmin = 0.7956122448979592
 				xmax = 0.8826666666666667
 				text = "被"
 			intervals [5]:
@@ -46,10 +46,10 @@ item []:
 				text = "造"
 			intervals [9]:
 				xmin = 1.744
-				xmax = 1.839886621315193
+				xmax = 1.8356122448979593
 				text = "的"
 			intervals [10]:
-				xmin = 1.839886621315193
+				xmin = 1.8356122448979593
 				xmax = 1.9386666666666668
 				text = "理"
 			intervals [11]:
@@ -58,57 +58,17 @@ item []:
 				text = "想"
 			intervals [12]:
 				xmin = 2.2186666666666666
-				xmax = 2.4998866213151927
+				xmax = 2.495612244897959
 				text = "自"
 			intervals [13]:
-				xmin = 2.4998866213151927
-				xmax = 2.65116
+				xmin = 2.495612244897959
+				xmax = 2.6026666666666665
 				text = "我"
 			intervals [14]:
-				xmin = 2.65116
-				xmax = 3.18522
-				text = ""
-			intervals [15]:
-				xmin = 3.18522
-				xmax = 3.522666666666667
-				text = "实"
-			intervals [16]:
-				xmin = 3.522666666666667
-				xmax = 3.768
-				text = "则"
-			intervals [17]:
-				xmin = 3.768
-				xmax = 3.9798866213151927
+				xmin = 2.6026666666666665
+				xmax = 2.65127
 				text = "是"
-			intervals [18]:
-				xmin = 3.9798866213151927
-				xmax = 4.119886621315193
-				text = "永"
-			intervals [19]:
-				xmin = 4.119886621315193
-				xmax = 4.306666666666667
-				text = "无"
-			intervals [20]:
-				xmin = 4.306666666666667
-				xmax = 4.464
-				text = "止"
-			intervals [21]:
-				xmin = 4.464
-				xmax = 4.672
-				text = "境"
-			intervals [22]:
-				xmin = 4.672
-				xmax = 4.819886621315193
-				text = "的"
-			intervals [23]:
-				xmin = 4.819886621315193
-				xmax = 5.059886621315194
-				text = "牢"
-			intervals [24]:
-				xmin = 5.059886621315194
-				xmax = 5.09079
-				text = "笼"
-			intervals [25]:
-				xmin = 5.09079
-				xmax = 6.09977
+			intervals [15]:
+				xmin = 2.65127
+				xmax = 6.099773242630386
 				text = ""

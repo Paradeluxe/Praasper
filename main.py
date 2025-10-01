@@ -14,4 +14,4 @@ for fname in fnames:
     vad_path = wav_path.replace(".wav", "_VAD.TextGrid")
 
     transcribe_wav_file(wav_path, vad=vad_path)
-    word_timestamp(wav_path, tg_path)
+    phon_timestamps(wav_path, tg_path)

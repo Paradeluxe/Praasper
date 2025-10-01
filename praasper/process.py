@@ -68,8 +68,6 @@ def detect_energy_valleys(wav_path, tg_path):
 
         # 获取 cand_valleys 对应的 rms 值
         cand_valleys_rms = [rms[np.where(time == t)[0][0]] for t in cand_valleys]
-        print()
-        print(cand_valleys, cand_valleys_rms)
 
         # 筛选出左相邻小于右相邻的波谷
         valid_valleys = []
@@ -209,7 +207,8 @@ def compare_centroids(y, time_stamp, sr, length=0.05):
 
 
 
-def segment_audio(wav_path, segment_duration=10, min_pause=0.2, params="self", verbose=False):
+def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="self", verbose=False):
+    wav_path = audio_obj.fpath
 
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Start segmentation (<= {segment_duration}s)...")
 
@@ -287,13 +286,14 @@ def segment_audio(wav_path, segment_duration=10, min_pause=0.2, params="self", v
             break
     if not segments:
         segments.append([0.0, audio_len * 1000])
+    
+    
     return segments
     
 
 
 
-def get_vad(wav_path, min_pause=0.2, params="self", if_save=True, verbose=False):
-
+def get_vad(wav_path, min_pause=0.2, params="self", if_save=False, verbose=False):
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD processing started...")
 
 
@@ -327,9 +327,9 @@ def get_vad(wav_path, min_pause=0.2, params="self", if_save=True, verbose=False)
     
 
 
-
     onsets = autoPraditorWithTimeRange(params, audio_obj, "onset", verbose=False)
     offsets = autoPraditorWithTimeRange(params, audio_obj, "offset", verbose=False)
+
     if verbose:   
         print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD onsets: {onsets}")
         print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD offsets: {offsets}")
@@ -349,31 +349,31 @@ def get_vad(wav_path, min_pause=0.2, params="self", if_save=True, verbose=False)
 
 
 
-    if if_save:
-        onsets = valid_onsets
-        offsets = valid_offsets
+    onsets = valid_onsets
+    offsets = valid_offsets
 
-        tg = TextGrid()
-        interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_obj.duration_seconds)
-        for i in range(len(onsets)):
-            try:
-                interval_tier.add(onsets[i], offsets[i], "+")
-            except ValueError:
-                continue
-            # except IndexError:
-            #     break
-        tg.append(interval_tier)
-        tg.write(wav_path.replace(".wav", "_VAD.TextGrid"))  # 将TextGrid对象写入文件
+    tg = TextGrid()
+    interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_obj.duration_seconds)
+    for i in range(len(onsets)):
+        try:
+            interval_tier.add(onsets[i], offsets[i], "+")
+        except ValueError:
+            continue
+        # except IndexError:
+        #     break
+    tg.append(interval_tier)
+    tg.write(wav_path.replace(".wav", "_VAD.TextGrid"))  # 将TextGrid对象写入文件
+    tg = TextGrid()
+    tg.read(wav_path.replace(".wav", "_VAD.TextGrid"))
+    if not if_save:
+        os.remove(wav_path.replace(".wav", "_VAD.TextGrid"))
+    else:
         print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD results saved")
     
     
-    return valid_onsets, valid_offsets
+    return tg
 
-# else:
-
-
-# defs
-def transcribe_wav_file(wav_path, vad, whisper_model, language):
+def transcribe_wav_file(wav_path, vad, whisper_model, language, if_save=False):
     """
     使用 Whisper 模型转录 .wav 文件
     
@@ -384,8 +384,11 @@ def transcribe_wav_file(wav_path, vad, whisper_model, language):
 
     # 转录音频文件
     initial_prompt = """
-    请保留所有语气词，比如嗯、啊、呃、唉、呵、呼、哼、咳、呜、哇、呀、喔、哦、哎、嘛。
+    请保留所有语气词，包括但不限于嗯、啊、呃、唉、呵、呼、哼、咳、呜、哇、呀、喔、哦、哎、嘛。
     """
+
+
+
     if language != None:
         result = whisper_model.transcribe(wav_path, initial_prompt=initial_prompt, fp16=torch.cuda.is_available(), word_timestamps=True, language=language)
     else:
@@ -396,22 +399,16 @@ def transcribe_wav_file(wav_path, vad, whisper_model, language):
     # print(result)
 
     # 加载 path_vad 对应的 TextGrid 文件
-    try:
-        vad_tg = TextGrid.fromFile(vad)
-    except FileNotFoundError:
-        print(f"错误：未找到文件 {vad}")
-        raise
-
+    vad_tg = vad
     # 提取所有 mark 为空字符串的 interval 的起止时间
     vad_intervals = []
     empty_mark_intervals = []
     for tier in vad_tg:
         for interval in tier:
-            if interval.mark == "":
+            if interval.mark == "" or interval.mark is None:
                 empty_mark_intervals.append((interval.minTime, interval.maxTime))
             else:
                 vad_intervals.append((interval.minTime, interval.maxTime))
-
 
 
     tg = TextGrid()
@@ -486,12 +483,14 @@ def transcribe_wav_file(wav_path, vad, whisper_model, language):
             current_interval.maxTime = next_interval.minTime
 
     tg.append(tier)
-    tg.write(wav_path.replace(".wav", "_whisper.TextGrid"))
-    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Whisper word-level transcription saved")
+
+    if if_save:
+        tg.write(wav_path.replace(".wav", "_whisper.TextGrid"))
+        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Whisper word-level transcription saved")
     return language, tg
 
 
-def word_timestamp(wav_path, tg_path, language):
+def phon_timestamps(wav_path, tg_path, language, if_save=False):
 
     if language.lower() not in ['zh', 'en', 'yue']:
         print(f"[{show_elapsed_time()}] Language {language} not currently supported.")

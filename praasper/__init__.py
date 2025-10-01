@@ -41,24 +41,46 @@ class init_model:
             os.makedirs(output_path, exist_ok=True)
             final_path = os.path.join(output_path, os.path.basename(wav_path).replace(".wav", ".TextGrid"))
 
-            final_tg = None
+            audio_obj = ReadSound(wav_path)
+
+
+            final_tg = TextGrid()
+            final_tg.tiers.append(IntervalTier(name="words", minTime=0., maxTime=audio_obj.duration_seconds))
             print(f"--------------- Processing {os.path.basename(wav_path)} ({idx+1}/{len(fnames)}) ---------------")
-            try:
-                get_vad(wav_path, verbose=verbose)
-            except Exception as e:
-                print(f"[{show_elapsed_time()}] Error processing {os.path.basename(wav_path)}: {e}")
-                continue
-            try:
-                language, final_tg = transcribe_wav_file(wav_path, vad=vad_path, whisper_model=self.whisper_model, language=language)
-            except Exception as e:
-                print(f"[{show_elapsed_time()}] Error transcribing {os.path.basename(wav_path)}: {e}")
-                continue
-            try:
-                final_tg = find_word_boundary(wav_path, tar_sr=sr, verbose=verbose)
-            except Exception as e:
-                print(f"[{show_elapsed_time()}] Error finding word boundary {os.path.basename(wav_path)}: {e}")
-            if final_tg:
-                final_tg.write(final_path)
+            for start, end in segment_audio(audio_obj, segment_duration=3.5):
+                audio_clip = audio_obj[start:end]
+                clip_path = os.path.join(os.path.dirname(wav_path), os.path.basename(wav_path).replace(".wav", "_temp.wav"))
+                audio_clip.save(clip_path)
+
+
+                try:
+                    vad_tg = get_vad(clip_path, verbose=verbose)
+                except Exception as e:
+                    print(f"[{show_elapsed_time()}] Error processing {os.path.basename(wav_path)}: {e}")
+                    os.remove(clip_path)
+                    continue
+                try:
+                    language, tg = transcribe_wav_file(clip_path, vad=vad_tg, whisper_model=self.whisper_model, language=language)
+                except Exception as e:
+                    print(f"[{show_elapsed_time()}] Error transcribing {os.path.basename(wav_path)}: {e}")
+                    os.remove(clip_path)
+                    continue
+                # print(tg.tiers[0].intervals)
+                try:
+                # print(whisper_tg.tiers[0].intervals)
+                    tg = find_word_boundary(clip_path, tg, tar_sr=sr, verbose=verbose)
+                except Exception as e:
+                    print(f"[{show_elapsed_time()}] Error finding word boundary {os.path.basename(wav_path)}: {e}")
+                    os.remove(clip_path)
+
+                for interval in tg.tiers[0].intervals:
+                    final_tg.tiers[0].add(interval.minTime + start/1000, interval.maxTime + start/1000, interval.mark)
+                if os.path.exists(clip_path):
+                    os.remove(clip_path)
+                
+            final_tg.write(final_path)
+            # if final_tg:
+                # final_tg.write(final_path)
         
         print(f"--------------- Processing completed ---------------")
 
