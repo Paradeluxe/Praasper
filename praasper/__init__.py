@@ -59,6 +59,7 @@ class init_model:
             count = 0
             for start, end in segment_audio(audio_obj, segment_duration=seg_dur):
                 count += 1
+                
                 print(f"[{show_elapsed_time()}] Processing segment: {start/1000:.3f} - {end/1000:.3f} ({count})")
                 audio_clip = audio_obj[start:end]
                 clip_path = os.path.join(tmp_path, os.path.basename(wav_path).replace(".wav", f"_{count}.wav"))
@@ -71,15 +72,15 @@ class init_model:
                     print(f"[{show_elapsed_time()}] Error processing {os.path.basename(wav_path)}: {e}")
                     os.remove(clip_path)
                     continue
+
                 try:
                     language, tg = transcribe_wav_file(clip_path, vad=vad_tg, whisper_model=self.whisper_model, language=language)
                 except Exception as e:
                     print(f"[{show_elapsed_time()}] Error transcribing {os.path.basename(wav_path)}: {e}")
                     os.remove(clip_path)
                     continue
-                # print(tg.tiers[0].intervals)
+
                 try:
-                # print(whisper_tg.tiers[0].intervals)
                     tg = find_word_boundary(clip_path, tg, tar_sr=sr, verbose=verbose)
                 except Exception as e:
                     print(f"[{show_elapsed_time()}] Error finding word boundary {os.path.basename(wav_path)}: {e}")
