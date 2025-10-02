@@ -59,35 +59,39 @@ class init_model:
             count = 0
             for start, end in segment_audio(audio_obj, segment_duration=seg_dur):
                 count += 1
-                
+
                 print(f"[{show_elapsed_time()}] Processing segment: {start/1000:.3f} - {end/1000:.3f} ({count})")
                 audio_clip = audio_obj[start:end]
                 clip_path = os.path.join(tmp_path, os.path.basename(wav_path).replace(".wav", f"_{count}.wav"))
                 audio_clip.save(clip_path)
 
 
-                try:
-                    vad_tg = get_vad(clip_path, verbose=verbose)
-                except Exception as e:
-                    print(f"[{show_elapsed_time()}] Error processing {os.path.basename(wav_path)}: {e}")
-                    os.remove(clip_path)
-                    continue
+                # try:
+                vad_tg = get_vad(clip_path, verbose=verbose)
+                # except Exception as e:
+                    # print(f"[{show_elapsed_time()}] Error processing {os.path.basename(wav_path)}: {e}")
+                    # os.remove(clip_path)
 
-                try:
-                    language, tg = transcribe_wav_file(clip_path, vad=vad_tg, whisper_model=self.whisper_model, language=language)
-                except Exception as e:
-                    print(f"[{show_elapsed_time()}] Error transcribing {os.path.basename(wav_path)}: {e}")
-                    os.remove(clip_path)
-                    continue
+                # try:
+                language, tg = transcribe_wav_file(clip_path, vad=vad_tg, whisper_model=self.whisper_model, language=language)
+                # except Exception as e:
+                    # print(f"[{show_elapsed_time()}] Error transcribing {os.path.basename(wav_path)}: {e}")
+                    # os.remove(clip_path)
+                    # continue
 
-                try:
-                    tg = find_word_boundary(clip_path, tg, tar_sr=sr, verbose=verbose)
-                except Exception as e:
-                    print(f"[{show_elapsed_time()}] Error finding word boundary {os.path.basename(wav_path)}: {e}")
-                    os.remove(clip_path)
+                # try:
+                tg = find_word_boundary(clip_path, tg, tar_sr=sr, verbose=verbose)
+                # except Exception as e:
+                    # print(f"[{show_elapsed_time()}] Error finding word boundary {os.path.basename(wav_path)}: {e}")
+                    # os.remove(clip_path)
 
                 for interval in tg.tiers[0].intervals:
-                    final_tg.tiers[0].add(interval.minTime + start/1000, interval.maxTime + start/1000, interval.mark)
+                    try:
+                        final_tg.tiers[0].add(interval.minTime + start/1000, interval.maxTime + start/1000, interval.mark)
+                    except ValueError:  # 浮点数精度问题
+                        # print(f"精度问题 {final_tg.tiers[0].intervals[-1].maxTime} {interval.minTime + start/1000}")
+                        final_tg.tiers[0].add(final_tg.tiers[0].intervals[-1].maxTime, interval.maxTime + start/1000, interval.mark)
+                        
                 if os.path.exists(clip_path):
                     os.remove(clip_path)
                 
@@ -101,4 +105,4 @@ class init_model:
 
 if __name__ == "__main__":
     model = init_model(model_name="large-v3-turbo")
-    model.annote(input_path=os.path.abspath("data"), sr=12000, seg_dur=3.5, language=None, verbose=False)
+    model.annote(input_path=os.path.abspath("big_data"), sr=12000, seg_dur=15., language=None, verbose=False)

@@ -270,11 +270,7 @@ def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="self", 
                 valid_offsets.append(offset)
         valid_offsets.append(offsets[-1])
 
-
-        # onsets, offsets = get_vad(segment, sr)
-
-
-        end = start + (valid_onsets[-1] + valid_offsets[-1]) / 2 * 1000
+        end = start + (valid_onsets[-1] + valid_offsets[-2]) / 2 * 1000
 
         segments.append([start, end])
 
@@ -287,7 +283,8 @@ def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="self", 
     if not segments:
         segments.append([0.0, audio_len * 1000])
     
-    
+    # print(segments)
+    # exit()
     return segments
     
 
@@ -414,57 +411,72 @@ def transcribe_wav_file(wav_path, vad, whisper_model, language, if_save=False):
     tg = TextGrid()
     tier = IntervalTier(name='word', minTime=0.0, maxTime=vad_tg.tiers[0].maxTime)
 
+    print(empty_mark_intervals)
     for segment in result["segments"]:
-        
+        intervals = []
         for idx, word in enumerate(segment["words"]):
             start_time = word["start"]
             end_time = word["end"]
             
             text = ''.join(c for c in word["word"] if c.isalpha() or c.isspace() or c.isnumeric())  # 去掉标点符号
 
-            # print(start_time, end_time, text)
+            print(start_time, end_time, text)
             for empty_mark_interval in empty_mark_intervals:
-                # print(empty_mark_interval)
-                if empty_mark_interval[0] <= end_time <= empty_mark_interval[1]:
-                    end_time = empty_mark_interval[0]
+                if empty_mark_interval[0] <= start_time <= end_time <= empty_mark_interval[1]:
+                    start_time = empty_mark_interval[0]
+                else:
+                    if empty_mark_interval[0] <= end_time <= empty_mark_interval[1]:# and start_time < empty_mark_interval[0]:
+                        end_time = empty_mark_interval[0]
+                    
+                    if empty_mark_interval[0] <= start_time <= empty_mark_interval[1]:# and end_time > empty_mark_interval[1]:
+                        start_time = empty_mark_interval[1]
                 
-                if empty_mark_interval[0] <= start_time <= empty_mark_interval[1]:
-                    start_time = empty_mark_interval[1]
+                # elif empty_mark_interval[0] <= start_time <= end_time <= empty_mark_interval[1]:
+                #     start_time = empty_mark_interval[0]
+                #     end_time = empty_mark_interval[1]
                 
-                if start_time < empty_mark_interval[0] < empty_mark_interval[1] < end_time:
-                    pass
-
+                # elif start_time < empty_mark_interval[0] < empty_mark_interval[1] < end_time:
+                #     pass
+            if intervals and [start_time, end_time] == intervals[-1][:2]:
+                intervals[-1][2] += text
+            else:
+                intervals.append([start_time, end_time, text])
+        print("-")
+        for start_time, end_time, text in intervals:
+            print(start_time, end_time, text)
             tier.add(start_time, end_time, text)
 
-    for vad_interval in vad_intervals:
-        # 找到距离 vad_interval[0] 最近的 interval.minTime
-        closest_interval = min(tier.intervals, key=lambda x: abs(x.minTime - vad_interval[0]))
+    # for vad_interval in vad_intervals:
+    #     # 找到距离 vad_interval[0] 最近的 interval.minTime
+    #     closest_interval = min(tier.intervals, key=lambda x: abs(x.minTime - vad_interval[0]))
 
-        if closest_interval.minTime - vad_interval[0] != 0:
-            closest_interval.minTime = vad_interval[0]
+    #     if closest_interval.minTime - vad_interval[0] != 0:
+    #         closest_interval.minTime = vad_interval[0]
 
-        # 找到距离 vad_interval[1] 最近的 interval.maxTime
-        closest_interval = min(tier.intervals, key=lambda x: abs(x.maxTime - vad_interval[1]))
+    #     # 找到距离 vad_interval[1] 最近的 interval.maxTime
+    #     closest_interval = min(tier.intervals, key=lambda x: abs(x.maxTime - vad_interval[1]))
 
-        if closest_interval.maxTime - vad_interval[1] != 0:
-            closest_interval.maxTime = vad_interval[1]
+    #     if closest_interval.maxTime - vad_interval[1] != 0:
+    #         closest_interval.maxTime = vad_interval[1]
 
     # 检查tier里是否有mark=”+“的interval，若有则删除
     tier.intervals = [interval for interval in tier.intervals if interval.mark != "+"]
     # print(tier.intervals)
     # 遍历 word_tier 中的每一个 interval
+    print()
     new_intervals = []
     for interval in tier.intervals:
         if len(interval.mark) > 1:
             # 计算每个新 interval 的时长
+            print(interval.minTime, interval.maxTime, interval.mark)
             duration = (interval.maxTime - interval.minTime) / len(interval.mark)
             start_time = interval.minTime
             # 将每个中文字拆分为一个新的 interval
             for char in interval.mark:
-                end_time = start_time + duration
-                new_interval = Interval(start_time, end_time, char)
+                print(start_time, start_time + duration, char)
+                new_interval = Interval(start_time, start_time + duration, char)
                 new_intervals.append(new_interval)
-                start_time = end_time
+                start_time += duration
         else:
             new_intervals.append(interval)
     # 替换原有的 intervals

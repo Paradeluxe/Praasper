@@ -74,6 +74,7 @@ def get_spectral_peak_interval(audio_path, whisper_tg, verbose=False):
     # 方法二：根据whisper的标注获取预期的音节数
 
     tg = whisper_tg
+    # print(whisper_tg.tiers[0].intervals)
     tier = tg.tiers[0]
     words = []
     for interval in tier.intervals:
@@ -193,7 +194,7 @@ def get_spectral_peak_interval(audio_path, whisper_tg, verbose=False):
 
         left = time[start] + dur
         right = time[end] - dur
-
+        # print(idx, len(continuous_intervals) - 1)
         if idx == 0:
             interval_indices.append([0.0, left])
             interval_indices.append([right])
@@ -203,6 +204,12 @@ def get_spectral_peak_interval(audio_path, whisper_tg, verbose=False):
         else:
             interval_indices[-1].append(left)
             interval_indices.append([right])
+        
+    if len(interval_indices[-1]) == 1:
+            interval_indices[-1].append(len(y)/sr)
+    
+    if not interval_indices:
+        interval_indices.append([0.0, len(y)/sr])
     # print(interval_indices)
     # interval_indices = [i for i in interval_indices if min_pause < i[1] - i[0]]
     # max_indices = np.array(max_indices)
@@ -288,7 +295,7 @@ def find_word_boundary(wav_path, whisper_tg, tar_sr=10000, min_pause=0.1, verbos
     参数:
     audio_path (str): 音频文件的路径
     """
-    shifted_peaks_indices = get_spectral_peak_interval(wav_path, whisper_tg, verbose=verbose)
+    shifted_peaks_indices = get_spectral_peak_interval(wav_path, whisper_tg, verbose=False)
 
     # 加载音频文件
     y, sr = read_audio(wav_path, tar_sr=tar_sr)
@@ -366,7 +373,7 @@ def find_word_boundary(wav_path, whisper_tg, tar_sr=10000, min_pause=0.1, verbos
         best_dur = 0
         left_boundary = None
         right_boundary = None
-
+        print(shifted_peaks_indices)
         for start, end in shifted_peaks_indices:
             if isCurrentConFlag and isNextConFlag:
                 if (current_interval.minTime <= start <= next_interval.maxTime) and (current_interval.minTime <= end <= next_interval.maxTime):
