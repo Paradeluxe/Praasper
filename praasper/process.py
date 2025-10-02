@@ -411,7 +411,7 @@ def transcribe_wav_file(wav_path, vad, whisper_model, language, if_save=False):
     tg = TextGrid()
     tier = IntervalTier(name='word', minTime=0.0, maxTime=vad_tg.tiers[0].maxTime)
 
-    print(empty_mark_intervals)
+    # print(empty_mark_intervals)
     for segment in result["segments"]:
         intervals = []
         for idx, word in enumerate(segment["words"]):
@@ -420,7 +420,7 @@ def transcribe_wav_file(wav_path, vad, whisper_model, language, if_save=False):
             
             text = ''.join(c for c in word["word"] if c.isalpha() or c.isspace() or c.isnumeric())  # 去掉标点符号
 
-            print(start_time, end_time, text)
+            # print(start_time, end_time, text)
             for empty_mark_interval in empty_mark_intervals:
                 if empty_mark_interval[0] <= start_time <= end_time <= empty_mark_interval[1]:
                     start_time = empty_mark_interval[0]
@@ -441,39 +441,25 @@ def transcribe_wav_file(wav_path, vad, whisper_model, language, if_save=False):
                 intervals[-1][2] += text
             else:
                 intervals.append([start_time, end_time, text])
-        print("-")
+        # print("-")
         for start_time, end_time, text in intervals:
-            print(start_time, end_time, text)
+            # print(start_time, end_time, text)
             tier.add(start_time, end_time, text)
 
-    # for vad_interval in vad_intervals:
-    #     # 找到距离 vad_interval[0] 最近的 interval.minTime
-    #     closest_interval = min(tier.intervals, key=lambda x: abs(x.minTime - vad_interval[0]))
-
-    #     if closest_interval.minTime - vad_interval[0] != 0:
-    #         closest_interval.minTime = vad_interval[0]
-
-    #     # 找到距离 vad_interval[1] 最近的 interval.maxTime
-    #     closest_interval = min(tier.intervals, key=lambda x: abs(x.maxTime - vad_interval[1]))
-
-    #     if closest_interval.maxTime - vad_interval[1] != 0:
-    #         closest_interval.maxTime = vad_interval[1]
 
     # 检查tier里是否有mark=”+“的interval，若有则删除
     tier.intervals = [interval for interval in tier.intervals if interval.mark != "+"]
     # print(tier.intervals)
     # 遍历 word_tier 中的每一个 interval
-    print()
+    # print()
     new_intervals = []
     for interval in tier.intervals:
         if len(interval.mark) > 1:
             # 计算每个新 interval 的时长
-            print(interval.minTime, interval.maxTime, interval.mark)
             duration = (interval.maxTime - interval.minTime) / len(interval.mark)
             start_time = interval.minTime
             # 将每个中文字拆分为一个新的 interval
             for char in interval.mark:
-                print(start_time, start_time + duration, char)
                 new_interval = Interval(start_time, start_time + duration, char)
                 new_intervals.append(new_interval)
                 start_time += duration

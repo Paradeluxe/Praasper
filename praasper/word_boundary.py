@@ -373,7 +373,8 @@ def find_word_boundary(wav_path, whisper_tg, tar_sr=10000, min_pause=0.1, verbos
         best_dur = 0
         left_boundary = None
         right_boundary = None
-        print(shifted_peaks_indices)
+
+        # print(shifted_peaks_indices)
         for start, end in shifted_peaks_indices:
             if isCurrentConFlag and isNextConFlag:
                 if (current_interval.minTime <= start <= next_interval.maxTime) and (current_interval.minTime <= end <= next_interval.maxTime):
