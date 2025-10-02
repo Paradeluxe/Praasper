@@ -257,20 +257,23 @@ def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="self", 
         onsets = autoPraditorWithTimeRange(params, segment, "onset", verbose=False)
         offsets = autoPraditorWithTimeRange(params, segment, "offset", verbose=False)
 
-        valid_onsets = onsets[:1]
-        valid_offsets = []
-        for idx, xset in enumerate(onsets):
-            if idx == len(onsets) - 1:
+        # 从最后一个onset开始往前遍历
+        for i in range(len(onsets)-1, 0, -1):
+            current_onset = onsets[i]
+            # 找到当前onset之前的最后一个offset
+            prev_offset = offsets[i-1]
+            if current_onset - prev_offset > min_pause:
+                # 若差值大于min_pause，则取得他们的均值
+                target_offset = (current_onset + prev_offset) / 2
+                end = start + target_offset * 1000
                 break
-            onset = onsets[idx+1]
-            offset = offsets[idx]
+        else:
+            # 若所有onset和对应offset差值都不大于min_pause，则取最后一个onset和第一个offset的均值
+            target_offset = (onsets[-1] + offsets[0]) / 2
+            end = start + target_offset * 1000
 
-            if onset - offset > min_pause:
-                valid_onsets.append(onset)
-                valid_offsets.append(offset)
-        valid_offsets.append(offsets[-1])
 
-        end = start + (valid_onsets[-1] + valid_offsets[-2]) / 2 * 1000
+        # end = start + (target_offset + onsets[-1]) / 2 * 1000
 
         segments.append([start, end])
 
@@ -299,10 +302,12 @@ def get_vad(wav_path, min_pause=0.2, params="self", if_save=False, verbose=False
     # 获取 wav 文件所在的文件夹路径
     wav_folder = os.path.dirname(wav_path)
     all_txt_path = os.path.join(wav_folder, "params.txt")
-    self_txt_path = wav_path.replace(".wav", ".txt")
+    self_txt_path = wav_path.replace(".wav", "_VAD.txt")
+    if not os.path.exists(self_txt_path):
+        self_txt_path = wav_path.replace(".wav", ".txt")
 
     
-
+    
     if params == "all":
         if os.path.exists(all_txt_path):
             with open(all_txt_path, "r") as f:

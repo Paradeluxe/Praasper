@@ -295,15 +295,13 @@ def find_word_boundary(wav_path, whisper_tg, tar_sr=10000, min_pause=0.1, verbos
     参数:
     audio_path (str): 音频文件的路径
     """
-    shifted_peaks_indices = get_spectral_peak_interval(wav_path, whisper_tg, verbose=False)
+    shifted_peaks_indices = get_spectral_peak_interval(wav_path, whisper_tg, verbose=verbose)
 
     # 加载音频文件
     y, sr = read_audio(wav_path, tar_sr=tar_sr)
 
-
     y = np.gradient(y)
     # y = np.gradient(np.gradient(y))
-
     # y = bandpass_filter(y, 50, sr, sr, order=4)
 
     # 使用librosa计算音频的均方根能量(rms)
