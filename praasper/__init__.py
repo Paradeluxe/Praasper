@@ -66,24 +66,14 @@ class init_model:
                 audio_clip.save(clip_path)
 
 
-                # try:
                 vad_tg = get_vad(clip_path, verbose=verbose)
-                # except Exception as e:
-                    # print(f"[{show_elapsed_time()}] Error processing {os.path.basename(wav_path)}: {e}")
-                    # os.remove(clip_path)
+                # print(vad_tg.tiers[0].intervals)
 
-                # try:
                 language, tg = transcribe_wav_file(clip_path, vad=vad_tg, whisper_model=self.whisper_model, language=language)
-                # except Exception as e:
-                    # print(f"[{show_elapsed_time()}] Error transcribing {os.path.basename(wav_path)}: {e}")
-                    # os.remove(clip_path)
-                    # continue
+                # print(tg.tiers[0].intervals)
 
-                # try:
                 tg = find_word_boundary(clip_path, tg, tar_sr=sr, verbose=verbose)
-                # except Exception as e:
-                    # print(f"[{show_elapsed_time()}] Error finding word boundary {os.path.basename(wav_path)}: {e}")
-                    # os.remove(clip_path)
+                # print(tg.tiers[0].intervals)
 
                 for interval in tg.tiers[0].intervals:
                     try:
@@ -96,8 +86,6 @@ class init_model:
                     os.remove(clip_path)
                 
             final_tg.write(final_path)
-            # if final_tg:
-                # final_tg.write(final_path)
         
         shutil.rmtree(tmp_path)
         print(f"--------------- Processing completed ---------------")

@@ -302,7 +302,7 @@ def get_vad(wav_path, min_pause=0.2, params="self", if_save=False, verbose=False
     # 获取 wav 文件所在的文件夹路径
     wav_folder = os.path.dirname(wav_path)
     all_txt_path = os.path.join(wav_folder, "params.txt")
-    self_txt_path = wav_path.replace(".wav", "_VAD.txt")
+    self_txt_path = wav_path.replace(".wav", "_vad.txt")
     if not os.path.exists(self_txt_path):
         self_txt_path = wav_path.replace(".wav", ".txt")
 
@@ -391,10 +391,7 @@ def transcribe_wav_file(wav_path, vad, whisper_model, language, if_save=False):
 
 
 
-    if language != None:
-        result = whisper_model.transcribe(wav_path, initial_prompt=initial_prompt, fp16=torch.cuda.is_available(), word_timestamps=True, language=language)
-    else:
-        result = whisper_model.transcribe(wav_path, initial_prompt=initial_prompt, fp16=torch.cuda.is_available(), word_timestamps=True)
+    result = whisper_model.transcribe(wav_path, initial_prompt=initial_prompt, fp16=torch.cuda.is_available(), word_timestamps=True, language=language)
     
     language = result["language"]
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Transcribing into {language}...")
@@ -435,7 +432,17 @@ def transcribe_wav_file(wav_path, vad, whisper_model, language, if_save=False):
                     
                     if empty_mark_interval[0] <= start_time <= empty_mark_interval[1]:# and end_time > empty_mark_interval[1]:
                         start_time = empty_mark_interval[1]
-                
+            for vad_interval in vad_intervals:
+                if vad_interval[0] <= start_time <= end_time <= vad_interval[1]:
+                    if idx != len(segment["words"]) - 1 and end_time <= segment["words"][idx+1]["start"] <= vad_interval[1]:
+                        pass
+                    else:
+                        end_time = vad_interval[1]
+                    
+                    if idx != 0 and vad_interval[0] <= segment["words"][idx-1]["end"] <= start_time:
+                        pass
+                    else:
+                        start_time = vad_interval[0]
                 # elif empty_mark_interval[0] <= start_time <= end_time <= empty_mark_interval[1]:
                 #     start_time = empty_mark_interval[0]
                 #     end_time = empty_mark_interval[1]
