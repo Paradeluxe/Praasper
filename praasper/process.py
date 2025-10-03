@@ -19,9 +19,40 @@ except ImportError:
     from VAD.core_auto import *
 from scipy.signal import argrelextrema
 import os
+import unicodedata
 
 
 default_params = {'onset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
+
+
+def is_single_language(text):
+    """
+    判断输入的文本是否属于单一语言文字
+    
+    :param text: 输入的文本
+    :return: 如果是单一语言返回 True，否则返回 False
+    """
+    if not text:
+        return True
+    
+    # 初始化第一个字符的语言范围
+    first_char = text[0]
+    first_script = unicodedata.name(first_char).split()[0]
+    
+    for char in text:
+        # 检查字符是否是标点符号
+        if unicodedata.category(char).startswith('P'):
+            continue
+        
+        try:
+            current_script = unicodedata.name(char).split()[0]
+            if current_script != first_script:
+                return False
+        except ValueError:
+            # 无法获取字符名称，跳过该字符
+            continue
+    return True
+
 
 
 def detect_energy_valleys(wav_path, tg_path):
@@ -256,12 +287,12 @@ def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="self", 
         # print(type(segment) == type(audio_obj))
         onsets = autoPraditorWithTimeRange(params, segment, "onset", verbose=False)
         offsets = autoPraditorWithTimeRange(params, segment, "offset", verbose=False)
-
         # 从最后一个onset开始往前遍历
         for i in range(len(onsets)-1, 0, -1):
             current_onset = onsets[i]
             # 找到当前onset之前的最后一个offset
-            prev_offset = offsets[i-1]
+            prev_offset = [xset for xset in offsets if xset < current_onset][-1]
+            # prev_offset = offsets[i-1]
             if current_onset - prev_offset > min_pause:
                 # 若差值大于min_pause，则取得他们的均值
                 target_offset = (current_onset + prev_offset) / 2
@@ -394,6 +425,10 @@ def transcribe_wav_file(wav_path, vad, whisper_model, language, if_save=False):
     result = whisper_model.transcribe(wav_path, initial_prompt=initial_prompt, fp16=torch.cuda.is_available(), word_timestamps=True, language=language)
     
     language = result["language"]
+    # print(result["text"])
+    if not is_single_language(result["text"]):
+        language = None
+
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Transcribing into {language}...")
     # print(result)
 
@@ -419,10 +454,11 @@ def transcribe_wav_file(wav_path, vad, whisper_model, language, if_save=False):
         for idx, word in enumerate(segment["words"]):
             start_time = word["start"]
             end_time = word["end"]
+            # print(start_time, end_time, word["word"])
             
-            text = ''.join(c for c in word["word"] if c.isalpha() or c.isspace() or c.isnumeric())  # 去掉标点符号
-
-            # print(start_time, end_time, text)
+            text = ''.join(c for c in word["word"] if c.isalpha() or c.isspace() or c.isnumeric() or not unicodedata.category(c).startswith('P'))  # 去掉标点符号
+            if not text:
+                continue
             for empty_mark_interval in empty_mark_intervals:
                 if empty_mark_interval[0] <= start_time <= end_time <= empty_mark_interval[1]:
                     pass
@@ -435,37 +471,41 @@ def transcribe_wav_file(wav_path, vad, whisper_model, language, if_save=False):
                     
                     if empty_mark_interval[0] <= start_time <= empty_mark_interval[1]:# and end_time > empty_mark_interval[1]:
                         start_time = empty_mark_interval[1]
+            # print(start_time, end_time, text)
+            
             for vad_interval in vad_intervals:
                 if vad_interval[0] <= start_time <= end_time <= vad_interval[1]:
                     if idx != len(segment["words"]) - 1 and end_time <= segment["words"][idx+1]["start"] <= vad_interval[1]:
                         pass
                     else:
-                        end_time = vad_interval[1]
+                        end_time = vad_interval[1] if vad_interval[1] - end_time < 1.0 else end_time
                     
                     if idx != 0 and vad_interval[0] <= segment["words"][idx-1]["end"] <= start_time:
                         pass
                     else:
-                        start_time = vad_interval[0]
+                        start_time = vad_interval[0] if start_time - vad_interval[0] < 1.0 else start_time
                 else:
                     if start_time < vad_interval[0] < end_time:
-                        start_time = vad_interval[0]
+                        start_time = vad_interval[0] if start_time - vad_interval[0] < 1.0 else start_time
                     if start_time < vad_interval[1] < end_time:
-                        end_time = vad_interval[1]
+                        end_time = vad_interval[1] if vad_interval[1] - end_time < 1.0 else end_time
                 # elif empty_mark_interval[0] <= start_time <= end_time <= empty_mark_interval[1]:
                 #     start_time = empty_mark_interval[0]
                 #     end_time = empty_mark_interval[1]
                 
                 # elif start_time < empty_mark_interval[0] < empty_mark_interval[1] < end_time:
                 #     pass
-            if intervals and [start_time, end_time] == intervals[-1][:2]:
+            # print(start_time, end_time, text)
+            if intervals and round(float(start_time), 4) == round(float(intervals[-1][0]), 4):
+                intervals[-1][1] = max(end_time, intervals[-1][1])
                 intervals[-1][2] += text
             else:
                 intervals.append([start_time, end_time, text])
-        # print("-")
+            # print()
+
         for start_time, end_time, text in intervals:
             # print(start_time, end_time, text)
             tier.add(start_time, end_time, text)
-
 
     # 检查tier里是否有mark=”+“的interval，若有则删除
     tier.intervals = [interval for interval in tier.intervals if interval.mark != "+"]

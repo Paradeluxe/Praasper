@@ -12,7 +12,7 @@ https://pypi.org/project/praasper/)
 In **Praasper**, we adopt a rather simple and straightforward pipeline to extract phoneme-level information from audio files. The pipeline includes [Whisper](https://github.com/openai/whisper) and [Praditor](https://github.com/Paradeluxe/Praditor). 
 
 
-Now **Praasper** support **Mandarin (zh)**. In the near future we plan to add support for **Cantonese (yue)** and **English (en)**. 
+Now **Praasper** supports **Mandarin (zh)**. In the near future we plan to add support for **Cantonese (yue)** and **English (en)**. 
 > For langauges that are not yet support, you can still get a result as the word-level annotation with high external boundaries. While the inner boundries could be inaccurate due to Whisper's feature.
 
 

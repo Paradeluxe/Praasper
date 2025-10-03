@@ -41,6 +41,9 @@ class init_model:
         fnames = [os.path.splitext(f)[0] for f in os.listdir(input_path) if f.endswith('.wav')]
         print(f"[{show_elapsed_time()}] {len(fnames)} valid audio files detected in {input_path}")
 
+        if not fnames:
+            return
+
         for idx, fname in enumerate(fnames):
             wav_path = os.path.join(input_path, fname + ".wav")
 
@@ -132,8 +135,10 @@ if __name__ == "__main__":
     model.annote(
         input_path=os.path.abspath("big_data"),
         sr=12000,
-        seg_dur=15.,
+        seg_dur=20.,
         merge_words=True,
-        language=None,
+        # language=None,
         verbose=False
     )
+
+    # [(0.0, 0.65994), (18.63519, 18.91781)]
