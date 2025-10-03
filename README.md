@@ -23,29 +23,32 @@ The default model is `large-v3-turbo`.
 
 >I personally recommend to use the SOTA model as time isn't a really big problem for offline processing.
 
+Here is a **simplest** example:
+
 ```python
 import praasper
 
 model = praasper.init_model(model_name="large-v3-turbo")  
 model.annote(input_path="data")  # The folder where you store .wav
-
-# If you want to know what other models are available:
-
-# import whisper
-# print(whisper.available_models())
 ```
 
-If you want to designate the sample rate for **resampling**, you can pass the `sr` argument to the `annote` method.
+Here are all the parameters you can pass to the `annote` method:
+
 ```python
-model.annote(input_path="data", sr=12000)
-# sr=None will use audio's original sample rate
+model.annote(
+    input_path="data",
+    sr=12000,  # I use 12000 as default. sr=None will use audio's original sample rate
+    language=None,  # "zh" for Mandarin, "yue" for Cantonese, "en" for English, None for automatic language detection
+    seg_dur=15.,  # Segment large audio into pieces, 15 seconds as default.
+    merge_words=True,  # Merge adjacent words into a single interval
+)
 ```
 
-If you want to designate the **language** for transcription, you can pass the `language` argument to the `annote` method.
+If you want to know what other models are available (but I suggest you use the largest anyway):
+
 ```python
-model.annote(input_path="data", language="zh")
-# "zh" for Mandarin, "yue" for Cantonese, "en" for English
-# language=None will use Whisper's automatic language detection
+import whisper
+print(whisper.available_models())
 ```
 
 # Mechanism
