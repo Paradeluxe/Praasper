@@ -42,7 +42,6 @@ class init_model:
             if os.path.exists(tmp_path):
                 shutil.rmtree(tmp_path)
                 print(f"[{show_elapsed_time()}] Temporary directory {tmp_path} removed.")
-
             os.makedirs(tmp_path, exist_ok=False)
 
             output_path = os.path.join(dir_name, "output")
@@ -66,7 +65,7 @@ class init_model:
                 audio_clip.save(clip_path)
 
 
-                vad_tg = get_vad(clip_path, verbose=verbose)
+                vad_tg = get_vad(clip_path, wav_path, verbose=verbose)
                 # print(vad_tg.tiers[0].intervals)
 
                 language, tg = transcribe_wav_file(clip_path, vad=vad_tg, whisper_model=self.whisper_model, language=language)
