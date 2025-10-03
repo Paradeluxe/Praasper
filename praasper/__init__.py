@@ -71,7 +71,11 @@ class init_model:
                 language, tg = transcribe_wav_file(clip_path, vad=vad_tg, whisper_model=self.whisper_model, language=language)
                 # print(tg.tiers[0].intervals)
 
-                tg = find_word_boundary(clip_path, tg, tar_sr=sr, verbose=verbose)
+                if language in ["zh"]:
+                    print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) (beta) Start word boundary detection...")
+                    tg = find_word_boundary(clip_path, tg, tar_sr=sr, verbose=verbose)
+                else:
+                    print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Language {language} is currently not supported for word boundary detection.")
                 # print(tg.tiers[0].intervals)
 
                 for interval in tg.tiers[0].intervals:
