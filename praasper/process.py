@@ -20,9 +20,24 @@ except ImportError:
 from scipy.signal import argrelextrema
 import os
 import unicodedata
+import langid
 
 
 default_params = {'onset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
+
+
+def purify_text(text):
+    """
+    清理文本中的无效字符，保留所有语言的文字字符
+    
+    :param text: 输入的文本
+    :return: 清理后的文本
+    """
+
+    text = text.strip()
+    # 只删除标点符号，保留所有语言的文字字符
+    text = ''.join('' if unicodedata.category(c).startswith('P') else c for c in text)
+    return text
 
 
 def is_single_language(text):
@@ -33,25 +48,21 @@ def is_single_language(text):
     :return: 如果是单一语言返回 True，否则返回 False
     """
     if not text:
-        return True
-    
-    # 初始化第一个字符的语言范围
-    first_char = text[0]
-    first_script = unicodedata.name(first_char).split()[0]
-    
-    for char in text:
-        # 检查字符是否是标点符号
-        if unicodedata.category(char).startswith('P'):
-            continue
-        
-        try:
-            current_script = unicodedata.name(char).split()[0]
-            if current_script != first_script:
-                return False
-        except ValueError:
-            # 无法获取字符名称，跳过该字符
-            continue
-    return True
+        return None
+    # 只删除标点符号，保留所有语言的文字字符
+    text = ''.join('' if unicodedata.category(c).startswith('P') else c for c in text)
+    # 初始化语言集合
+    lang_set = set()
+    # 遍历文本中的每个字符
+    for char in text.strip():
+        if char.strip():  # 跳过空白字符
+            # 使用 langid 检测字符的语言
+            lang, _ = langid.classify(char)
+            lang_set.add(lang)
+    # 如果语言集合中只有一种语言，则返回 True，否则返回 False
+    if len(lang_set) == 1:
+        return list(lang_set)[0]
+    return None
 
 
 
@@ -282,38 +293,49 @@ def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="self", 
 
     start = 0.0 * 1000
     end = segment_duration * 1000
-    while end < audio_len * 1000:
+    while end <= audio_len * 1000:
         segment = audio_obj[start:end]
         # print(type(segment) == type(audio_obj))
         onsets = autoPraditorWithTimeRange(params, segment, "onset", verbose=False)
         offsets = autoPraditorWithTimeRange(params, segment, "offset", verbose=False)
-        # 从最后一个onset开始往前遍历
-        for i in range(len(onsets)-1, 0, -1):
-            current_onset = onsets[i]
-            # 找到当前onset之前的最后一个offset
-            prev_offset = [xset for xset in offsets if xset < current_onset][-1]
-            # prev_offset = offsets[i-1]
-            if current_onset - prev_offset > min_pause:
-                # 若差值大于min_pause，则取得他们的均值
-                target_offset = (current_onset + prev_offset) / 2
-                end = start + target_offset * 1000
-                break
+        # print()
+        # print(start, end)
+        # print(onsets, offsets, audio_len * 1000)
+        if not onsets or not offsets:
+            segments[-1][1] = end
+            # continue
         else:
-            # 若所有onset和对应offset差值都不大于min_pause，则取最后一个onset和第一个offset的均值
-            target_offset = (onsets[-1] + offsets[0]) / 2
-            end = start + target_offset * 1000
+            # 从最后一个onset开始往前遍历
+            for i in range(len(onsets)-1, 0, -1):
+                current_onset = onsets[i]
+                # 找到当前onset之前的最后一个offset
+                prev_offset = [xset for xset in offsets if xset < current_onset][-1]
+                # prev_offset = offsets[i-1]
+                if current_onset - prev_offset > min_pause:
+                    # 若差值大于min_pause，则取得他们的均值
+                    target_offset = (current_onset + prev_offset) / 2
+                    end = start + target_offset * 1000
+                    break
+            else:
+                # 若所有onset和对应offset差值都不大于min_pause，则取最后一个onset和第一个offset的均值
+                target_offset = (onsets[-1] + offsets[0]) / 2
+                end = start + target_offset * 1000
 
 
-        # end = start + (target_offset + onsets[-1]) / 2 * 1000
+            # end = start + (target_offset + onsets[-1]) / 2 * 1000
 
-        segments.append([start, end])
+            segments.append([start, end])
 
         start = end
         end = start + segment_duration * 1000
 
         if end > audio_len * 1000:
-            segments.append([start, audio_len * 1000])
-            break
+            if audio_len * 1000 - start > 10:
+                segments[-1][1] = audio_len * 1000
+                break
+            else:
+                segments.append([start, audio_len * 1000])
+                break
     if not segments:
         segments.append([0.0, audio_len * 1000])
     
@@ -339,6 +361,7 @@ def get_vad(wav_path, ori_wav_path, min_pause=0.2, params="self", if_save=False,
 
     
     # print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD params: {params}")
+    # print(default_params)
     if params == "all":
         if os.path.exists(all_txt_path):
             with open(all_txt_path, "r") as f:
@@ -357,7 +380,7 @@ def get_vad(wav_path, ori_wav_path, min_pause=0.2, params="self", if_save=False,
 
     else:  # 具体参数
         params = params
-    
+    # print(params)
 
 
     onsets = autoPraditorWithTimeRange(params, audio_obj, "onset", verbose=False)
@@ -367,39 +390,55 @@ def get_vad(wav_path, ori_wav_path, min_pause=0.2, params="self", if_save=False,
         print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD onsets: {onsets}")
         print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD offsets: {offsets}")
 
-    valid_onsets = onsets[:1]
+
+
+
+    # Select the one offset that is closest to onset and earlier than onset
+    valid_onsets = []
     valid_offsets = []
-    for idx, xset in enumerate(onsets):
-        if idx == len(onsets) - 1:
-            break
-        onset = onsets[idx+1]
-        offset = offsets[idx]
-
-        if onset - offset > min_pause:
+    for i, onset in enumerate(onsets):
+        # print(onset)
+        if i == 0:
+            valid_offsets.append(offsets[-1])
             valid_onsets.append(onset)
-            valid_offsets.append(offset)
-    valid_offsets.append(offsets[-1])
+        else:
+            try:
+                valid_offsets.append(max([offset for offset in offsets if onsets[i-1] < offset < onset]))
+                valid_onsets.append(onset)
+
+            except ValueError:
+                pass
+    
 
 
 
-    onsets = valid_onsets
-    offsets = valid_offsets
+
+    onsets = sorted(valid_onsets)
+    offsets = sorted(valid_offsets)
 
     tg = TextGrid()
     interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_obj.duration_seconds)
     for i in range(len(onsets)):
         try:
+            if onsets[i+1] - offsets[i] > min_pause:
+                interval_tier.add(onsets[i], offsets[i], "+")
+            else:
+                interval_tier.add(onsets[i], offsets[i+1], "+")
+        except IndexError:
             interval_tier.add(onsets[i], offsets[i], "+")
         except ValueError:
-            continue
+            pass
+
         # except IndexError:
         #     break
     tg.append(interval_tier)
-    tg.write(wav_path.replace(".wav", "_VAD.TextGrid"))  # 将TextGrid对象写入文件
+    tg.write(wav_path.replace(".wav", "_vad.TextGrid"))  # 将TextGrid对象写入文件
+
     tg = TextGrid()
-    tg.read(wav_path.replace(".wav", "_VAD.TextGrid"))
+    tg.read(wav_path.replace(".wav", "_vad.TextGrid"))
+
     if not if_save:
-        os.remove(wav_path.replace(".wav", "_VAD.TextGrid"))
+        os.remove(wav_path.replace(".wav", "_vad.TextGrid"))
     else:
         print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD results saved")
     
@@ -421,13 +460,14 @@ def transcribe_wav_file(wav_path, vad, whisper_model, language, if_save=False):
     """
 
 
+    if language is None:
+        result = whisper_model.transcribe(wav_path, initial_prompt=initial_prompt, fp16=torch.cuda.is_available(), word_timestamps=True)
+    else:
+        result = whisper_model.transcribe(wav_path, initial_prompt=initial_prompt, fp16=torch.cuda.is_available(), word_timestamps=True, language=language)
 
-    result = whisper_model.transcribe(wav_path, initial_prompt=initial_prompt, fp16=torch.cuda.is_available(), word_timestamps=True, language=language)
-    
-    language = result["language"]
-    # print(result["text"])
-    if not is_single_language(result["text"]):
-        language = None
+    # language = result["language"]
+    language = is_single_language(result["text"])
+    print(result["text"])
 
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Transcribing into {language}...")
     # print(result)
@@ -436,11 +476,11 @@ def transcribe_wav_file(wav_path, vad, whisper_model, language, if_save=False):
     vad_tg = vad
     # 提取所有 mark 为空字符串的 interval 的起止时间
     vad_intervals = []
-    empty_mark_intervals = []
+    sil_intervals = []
     for tier in vad_tg:
         for interval in tier:
             if interval.mark == "" or interval.mark is None:
-                empty_mark_intervals.append((interval.minTime, interval.maxTime))
+                sil_intervals.append((interval.minTime, interval.maxTime))
             else:
                 vad_intervals.append((interval.minTime, interval.maxTime))
 
@@ -452,56 +492,71 @@ def transcribe_wav_file(wav_path, vad, whisper_model, language, if_save=False):
     for segment in result["segments"]:
         intervals = []
         for idx, word in enumerate(segment["words"]):
-            start_time = word["start"]
-            end_time = word["end"]
-            # print(start_time, end_time, word["word"])
+            start_time = segment["words"][idx]["start"]
+            end_time = segment["words"][idx]["end"]
+            # print( segment["words"][idx])
+            # if  segment["words"][idx]["text"].strip() == "":
+            #     continue
+            # print(start_time, end_time, segment["words"][idx]["word"])
             
-            text = ''.join(c for c in word["word"] if c.isalpha() or c.isspace() or c.isnumeric() or not unicodedata.category(c).startswith('P'))  # 去掉标点符号
+            text = ''.join(c for c in segment["words"][idx]["word"] if c.isalpha() or c.isspace() or c.isnumeric() or not unicodedata.category(c).startswith('P'))  # 去掉标点符号
+            text = text.strip()
             if not text:
                 continue
-            for empty_mark_interval in empty_mark_intervals:
-                if empty_mark_interval[0] <= start_time <= end_time <= empty_mark_interval[1]:
-                    pass
-                    # start_time = empty_mark_interval[0]
-                elif start_time <= empty_mark_interval[0] <= empty_mark_interval[1] <= end_time:
-                    start_time = empty_mark_interval[0]
-                else:
-                    if empty_mark_interval[0] <= end_time <= empty_mark_interval[1]:# and start_time < empty_mark_interval[0]:
-                        end_time = empty_mark_interval[0]
+
+
+            for sil_interval in sil_intervals:
+                # silence in sound
+                if start_time < sil_interval[0] < sil_interval[1] < end_time:
+                    if end_time - sil_interval[1] > sil_interval[0] - start_time:
+                        start_time = sil_interval[1]
+                    else:
+                        end_time = sil_interval[0]
                     
-                    if empty_mark_interval[0] <= start_time <= empty_mark_interval[1]:# and end_time > empty_mark_interval[1]:
-                        start_time = empty_mark_interval[1]
-            # print(start_time, end_time, text)
-            
+        
             for vad_interval in vad_intervals:
-                if vad_interval[0] <= start_time <= end_time <= vad_interval[1]:
-                    if idx != len(segment["words"]) - 1 and end_time <= segment["words"][idx+1]["start"] <= vad_interval[1]:
-                        pass
-                    else:
-                        end_time = vad_interval[1] if vad_interval[1] - end_time < 1.0 else end_time
+                if vad_interval[0] <= start_time <= vad_interval[1] <= end_time:
+                    end_time = vad_interval[1]
                     
-                    if idx != 0 and vad_interval[0] <= segment["words"][idx-1]["end"] <= start_time:
+                    try:
+                        if segment["words"][idx+1]["start"] == segment["words"][idx]["end"]:
+                            segment["words"][idx+1]["start"] = end_time
+                            
+                    except IndexError:
                         pass
-                    else:
-                        start_time = vad_interval[0] if start_time - vad_interval[0] < 1.0 else start_time
-                else:
-                    if start_time < vad_interval[0] < end_time:
-                        start_time = vad_interval[0] if start_time - vad_interval[0] < 1.0 else start_time
-                    if start_time < vad_interval[1] < end_time:
-                        end_time = vad_interval[1] if vad_interval[1] - end_time < 1.0 else end_time
-                # elif empty_mark_interval[0] <= start_time <= end_time <= empty_mark_interval[1]:
-                #     start_time = empty_mark_interval[0]
-                #     end_time = empty_mark_interval[1]
                 
-                # elif start_time < empty_mark_interval[0] < empty_mark_interval[1] < end_time:
-                #     pass
+                elif start_time <= vad_interval[0] <= end_time <= vad_interval[1]:
+                    start_time = vad_interval[0]
+            
+
             # print(start_time, end_time, text)
             if intervals and round(float(start_time), 4) == round(float(intervals[-1][0]), 4):
                 intervals[-1][1] = max(end_time, intervals[-1][1])
                 intervals[-1][2] += text
+                
+            elif intervals and start_time == end_time:
+                intervals[-1][2] += text
             else:
                 intervals.append([start_time, end_time, text])
             # print()
+        
+        # for idx, interval in enumerate(intervals):
+        #     if idx == len(intervals) - 1:
+        #         continue
+
+        #     if intervals[idx][0] != intervals[idx-1][1]:
+        #         for start_time, end_time in intervals:
+        #             if start_time <= intervals[idx-1][1] <= end_time:
+        #                 intervals[idx-1][1] = end_time
+        #                 break
+        for start_time, end_time in vad_intervals:
+            within_indices = [idx for idx, interval in enumerate(intervals) if start_time <= interval[0] <= interval[1] <= end_time]
+            if not within_indices:
+                continue
+            intervals[within_indices[0]][0] = start_time
+            intervals[within_indices[-1]][1] = end_time
+            
+
 
         for start_time, end_time, text in intervals:
             # print(start_time, end_time, text)

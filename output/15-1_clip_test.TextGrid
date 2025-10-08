@@ -1,0 +1,58 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 18.31358276643991
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "words"
+		xmin = 0.0
+		xmax = 18.31358276643991
+		intervals: size = 11
+			intervals [1]:
+				xmin = 0.0
+				xmax = 4.0
+				text = ""
+			intervals [2]:
+				xmin = 4.0
+				xmax = 5.399999999999999
+				text = "贫穷文雅"
+			intervals [3]:
+				xmin = 5.399999999999999
+				xmax = 7.614832721088435
+				text = ""
+			intervals [4]:
+				xmin = 7.614832721088435
+				xmax = 8.416802721088434
+				text = "平均"
+			intervals [5]:
+				xmin = 8.416802721088434
+				xmax = 8.596802721088435
+				text = ""
+			intervals [6]:
+				xmin = 8.596802721088435
+				xmax = 8.929882721088434
+				text = "规律"
+			intervals [7]:
+				xmin = 8.929882721088434
+				xmax = 13.513312721088436
+				text = ""
+			intervals [8]:
+				xmin = 13.513312721088436
+				xmax = 14.294852721088436
+				text = "和蔼"
+			intervals [9]:
+				xmin = 14.294852721088436
+				xmax = 15.998842721088435
+				text = ""
+			intervals [10]:
+				xmin = 15.998842721088435
+				xmax = 16.749572721088434
+				text = "充足"
+			intervals [11]:
+				xmin = 16.749572721088434
+				xmax = 18.31358276643991
+				text = ""

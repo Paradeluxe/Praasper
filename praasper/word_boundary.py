@@ -53,7 +53,7 @@ def get_spectral_peak_interval(audio_path, whisper_tg, verbose=False):
     
     # 计算对应的时间轴
     time = librosa.times_like(spectral_peaks, sr=sr)#, hop_length=hop_length)
-
+    # print(time)
 
 
     # 筛选出 start_time 到 end_time 之间的数据
@@ -73,9 +73,9 @@ def get_spectral_peak_interval(audio_path, whisper_tg, verbose=False):
     # basline = get_baseline_freq_peak(audio_path)  
     # 方法二：根据whisper的标注获取预期的音节数
 
-    tg = whisper_tg
+    # tg = whisper_tg
     # print(whisper_tg.tiers[0].intervals)
-    tier = tg.tiers[0]
+    tier = whisper_tg.tiers[0]
     words = []
     for interval in tier.intervals:
         for c in interval.mark.split():
@@ -186,14 +186,15 @@ def get_spectral_peak_interval(audio_path, whisper_tg, verbose=False):
         interval_spectral_peaks = spectral_peaks[start:end]
         peak_indices, _ = find_peaks(interval_spectral_peaks)
         peak_indices = list(sorted(peak_indices))
+        # print(peak_indices)
         if peak_indices:
-            start = start + peak_indices[0]
-            end = start + peak_indices[-1]
+            start = start + peak_indices[0] - 1
+            end = start + peak_indices[-1] - 1
 
-        dur = (time[end] - time[start]) * 0.  # 也可以去找最近的波峰!!!
+        # dur = (time[end] - time[start]) * 0.  # 也可以去找最近的波峰!!!
 
-        left = time[start] + dur
-        right = time[end] - dur
+        left = time[start] #+ dur
+        right = time[end] #- dur
         # print(idx, len(continuous_intervals) - 1)
         if idx == 0:
             interval_indices.append([0.0, left])
@@ -354,7 +355,7 @@ def find_word_boundary(wav_path, whisper_tg, tar_sr=10000, min_pause=0.1, verbos
             continue
             
 
-        cand_valleys = [t for t in time[valley_indices] if current_interval.minTime + 0.05 < t < next_interval.maxTime]
+        cand_valleys = [t for t in time[valley_indices] if current_interval.minTime < t < next_interval.maxTime]
         cand_valleys_rms = [rms[np.where(time == t)[0][0]] for t in cand_valleys]
 
 
@@ -419,17 +420,22 @@ def find_word_boundary(wav_path, whisper_tg, tar_sr=10000, min_pause=0.1, verbos
 
         # valid_valleys = []
         # valley_valleys_rms = []
-        mask = (valid_valleys >= left_boundary) & (valid_valleys <= right_boundary)
-
-        while not valid_valleys[mask].any():
-            right_boundary += 0.001
-            left_boundary -= 0.001
+        if isCurrentConFlag or isNextConFlag:
+            # print(current_interval.mark, next_interval.mark)
+            # print(left_boundary, right_boundary)
             mask = (valid_valleys >= left_boundary) & (valid_valleys <= right_boundary)
-        
-        valid_valleys = valid_valleys[mask]
-        valid_valleys_rms = valid_valleys_rms[mask]
+            # print(interval)
+            while not valid_valleys[mask].any():
+                # print(left_boundary, right_boundary)
+                # print(valid_valleys[mask])
+                right_boundary += 0.0001
+                left_boundary -= 0.0001
+                mask = (valid_valleys >= left_boundary) & (valid_valleys <= right_boundary)
 
-        sorted_indices = np.argsort(valid_valleys_rms)
+            valid_valleys = valid_valleys[mask]
+            valid_valleys_rms = valid_valleys_rms[mask]
+
+            sorted_indices = np.argsort(valid_valleys_rms)
         
         if verbose:
             print(current_interval.mark, next_interval.mark)
@@ -457,12 +463,12 @@ def find_word_boundary(wav_path, whisper_tg, tar_sr=10000, min_pause=0.1, verbos
                     valid_points = valid_valleys
                 # if isCurrentConFlag and not isNextConFlag:
                 #     min_valley_time = valid_points[0]
-                if not isCurrentConFlag and isNextConFlag:
-                    # min_valley_time = valid_valleys[-1]
-                    min_valley_time = valid_points[0]
+                # if not isCurrentConFlag and isNextConFlag:
+                #     # min_valley_time = valid_valleys[-1]
+                #     min_valley_time = valid_points[0]
 
-                else:
-                    min_valley_time = valid_points[0]
+                # else:
+                min_valley_time = valid_points[0]
             else:
                 min_valley_time = find_internsity_valley(wav_path, left_boundary, right_boundary, verbose=verbose)
 

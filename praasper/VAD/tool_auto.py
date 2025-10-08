@@ -49,7 +49,16 @@ class ReadSound:
         start = min(start, len(self.arr))
         end = min(end, len(self.arr))
 
-        return ReadSound(fpath=self.fpath, arr=self.arr[start:end], duration_seconds=(end - start) / 1000, frame_rate=self.frame_rate)
+        return ReadSound(fpath=self.fpath, arr=self.arr[start:end], duration_seconds=(end - start) / self.frame_rate, frame_rate=self.frame_rate)
+
+    def power(self):
+        """
+        计算整段信号的平均功率
+        
+        :return: 整段信号的平均功率
+        """
+        return np.mean(self.arr ** 2)
+
 
     def get_array_of_samples(self):
         return self.arr
@@ -62,6 +71,60 @@ class ReadSound:
         """
         import soundfile as sf
         sf.write(fpath, self.arr, self.frame_rate)
+
+    def __add__(self, other):
+        """
+        将两个ReadSound对象相加
+        
+        :param other: 另一个ReadSound对象
+        :return: 新的ReadSound对象，包含相加后的音频数据
+        """
+        if not isinstance(other, ReadSound):
+            raise TypeError("Only ReadSound objects can be added together.")
+        
+        # 检查采样率是否相同
+        if self.frame_rate != other.frame_rate:
+            # 如果采样率不同，将other重采样到self的采样率
+            other_resampled = librosa.resample(
+                other.arr, 
+                orig_sr=other.frame_rate, 
+                target_sr=self.frame_rate
+            )
+            other_arr = other_resampled
+        else:
+            other_arr = other.arr
+        
+        # 将两个音频数组相加
+        combined_arr = np.concatenate([self.arr, other_arr])
+        
+        # 计算新的时长
+        combined_duration = self.duration_seconds + other.duration_seconds
+        
+        # 创建新的ReadSound对象
+        return ReadSound(
+            fpath=None,
+            arr=combined_arr,
+            duration_seconds=combined_duration,
+            frame_rate=self.frame_rate
+        )
+
+    def reverse(self):
+        """
+        反转音频数据的时间顺序
+        
+        :return: 新的ReadSound对象，包含反转后的音频数据
+        """
+        # 使用numpy的flip函数反转数组
+        reversed_arr = np.flip(self.arr)
+        
+        # 创建新的ReadSound对象
+        return ReadSound(
+            fpath=None,
+            arr=reversed_arr,
+            duration_seconds=self.duration_seconds,
+            frame_rate=self.frame_rate
+        )
+    
 
 
 

@@ -11,24 +11,40 @@ item []:
 		name = "words"
 		xmin = 0.0
 		xmax = 7.762879818594104
-		intervals: size = 5
+		intervals: size = 9
 			intervals [1]:
 				xmin = 0.0
-				xmax = 4.456360430839003
+				xmax = 0.30145
 				text = ""
 			intervals [2]:
-				xmin = 4.456360430839003
-				xmax = 4.712690430839003
-				text = "冰"
+				xmin = 0.30145
+				xmax = 1.13964
+				text = "考察"
 			intervals [3]:
-				xmin = 4.712690430839003
-				xmax = 5.812780430839003
+				xmin = 1.13964
+				xmax = 2.16823
 				text = ""
 			intervals [4]:
-				xmin = 5.812780430839003
-				xmax = 6.685020430839003
-				text = "箱"
+				xmin = 2.16823
+				xmax = 3.03265
+				text = "编辑"
 			intervals [5]:
-				xmin = 6.685020430839003
+				xmin = 3.03265
+				xmax = 4.04136
+				text = ""
+			intervals [6]:
+				xmin = 4.04136
+				xmax = 4.71268
+				text = "鸡场"
+			intervals [7]:
+				xmin = 4.71268
+				xmax = 5.81277
+				text = ""
+			intervals [8]:
+				xmin = 5.81277
+				xmax = 6.68501
+				text = "冰箱"
+			intervals [9]:
+				xmin = 6.68501
 				xmax = 7.762879818594104
 				text = ""

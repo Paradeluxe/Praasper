@@ -75,22 +75,31 @@ class init_model:
                 clip_path = os.path.join(tmp_path, os.path.basename(wav_path).replace(".wav", f"_{count}.wav"))
                 audio_clip.save(clip_path)
 
+                try:
+                    vad_tg = get_vad(clip_path, wav_path, verbose=verbose)
+                except Exception as e:
+                    print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) VAD Error: {e}")
+                    continue
+                print(vad_tg.tiers[0].intervals)
 
-                vad_tg = get_vad(clip_path, wav_path, verbose=verbose)
-                # print(vad_tg.tiers[0].intervals)
-
+                # try:
                 language, tg = transcribe_wav_file(clip_path, vad=vad_tg, whisper_model=self.whisper_model, language=language)
-                # print(tg.tiers[0].intervals)
+                # except Exception as e:
+                #     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Whisper Transcription Error: {e}")
+                #     continue
+                
+                print(tg.tiers[0].intervals)
 
                 if language in ["zh"]:
                     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) (beta) Start word boundary detection...")
                     tg = find_word_boundary(clip_path, tg, tar_sr=sr, verbose=verbose)
                 else:
                     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Language {language} is currently not supported for word boundary detection.")
-                # print(tg.tiers[0].intervals)
+                print(tg.tiers[0].intervals)
 
 
                 for interval in tg.tiers[0].intervals:
+                    # print(interval.minTime, interval.maxTime, interval.mark)
                     try:
                         final_tg.tiers[0].add(interval.minTime + start/1000, interval.maxTime + start/1000, interval.mark)
                     except ValueError:  # 浮点数精度问题
@@ -124,6 +133,8 @@ class init_model:
                 if os.path.exists(clip_path):
                     os.remove(clip_path)
                 
+                # exit()
+                
             final_tg.write(final_path)
         
         shutil.rmtree(tmp_path)
@@ -133,11 +144,11 @@ class init_model:
 if __name__ == "__main__":
     model = init_model(model_name="large-v3-turbo")
     model.annote(
-        input_path=os.path.abspath("big_data"),
+        input_path=os.path.abspath("input_single"),
         sr=12000,
-        seg_dur=20.,
+        seg_dur=10.,
         merge_words=True,
-        # language=None,
+        language=None,
         verbose=False
     )
 
