@@ -11,8 +11,20 @@ item []:
 		name = "words"
 		xmin = 0.0
 		xmax = 17.879977324263038
-		intervals: size = 1
+		intervals: size = 4
 			intervals [1]:
 				xmin = 0.0
+				xmax = 2.109
+				text = "可以开始"
+			intervals [2]:
+				xmin = 2.109
+				xmax = 7.39884
+				text = ""
+			intervals [3]:
+				xmin = 7.39884
+				xmax = 12.72626
+				text = "平静周到周到周到周到"
+			intervals [4]:
+				xmin = 12.72626
 				xmax = 17.879977324263038
 				text = ""

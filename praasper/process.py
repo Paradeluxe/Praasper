@@ -26,6 +26,30 @@ import langid
 default_params = {'onset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
 
 
+
+def mapping(audios, batch_size, whisper_model, tmp_path, wav_path):
+    
+    for i in range(0, len(audios), batch_size):
+        batch_audios = audios[i:i+batch_size]
+
+        batch_audio = batch_audios[0]
+        for audio in batch_audios[1:]:
+            batch_audio += audio
+
+        interval_path = os.path.join(tmp_path, os.path.basename(wav_path).replace(".wav", f"_batch_{i}.wav"))
+        batch_audio.save(interval_path)
+
+
+        result = whisper_model.transcribe(interval_path, temperature=[0.0], fp16=torch.cuda.is_available())#, word_timestamps=True)
+
+        good_indices = []
+        for idx_intval, intval in enumerate(good_intervals):
+            if any([has_time_overlap(segment["start"], segment["end"], intval[0], intval[1]) for segment in result["segments"]]):
+                good_indices.append(idx_intval)
+
+
+
+
 def purify_text(text):
     """
     清理文本中的无效字符，保留所有语言的文字字符

@@ -68,7 +68,9 @@ class init_model:
 
             print(f"--------------- Processing {os.path.basename(wav_path)} ({idx+1}/{len(fnames)}) ---------------")
             count = 0
-            for start, end in segment_audio(audio_obj, segment_duration=seg_dur):
+            segments = segment_audio(audio_obj, segment_duration=seg_dur)
+            print(segments)
+            for start, end in segments:
                 count += 1
 
                 print(f"[{show_elapsed_time()}] Processing segment: {start/1000:.3f} - {end/1000:.3f} ({count})")
@@ -82,30 +84,39 @@ class init_model:
                     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) VAD Error: {e}")
                     continue
                 
-                min_noise_dur = 2.0
                 intervals = vad_tg.tiers[0].intervals
 
+                min_noise_dur = 2.
+                # min_power = float('inf')  # 初始化最小功率为正无穷大
 
-                min_power = float('inf')  # 初始化最小功率为正无穷大
+                # for idx, interval in enumerate(intervals):
+                #     if interval.mark not in ["", None]:
+                #         continue
+                #     dur = interval.maxTime - interval.minTime
+                #     power = audio_clip[interval.minTime*1000:interval.maxTime*1000].power()
+                #     if power < min_power:  # 如果当前功率小于最小功率
+                #         min_power = power  # 更新最小功率
+                #         target_noise_idx = idx  # 更新目标噪声区间的索引
+                #         print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Update target noise interval: {interval.minTime:.3f} - {interval.maxTime:.3f} (Power: {power:.3f})")
+                
+                # target_noise_interval = intervals[target_noise_idx]
+                # dur = target_noise_interval.maxTime - target_noise_interval.minTime
+                # target_noise = audio_clip[(target_noise_interval.minTime+dur * 0.1)*1000:(target_noise_interval.maxTime-dur * 0.1)*1000]
+                # if target_noise.duration_seconds > 1.0:
+                    # target_noise = audio_clip[(target_noise_interval.minTime+dur * 0.1)*1000:(target_noise_interval.minTime+dur *.1+.5)*1000]\
+                
+                
+                target_noise = audio_clip.min_power_segment(1.)
 
-                for idx, interval in enumerate(intervals):
-                    if interval.mark not in ["", None]:
-                        continue
-                    dur = interval.maxTime - interval.minTime
-                    power = audio_clip[interval.minTime*1000:interval.maxTime*1000].power()
-                    if power < min_power:  # 如果当前功率小于最小功率
-                        min_power = power  # 更新最小功率
-                        target_noise_idx = idx  # 更新目标噪声区间的索引
-                target_noise_interval = intervals[target_noise_idx]
-                dur = target_noise_interval.maxTime - target_noise_interval.minTime
-                target_noise = audio_clip[(target_noise_interval.minTime+dur * 0.1)*1000:(target_noise_interval.maxTime-dur * 0.1)*1000]
+                print(f"Target noise duration: {target_noise.duration_seconds:.3f}")
 
                 _count = int(min_noise_dur / target_noise.duration_seconds)
+                print(_count)
                 for i in range(_count):
                     if i // 2 != 0:
-                        target_noise += target_noise.reverse()
-                    else:
                         target_noise += target_noise
+                    else:
+                        target_noise += target_noise.reverse()
 
 
                 cand_audios = []
@@ -115,47 +126,23 @@ class init_model:
                     if interval.mark in ["", None]:
                         continue
 
-                    # pre_constraint = (intervals[idx-1].maxTime - intervals[idx-1].minTime)
-                    # post_constraint = (intervals[idx+1].maxTime - intervals[idx+1].minTime)
                     dur = target_noise.duration_seconds
 
                     start_clip = interval.minTime
                     end_clip = interval.maxTime
 
-                    audio_interval = audio_clip[(start_clip - dur * 0.2)*1000:(end_clip + dur * 0.2)*1000]
+                    audio_interval = audio_clip[(start_clip - 0.1)*1000:(end_clip + 0.1)*1000]
 
-                    # 处理 audio_pre
-                    audio_pre = audio_clip[(start_clip - pre_constraint * 0.8)*1000:(start_clip - pre_constraint * 0.2)*1000]
-                    _count = int(min_noise_dur / audio_pre.duration_seconds)
-                    extra_pre = audio_pre
-                    for i in range(_count):
-                        if i // 2 != 0:
-                            extra_pre = audio_pre + extra_pre
-                        else:
-                            extra_pre = audio_pre.reverse() + extra_pre
-                    audio_pre = extra_pre
+                    audio_interval = target_noise + audio_interval + target_noise
                     
-                    # 处理 audio_post
-                    audio_post = audio_clip[(end_clip + post_constraint * 0.2)*1000:(end_clip + post_constraint*0.8)*1000]
-                    _count = int(min_noise_dur / audio_post.duration_seconds)
-                    extra_post = audio_post
-                    for i in range(_count):
-                        if i // 2 != 0:
-                            extra_post += audio_post
-                        else:
-                            extra_post += audio_post.reverse()
-                    audio_post = extra_post
-                    # print(audio_pre.duration_seconds, audio_interval.duration_seconds, audio_post.duration_seconds)
 
-                    good_intervals.append([last_start_time + audio_pre.duration_seconds, last_start_time + audio_pre.duration_seconds + audio_interval.duration_seconds])
-                    # 拼接 audio_interval 和 audio_interval
-                    audio_interval = audio_pre + audio_interval + audio_post
+                    good_intervals.append([last_start_time + target_noise.duration_seconds + 0.1, last_start_time + audio_interval.duration_seconds - target_noise.duration_seconds - 0.1])
+
                     last_start_time += audio_interval.duration_seconds
                     cand_audios.append(audio_interval)
                 print(good_intervals)
-                print("-")
 
-                batch_size = 4
+                batch_size = 3
                 for i in range(0, len(cand_audios), batch_size):
                     batch_audios = cand_audios[i:i+batch_size]
 
@@ -163,28 +150,54 @@ class init_model:
                     for audio in batch_audios[1:]:
                         batch_audio += audio
 
+
+
                     interval_path = os.path.join(tmp_path, os.path.basename(clip_path).replace(".wav", f"_batch_{i}.wav"))
                     batch_audio.save(interval_path)
 
 
                     result = whisper_model.transcribe(interval_path, temperature=[0.0], fp16=torch.cuda.is_available())#, word_timestamps=True)
+                    lang = result["language"]
 
-                    good_indices = []
+                    aff_dict = {}
                     for idx_intval, intval in enumerate(good_intervals):
-                        if any([has_time_overlap(segment["start"], segment["end"], intval[0], intval[1]) for segment in result["segments"]]):
-                            good_indices.append(idx_intval)
-                            
+                        # 以result["segments"]为索引
+                        time_overlaps = [has_time_overlap(segment["start"], segment["end"], intval[0], intval[1]) for segment in result["segments"]]
+                        
+                        if any(time_overlap != 0 for time_overlap in time_overlaps):
+                            # 找到最大的 time_overlaps 值对应的索引
+                            max_overlap_idx = time_overlaps.index(max(time_overlaps))
+                            aff_dict.setdefault(max_overlap_idx, []).append(i+idx_intval)
+                                
+                    print(aff_dict)
 
+                    for idx_seg in aff_dict:
+                        if len(aff_dict[idx_seg]) > 1:
+                            for idx_intval in aff_dict[idx_seg]:
+                                seg_audio = batch_audios[idx_intval]
+                                seg_path = os.path.join(tmp_path, os.path.basename(clip_path).replace(".wav", f"_batch_{i}_interval_{idx_intval}.wav"))
+                                seg_audio.save(seg_path)
+
+                                seg_result = whisper_model.transcribe(seg_path, temperature=[0.0], fp16=torch.cuda.is_available(), language=lang)
+                                # print(seg_result)
+                                if purify_text(seg_result["text"]) == purify_text(result["segments"][idx_seg]["text"]):
+                                    aff_dict[idx_seg] = [idx_intval]
+                                    break
+                            else:
+                                aff_dict[idx_seg] = []
+                    print(aff_dict)
                 
-                    print("-")
-                    intervals = [interval for interval in intervals if interval.mark == "+"]
-                    intervals = [intervals[idx] for idx in good_indices]
-                    print(intervals)
-                    print(result["segments"])
-                    print("-")
-                    for idx_seg, segment in enumerate(result["segments"]):
-                        text = purify_text(segment["text"])
-                        final_tg.tiers[0].addInterval(Interval(intervals[idx_seg].minTime + start/1000, intervals[idx_seg].maxTime + start/1000, text))
+
+                    for idx_text, indices_time in aff_dict.items():
+                        if not indices_time:
+                            continue
+                        interval = intervals[indices_time[0]]
+                        s, e = interval.minTime, interval.maxTime
+                        s += start/1000
+                        e += start/1000
+                        t = purify_text(result["segments"][idx_text]["text"])
+
+                        final_tg.tiers[0].addInterval(Interval(s, e, t))
 
                 if merge_words:
                     # 合并相邻的 interval
@@ -226,7 +239,7 @@ if __name__ == "__main__":
     model.annote(
         input_path=os.path.abspath("input_short"),
         sr=12000,
-        seg_dur=20.,
+        seg_dur=10.,
         merge_words=True,
         language=None,
         verbose=False

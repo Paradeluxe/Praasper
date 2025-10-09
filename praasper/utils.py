@@ -9,6 +9,11 @@ except ImportError:
 START_TIME = time.time()
 
 
+
+
+
+
+
 def has_time_overlap(start1, end1, start2, end2):
     """判断两个时间段是否有交集
 
@@ -23,8 +28,11 @@ def has_time_overlap(start1, end1, start2, end2):
     """
     if start1 > end1 or start2 > end2:
         raise ValueError("开始时间不能晚于结束时间")
-    return start1 < end2 and start2 < end1
 
+    if start1 < end2 and start2 < end1:
+        return min(end2 - start1, end1 - start2)
+    else:
+        return 0
 
 
 

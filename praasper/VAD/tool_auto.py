@@ -58,6 +58,36 @@ class ReadSound:
         :return: 整段信号的平均功率
         """
         return np.mean(self.arr ** 2)
+    
+    def min_power_segment(self, segment_duration=1.0):
+        """
+        计算整段信号中每个segment_duration时长的最小功率
+        
+        :param segment_duration: 每个segment的时长，单位为秒
+        :return: 每个segment的最小功率数组
+        """
+        if segment_duration > self.duration_seconds:
+            # print("Segment duration must be shorter than audio duration.")
+            segment_duration = self.duration_seconds
+        num_segments = int(self.duration_seconds // segment_duration)
+        segment_powers = []
+        for i in range(num_segments):
+            start = int(i * segment_duration * self.frame_rate)
+            end = int((i + 1) * segment_duration * self.frame_rate)
+            segment = self.arr[start:end]
+            # ReadSound(fpath=self.fpath, arr=self.arr[start:end], duration_seconds=(end - start) / self.frame_rate, frame_rate=self.frame_rate)
+            segment_powers.append(np.min(segment ** 2))
+            timestamps = [[start, end]]
+        # 找到最小功率的索引
+        min_power_idx = np.argmin(segment_powers)
+        start, end = timestamps[min_power_idx]
+        # 返回最小功率段的 ReadSound 对象
+        return ReadSound(
+            fpath=self.fpath,
+            arr=self.arr[start:end],
+            duration_seconds=(end - start) / self.frame_rate,
+            frame_rate=self.frame_rate
+        )
 
 
     def get_array_of_samples(self):
