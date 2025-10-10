@@ -71,7 +71,8 @@ class ReadSound:
             segment_duration = self.duration_seconds
         num_segments = int(self.duration_seconds // segment_duration)
         segment_powers = []
-        for i in range(num_segments):
+        step = max(1, num_segments // 2)  # step 为窗口一半，最小为1
+        for i in range(0, num_segments, step):
             start = int(i * segment_duration * self.frame_rate)
             end = int((i + 1) * segment_duration * self.frame_rate)
             segment = self.arr[start:end]

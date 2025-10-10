@@ -449,7 +449,10 @@ def get_vad(wav_path, ori_wav_path, min_pause=0.2, params="self", if_save=False,
             else:
                 interval_tier.add(onsets[i], offsets[i+1], "+")
         except IndexError:
-            interval_tier.add(onsets[i], offsets[i], "+")
+            try:
+                interval_tier.add(onsets[i], offsets[i], "+")
+            except ValueError:
+                pass
         except ValueError:
             pass
 
