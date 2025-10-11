@@ -11,21 +11,6 @@ START_TIME = time.time()
 
 
 
-def calculate_pronunciation_similarity(text1, text2):
-    """计算两段文本的读音相似度
-
-    参数:
-        text1 (str): 第一段文本
-        text2 (str): 第二段文本
-
-    返回:
-        float: 两段文本读音的相似度得分，范围在0到1之间
-    """
-    return difflib.SequenceMatcher(None, text1, text2).ratio()
-
-
-
-
 def has_time_overlap(start1, end1, start2, end2):
     """判断两个时间段是否有交集
 

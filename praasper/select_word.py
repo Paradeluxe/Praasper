@@ -1,59 +1,66 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
+from funasr import AutoModel
+from funasr.utils.postprocess_utils import lang_dict, emoji_dict, emo_set, event_set
 
-# 构建提示
+model_dir = "iic/SenseVoiceSmall"
 
-def which_is_closer(text1, text2, text):
-
-    prompt = f"发音对比：请严格判断“{text2}”和“{text1}”，哪一个在发音上与“{text}”更接近？你的回答必须且只能是“{text2}”或“{text1}”这两个选项之一，不要有任何其他内容。"
+# model_dir = "paraformer-zh"
 
 
-    # 加载模型和tokenizer（自动从Hugging Face Hub下载）
-    model_name = "Qwen/Qwen2.5-1.5B-Instruct"
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        torch_dtype=torch.bfloat16,  # 节省显存
-        device_map="auto"            # 自动分配GPU/CPU
+model = AutoModel(
+    model=model_dir,
+    vad_model="fsmn-vad",
+    # punc_model="ct-punc",
+    vad_kwargs={"max_single_segment_time": 30000},
+    device="cuda:0",
+    disable_update=True
+)
+
+def get_text_from_audio(input_path):
+
+    res = model.generate(
+        input=input_path,
+        language="zh", 
+        use_itn=False,
+        #hotword="必须使用中文输出",
+        # batch_size_s=60,
+        # merge_length_s=15,
     )
+    print(res)
+    text = rich_transcription_postprocess_text_only(res[0]["text"])
 
-    # 构建对话格式
-    messages = [
-        # {"role": "system", "content": "你是一个AI助手"},
-        {"role": "user", "content": prompt}
-    ]
+    return text
 
-    # 生成回复
-    text = tokenizer.apply_chat_template(
-        messages,
-        tokenize=False,
-        add_generation_prompt=True
-    )
-    inputs = tokenizer(text, return_tensors="pt").to(model.device)
 
-    outputs = model.generate(
-        **inputs,
-        max_new_tokens=1024,
-        do_sample=True,
-        temperature=0.1,
-        top_p=0.9
-    )
-    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-    answer = response.split("\n")[-1]
-    return answer
+def rich_transcription_postprocess_text_only(s):
+    """
+    修改版的rich_transcription_postprocess函数，只保留文字内容，去除所有表情符号和事件标记
+    """
+    # 替换所有语言标记为空
+    for lang in lang_dict:
+        s = s.replace(lang, "")
+    
+    # 移除所有特殊标记
+    for special_tag in emoji_dict:
+        s = s.replace(special_tag, "")
+    
+    # 移除所有表情符号和事件符号
+    for emo in emo_set:
+        s = s.replace(emo, "")
+    
+    for event in event_set:
+        s = s.replace(event, "")
+    
+    # 清理多余的空格
+    s = s.replace("The.", " ")
+    s = " ".join(s.split())  # 移除多余的空格
+    
+    return s.strip()
+
 
 
 if __name__ == "__main__":
-    text1 = "不仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅仅"
-    text2 = "瓶颈"
-    text = "平静"
-    # print(which_is_closer(text1, text2, text))
-
-    answer = ""
-    retry_count = 0
-    while answer not in [text1, text2]:
-        answer = which_is_closer(text1, text2, text)
-        retry_count += 1
-        if retry_count > 5:
-            break
+    # input_path = r"tmp/15-1_5.wav" # f"{model.model_path}/example/en.mp3"
+    input_path = r"input_single/15-1.wav"
+    text = get_text_from_audio(input_path)
+    print(text)
