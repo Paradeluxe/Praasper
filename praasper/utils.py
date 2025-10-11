@@ -1,10 +1,4 @@
 import time
-import librosa
-try:
-    from .cvt import *
-except ImportError:
-    from cvt import *
-import difflib
 
 # 记录程序开始执行的时间
 START_TIME = time.time()
@@ -58,17 +52,7 @@ def bandpass_filter(data, lowcut, highcut, fs, order=4):
             b, a = butter(order, low, btype='high', output="ba")
             filtered_data = filtfilt(b, a, data)
     return filtered_data
-
-
-
-def extract_cvt(character, lang):
-    if lang == 'zh':
-        return extract_cvt_zh(character)
-    elif lang == "yue":
-        return extract_cvt_yue(character)
-    else:
-        raise ValueError(f"{show_elapsed_time()}Language {lang} not yet supported.")
-
+    
 
 if __name__ == '__main__':
     print(extract_cvt('我', 'zh'))

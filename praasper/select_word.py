@@ -12,7 +12,10 @@ model = AutoModel(
     # punc_model="ct-punc",
     vad_kwargs={"max_single_segment_time": 30000},
     device="cuda:0",
-    disable_update=True
+    disable_update=True,
+    disable_pbar=True,
+    disable_log=True,
+    # use_timestamp=True
 )
 
 def get_text_from_audio(input_path):
@@ -24,8 +27,8 @@ def get_text_from_audio(input_path):
         #hotword="必须使用中文输出",
         # batch_size_s=60,
         # merge_length_s=15,
+
     )
-    print(res)
     text = rich_transcription_postprocess_text_only(res[0]["text"])
 
     return text

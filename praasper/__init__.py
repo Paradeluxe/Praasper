@@ -68,7 +68,6 @@ class init_model:
             print(f"--------------- Processing {os.path.basename(wav_path)} ({idx+1}/{len(fnames)}) ---------------")
             count = 0
             segments = segment_audio(audio_obj, segment_duration=seg_dur)
-            print(segments)
             for start, end in segments:
                 count += 1
 
@@ -78,15 +77,15 @@ class init_model:
                 audio_clip.save(clip_path)
 
 
-                # try:
-                vad_tg = get_vad(clip_path, wav_path, verbose=verbose)
-                # except Exception as e:
-                    # print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) VAD Error: {e}")
-                    # continue
+                try:
+                    vad_tg = get_vad(clip_path, wav_path, verbose=verbose)
+                except Exception as e:
+                    print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) VAD Error: {e}")
+                    continue
                 
                 intervals = vad_tg.tiers[0].intervals
                 valid_intervals = [interval for interval in intervals if interval.mark not in ["", None] and interval.maxTime - interval.minTime > min_speech]
-                print(valid_intervals)
+                # print(valid_intervals)
                 
                 for idx, valid_interval in enumerate(valid_intervals):
                     s, e = valid_interval.minTime, valid_interval.maxTime
@@ -109,13 +108,13 @@ class init_model:
             final_tg.write(final_path)
                 
                         
-            if os.path.exists(clip_path):
-                os.remove(clip_path)
+            # if os.path.exists(clip_path):
+            #     os.remove(clip_path)
                 
                 # exit()
                 
         
-        # shutil.rmtree(tmp_path)
+        shutil.rmtree(tmp_path)
         print(f"--------------- Processing completed ---------------")
 
 

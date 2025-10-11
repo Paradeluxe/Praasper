@@ -27,28 +27,6 @@ default_params = {'onset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 
 
 
 
-def mapping(audios, batch_size, whisper_model, tmp_path, wav_path):
-    
-    for i in range(0, len(audios), batch_size):
-        batch_audios = audios[i:i+batch_size]
-
-        batch_audio = batch_audios[0]
-        for audio in batch_audios[1:]:
-            batch_audio += audio
-
-        interval_path = os.path.join(tmp_path, os.path.basename(wav_path).replace(".wav", f"_batch_{i}.wav"))
-        batch_audio.save(interval_path)
-
-
-        result = whisper_model.transcribe(interval_path, temperature=[0.0], fp16=torch.cuda.is_available())#, word_timestamps=True)
-
-        good_indices = []
-        for idx_intval, intval in enumerate(good_intervals):
-            if any([has_time_overlap(segment["start"], segment["end"], intval[0], intval[1]) for segment in result["segments"]]):
-                good_indices.append(idx_intval)
-
-
-
 
 def purify_text(text):
     """
@@ -62,31 +40,6 @@ def purify_text(text):
     # 只删除标点符号，保留所有语言的文字字符
     text = ''.join('' if unicodedata.category(c).startswith('P') else c for c in text)
     return text
-
-
-def is_single_language(text):
-    """
-    判断输入的文本是否属于单一语言文字
-    
-    :param text: 输入的文本
-    :return: 如果是单一语言返回 True，否则返回 False
-    """
-    if not text:
-        return None
-    # 只删除标点符号，保留所有语言的文字字符
-    text = ''.join('' if unicodedata.category(c).startswith('P') else c for c in text)
-    # 初始化语言集合
-    lang_set = set()
-    # 遍历文本中的每个字符
-    for char in text.strip():
-        if char.strip():  # 跳过空白字符
-            # 使用 langid 检测字符的语言
-            lang, _ = langid.classify(char)
-            lang_set.add(lang)
-    # 如果语言集合中只有一种语言，则返回 True，否则返回 False
-    if len(lang_set) == 1:
-        return list(lang_set)[0]
-    return None
 
 
 
