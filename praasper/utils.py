@@ -42,18 +42,6 @@ def show_elapsed_time():
     return f"{minutes:02d}:{int(seconds):02d}:{milliseconds:03d}"
 
 
-def read_audio(audio, tar_sr=None):
-
-    if isinstance(audio, str):
-        y, sr = librosa.load(audio, mono=False, sr=tar_sr)
-    else:
-        y, sr = audio, tar_sr
-    
-    if y.ndim >= 2:
-        y = y[0]
-
-    return y, sr
-
 
 def bandpass_filter(data, lowcut, highcut, fs, order=4):
     nyquist = 0.5 * fs
