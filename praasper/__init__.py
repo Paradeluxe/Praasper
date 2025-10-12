@@ -15,22 +15,19 @@ import shutil
 
 class init_model:
 
-    def __init__(self, model_name: str="large-v3-turbo"):
+    def __init__(self, model_name: str="iic/SenseVoiceSmall"):
 
         self.name = model_name
-
-        # 注意：在这个版本中，我们使用的是 SenseVoiceSmall 模型而不是 Whisper
-        # 所以不需要检查 Whisper 模型的可用性
         print(f"[{show_elapsed_time()}] Initializing model with {self.name}")
+
+        self.model = SelectWord(
+            model=self.name
+        )
         
-        # 由于使用的是 SenseVoiceSmall 模型，不需要加载 Whisper 模型
-        # self.whisper_model = None
-        print(f"[{show_elapsed_time()}] Model initialized successfully")
 
     def annote(
         self,
         input_path: str,
-        sr=None,
         seg_dur=10.,
         min_speech=0.2,
         language=None,
@@ -89,19 +86,20 @@ class init_model:
                 
                 for idx, valid_interval in enumerate(valid_intervals):
                     s, e = valid_interval.minTime, valid_interval.maxTime
-                    print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) VAD segment: {s:.3f} - {e:.3f}")
 
                     interval_path = os.path.join(tmp_path, os.path.basename(clip_path).replace(".wav", f"_{idx}.wav"))
                     audio_clip[s*1000:e*1000].save(interval_path)
-                    text = get_text_from_audio(interval_path)
+                    text = self.model.transcribe(interval_path)
 
                     text = purify_text(text)
                     if not text:
                         continue
+                    
                     if not is_single_language(text):
                         text = post_process(text, language)
 
                     final_tg.tiers[0].add(s+start/1000, e+start/1000, text)
+                    print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Detect speech: {s:.3f} - {e:.3f} ({text})")
 
 
 
@@ -119,10 +117,9 @@ class init_model:
 
 
 if __name__ == "__main__":
-    model = init_model(model_name="large-v3-turbo")
+    model = init_model()
     model.annote(
         input_path=os.path.abspath("input"),
-        sr=12000,
         seg_dur=20.,
         language="zh",
         verbose=False

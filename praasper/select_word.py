@@ -1,37 +1,43 @@
 from funasr import AutoModel
 from funasr.utils.postprocess_utils import lang_dict, emoji_dict, emo_set, event_set
 
-model_dir = "iic/SenseVoiceSmall"
 
 # model_dir = "paraformer-zh"
+class SelectWord:
+    def __init__(self, model: str="iic/SenseVoiceSmall", vad_model: str="fsmn-vad", device: str="auto"):
+        # 自动检测设备
+        if device == "auto":
+            import torch
+            device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        
+        self.model = AutoModel(
+            model=model,
+            vad_model=vad_model,
+            # punc_model="ct-punc",
+            vad_kwargs={"max_single_segment_time": 30000},
+            device=device,
+            disable_update=True,
+            disable_pbar=True,
+            disable_log=True,
+            # use_timestamp=True
+            download_model=False,
+            # trust_remote_code=True,
+        )
 
+    def transcribe(self, input_path):
 
-model = AutoModel(
-    model=model_dir,
-    vad_model="fsmn-vad",
-    # punc_model="ct-punc",
-    vad_kwargs={"max_single_segment_time": 30000},
-    device="cuda:0",
-    disable_update=True,
-    disable_pbar=True,
-    disable_log=True,
-    # use_timestamp=True
-)
+        res = self.model.generate(
+            input=input_path,
+            language="zh", 
+            use_itn=False,
+            #hotword="必须使用中文输出",
+            # batch_size_s=60,
+            # merge_length_s=15,
 
-def get_text_from_audio(input_path):
+        )
+        text = rich_transcription_postprocess_text_only(res[0]["text"])
 
-    res = model.generate(
-        input=input_path,
-        language="zh", 
-        use_itn=False,
-        #hotword="必须使用中文输出",
-        # batch_size_s=60,
-        # merge_length_s=15,
-
-    )
-    text = rich_transcription_postprocess_text_only(res[0]["text"])
-
-    return text
+        return text
 
 
 
