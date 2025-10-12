@@ -29,7 +29,7 @@ Here is a **simplest** example:
 import praasper
 
 model = praasper.init_model()
-model.annote(input_path="data")  # The folder where you store .wav
+model.annote("data")  # The folder where you store .wav
 ```
 
 Here are some other parameters you can pass to the `annote` method:

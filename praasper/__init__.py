@@ -66,7 +66,7 @@ class init_model:
 
             print(f"--------------- Processing {os.path.basename(wav_path)} ({idx+1}/{len(fnames)}) ---------------")
             count = 0
-            segments = segment_audio(audio_obj, segment_duration=seg_dur)
+            segments = segment_audio(audio_obj, segment_duration=seg_dur, min_pause=min_pause)
             for start, end in segments:
                 count += 1
 
