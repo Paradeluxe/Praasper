@@ -387,29 +387,29 @@ def get_vad(wav_path, ori_wav_path, min_pause=0.2, params="self", if_save=False,
     
 
 
-
-
     onsets = sorted(valid_onsets)
     offsets = sorted(valid_offsets)
 
     tg = TextGrid()
     interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_obj.duration_seconds)
-    for i in range(len(onsets)):
-        try:
-            if onsets[i+1] - offsets[i] > min_pause:
-                interval_tier.add(onsets[i], offsets[i], "+")
-            else:
-                interval_tier.add(onsets[i], offsets[i+1], "+")
-        except IndexError:
-            try:
-                interval_tier.add(onsets[i], offsets[i], "+")
-            except ValueError:
-                pass
-        except ValueError:
-            pass
 
-        # except IndexError:
-        #     break
+
+
+    bad_onsets = []
+    bad_offsets = []
+
+    for i in range(len(onsets)-1):
+        if onsets[i+1] - offsets[i] < min_pause:
+            bad_onsets.append(onsets[i+1])
+            bad_offsets.append(offsets[i])
+
+    onsets = [x for x in onsets if x not in bad_onsets]
+    offsets = [x for x in offsets if x not in bad_offsets]
+    
+    for onset, offset in zip(onsets, offsets):
+        interval_tier.add(onset, offset, "+")
+
+
     tg.append(interval_tier)
     tg.write(wav_path.replace(".wav", "_vad.TextGrid"))  # 将TextGrid对象写入文件
 

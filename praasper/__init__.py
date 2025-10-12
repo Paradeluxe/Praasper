@@ -31,6 +31,7 @@ class init_model:
         input_path: str,
         seg_dur=10.,
         min_speech=0.2,
+        min_pause=0.2,
         language=None,
         verbose: bool=False
     ):
@@ -75,11 +76,11 @@ class init_model:
                 audio_clip.save(clip_path)
 
 
-                try:
-                    vad_tg = get_vad(clip_path, wav_path, verbose=verbose)
-                except Exception as e:
-                    print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) VAD Error: {e}")
-                    continue
+                # try:
+                vad_tg = get_vad(clip_path, wav_path, min_pause=min_pause, verbose=verbose)
+                # except Exception as e:
+                #     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) VAD Error: {e}")
+                #     continue
                 
                 intervals = vad_tg.tiers[0].intervals
                 valid_intervals = [interval for interval in intervals if interval.mark not in ["", None] and interval.maxTime - interval.minTime > min_speech]
@@ -96,7 +97,7 @@ class init_model:
                     if not text:
                         continue
                     
-                    if not is_single_language(text):
+                    if not is_single_language(text) and language is None:
                         text = post_process(text, language)
 
                     final_tg.tiers[0].add(s+start/1000, e+start/1000, text)
@@ -105,12 +106,6 @@ class init_model:
 
 
             final_tg.write(final_path)
-                
-                        
-            # if os.path.exists(clip_path):
-            #     os.remove(clip_path)
-                
-                # exit()
                 
         
         shutil.rmtree(tmp_path)
@@ -122,8 +117,7 @@ if __name__ == "__main__":
     model.annote(
         input_path=os.path.abspath("input"),
         seg_dur=20.,
-        language="zh",
+        min_pause=.8,
+        language="yue",
         verbose=False
     )
-
-    # [(0.0, 0.65994), (18.63519, 18.91781)]

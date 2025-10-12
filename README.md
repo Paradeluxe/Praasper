@@ -32,11 +32,12 @@ model = praasper.init_model()
 model.annote(input_path="data")  # The folder where you store .wav
 ```
 
-Here are all the parameters you can pass to the `annote` method:
+Here are some other parameters you can pass to the `annote` method:
 
 ```python
 model.annote(
     input_path="data",
+    min_pause=.8,  # Minimum pause duration between two utterances, 0.2 seconds as default.
     language=None,  # "zh" for Mandarin, "yue" for Cantonese, "en" for English, None for automatic language detection
     seg_dur=15.,  # Segment large audio into pieces, 15 seconds as default.
 )
