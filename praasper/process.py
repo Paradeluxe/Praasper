@@ -20,7 +20,6 @@ except ImportError:
 from scipy.signal import argrelextrema
 import os
 import unicodedata
-import langid
 
 
 default_params = {'onset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}

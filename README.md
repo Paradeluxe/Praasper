@@ -5,21 +5,21 @@ https://pypi.org/project/praasper/)
 ![GitHub License](https://img.shields.io/github/license/Paradeluxe/Praasper)
 
 
-**Praasper** is an Automatic Speech Recognition (ASR) framework designed to help researchers transribe audio files to **word-level** text with accurate transcriptoin and timestamps.
+**Praasper** is an Automatic Speech Recognition (ASR) framework designed to help researchers transribe audio files to **utterance-level** text with accurate transcriptoin and timestamps.
 
 ![mechanism](promote/mechanism.png)
 
-In **Praasper**, we adopt a rather simple and straightforward pipeline to extract phoneme-level information from audio files. The pipeline includes [Whisper](https://github.com/openai/whisper) and [Praditor](https://github.com/Paradeluxe/Praditor). 
+In **Praasper**, we adopt a rather simple and straightforward pipeline to extract utterance-level information from audio files. The pipeline includes [SenseVoiceSmall](https://github.com/modelscope/funasr) and [Praditor](https://github.com/Paradeluxe/Praditor). 
 
 
-Now **Praasper** supports **Mandarin (zh)**. In the near future we plan to add support for **Cantonese (yue)** and **English (en)**. 
-> For langauges that are not yet support, you can still get a result as the word-level annotation with high external boundaries. While the inner boundries could be inaccurate due to Whisper's feature.
+For more information about supported languages, please refer to the [FunASR](https://github.com/modelscope/funasr) repository.
+
 
 
 
 # How to use
 
-The default model is `large-v3-turbo`.
+The default model is `iic/SenseVoiceSmall`.
 
 >I personally recommend to use the SOTA model as time isn't a really big problem for offline processing.
 
@@ -28,7 +28,7 @@ Here is a **simplest** example:
 ```python
 import praasper
 
-model = praasper.init_model(model_name="large-v3-turbo")  
+model = praasper.init_model()
 model.annote(input_path="data")  # The folder where you store .wav
 ```
 
@@ -37,27 +37,19 @@ Here are all the parameters you can pass to the `annote` method:
 ```python
 model.annote(
     input_path="data",
-    sr=12000,  # I use 12000 as default. sr=None will use audio's original sample rate
     language=None,  # "zh" for Mandarin, "yue" for Cantonese, "en" for English, None for automatic language detection
     seg_dur=15.,  # Segment large audio into pieces, 15 seconds as default.
-    merge_words=True,  # Merge adjacent words into a single interval
 )
 ```
 
-If you want to know what other models are available (but I suggest you use the largest anyway):
-
-```python
-import whisper
-print(whisper.available_models())
-```
 
 # Mechanism
 
-**Whisper** is used to transcribe the audio file to **word-level text**. At this point, speech onsets and offsets exhibit time deviations in seconds.
-
 **Praditor** is applied to perform **Voice Activity Detection (VAD)** algorithm to trim the currently existing word/character-level timestamps to **millisecond level**. It is a Speech Onset Detection (SOT) algorithm we developed for langauge researchers.
 
-The in-utterance word timestamps are first generated from Whisper's results (i.e., `word_timestamps=True`) and then recalibrated using neighboring acoustic cues, including drifted frequency peak, power valley, and intensity valley.
+**SenseVoiceSmall** is used to transcribe the audio file, which does not offer timestamps. It has better support for short-length audio files, compared to *Whisper*.
+
+
 
 # Setup
 ## pip installation
