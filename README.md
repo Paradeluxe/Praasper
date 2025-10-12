@@ -35,6 +35,9 @@ model.annote("data")  # The folder where you store .wav
 Here are some other parameters you can pass to the `annote` method:
 
 ```python
+import praasper
+
+model = praasper.init_model("iic/SenseVoiceSmall")  # Refer to funasr's GitHub repo for all supported models.
 model.annote(
     input_path="data",
     min_pause=.8,  # Minimum pause duration between two utterances, 0.2 seconds as default.
@@ -90,7 +93,7 @@ Results should pop up like this (It means that this device supports CUDA up to v
 Here is an example for CUDA 12.9:
 
 ```bash
-pip install --reinstall torch --index-url https://download.pytorch.org/whl/cu129
+pip install --reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu129
 ```
 
 
