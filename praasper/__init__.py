@@ -23,6 +23,7 @@ class init_model:
         self.model = SelectWord(
             model=self.name
         )
+        print(f"[{show_elapsed_time()}] Using device: {self.model.device}")
         
 
     def annote(

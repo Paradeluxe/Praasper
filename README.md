@@ -117,6 +117,6 @@ uv pip install -U praasper
 For `CUDA` support,
 
 ```bash
-uv pip install --reinstall torch --index-url https://download.pytorch.org/whl/cu129
+uv pip install --reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu129
 # Or whichever version that matches your CUDA version
 ```

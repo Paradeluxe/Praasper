@@ -9,13 +9,14 @@ class SelectWord:
         if device == "auto":
             import torch
             device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        self.device = device
         
         self.model = AutoModel(
             model=model,
             vad_model=vad_model,
             # punc_model="ct-punc",
             vad_kwargs={"max_single_segment_time": 30000},
-            device=device,
+            device=self.device,
             disable_update=True,
             disable_pbar=True,
             disable_log=True,
