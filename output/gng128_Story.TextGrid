@@ -11,7 +11,7 @@ item []:
 		name = "words"
 		xmin = 0.0
 		xmax = 181.888
-		intervals: size = 37
+		intervals: size = 41
 			intervals [1]:
 				xmin = 0.0
 				xmax = 0.59994
@@ -110,53 +110,69 @@ item []:
 				text = "带着去就"
 			intervals [25]:
 				xmin = 111.895995
-				xmax = 113.28590125000001
+				xmax = 112.744435
 				text = ""
 			intervals [26]:
+				xmin = 112.744435
+				xmax = 113.182255
+				text = "走二"
+			intervals [27]:
+				xmin = 113.182255
+				xmax = 113.28590125000001
+				text = ""
+			intervals [28]:
 				xmin = 113.28590125000001
 				xmax = 116.06522125000001
 				text = "即系调跳咗落条小溪嗰度将佢嚟"
-			intervals [27]:
+			intervals [29]:
 				xmin = 116.06522125000001
 				xmax = 117.29734125
 				text = ""
-			intervals [28]:
+			intervals [30]:
 				xmin = 117.29734125
 				xmax = 129.16615125
 				text = "跌咗落小溪咁然之后咧跌咗入小溪好彩条小溪咧就唔系好深啫佢同只狗仔都系冇事嘅 跟 啊跟住阮就见到"
-			intervals [29]:
+			intervals [31]:
 				xmin = 129.16615125
 				xmax = 130.52522125000002
 				text = ""
-			intervals [30]:
+			intervals [32]:
 				xmin = 130.52522125000002
 				xmax = 132.59166125000002
 				text = "狗来的水肤水"
-			intervals [31]:
+			intervals [33]:
 				xmin = 132.59166125000002
 				xmax = 132.78678125
 				text = ""
-			intervals [32]:
+			intervals [34]:
 				xmin = 132.78678125
 				xmax = 146.97309125
 				text = "喺度咁见到枯树木嗰度咧啊诶就爬过嗰个枯树嗰个树木咧喺另外一边咧就见到有两只青蛙咁后来咧再发现哦原来系青蛙一家都喺度嘅"
-			intervals [33]:
+			intervals [35]:
 				xmin = 146.97309125
+				xmax = 147.81297125
+				text = ""
+			intervals [36]:
+				xmin = 147.81297125
+				xmax = 151.06472125
+				text = "咁佢跟住咧就再见到"
+			intervals [37]:
+				xmin = 151.06472125
 				xmax = 151.40849749999998
 				text = ""
-			intervals [34]:
+			intervals [38]:
 				xmin = 151.40849749999998
 				xmax = 167.9429375
 				text = "唔见咗嗰只青蛙咁后来咧佢就会同呢个青蛙爸爸同青蛙妈妈佢哋讲哎呀我系养咗呢个青蛙嘅咁然之后咧就诶青蛙妈妈爸爸都肯诶俾佢带走翻"
-			intervals [35]:
+			intervals [39]:
 				xmin = 167.9429375
 				xmax = 168.7819375
 				text = ""
-			intervals [36]:
+			intervals [40]:
 				xmin = 168.7819375
 				xmax = 181.37956749999998
 				text = "诶去自己之前养嗰只咁于是佢好开心哋同呢个诶呢一家青蛙咧就系诶道别啦 say goodbye 咯"
-			intervals [37]:
+			intervals [41]:
 				xmin = 181.37956749999998
 				xmax = 181.888
 				text = ""

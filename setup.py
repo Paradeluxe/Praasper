@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='praasper',      # 在PyPI上唯一的包名
-    version='0.4.2',              # 版本号，遵循语义化版本规范
+    version='0.4.3',              # 版本号，遵循语义化版本规范
     description='VAD-Enhanced ASR Framework for Researchers',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',

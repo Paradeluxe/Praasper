@@ -368,6 +368,11 @@ def get_vad(wav_path, ori_wav_path, min_pause=0.2, params="self", if_save=False,
 
 
 
+    if onsets[0] >= offsets[0]:
+        onsets = [0.0] + onsets
+    
+    if offsets[-1] <= onsets[-1]:
+        offsets.append(audio_obj.duration_seconds)
 
     # Select the one offset that is closest to onset and earlier than onset
     valid_onsets = []

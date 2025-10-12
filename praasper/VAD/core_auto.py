@@ -32,6 +32,8 @@ def autoPraditorWithTimeRange(params, audio_obj, which_set, stime=0, etime=-1,ve
     else:
         ans_tps = autoPraditor(params, audio_obj[stime*1000:etime*1000], which_set, verbose=False)
         ans_tps = [tp + stime for tp in ans_tps if 5 < tp <ans_tps[-1] - 5]
+    
+    ans_tps = sorted(ans_tps)
     return ans_tps
 
 
@@ -312,6 +314,8 @@ def autoPraditor(params, audio_obj, which_set, verbose=False):
     if which_set == "offset":
         _answer_frames.reverse()
     # print(_answer_frames)
+
+    _answer_frames = list(set(_answer_frames))
 
     return [frm/_audio_samplerate for frm in _answer_frames]
 
