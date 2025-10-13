@@ -19,16 +19,12 @@ For more information about supported languages, please refer to the [FunASR](htt
 
 # How to use
 
-The default model is `iic/SenseVoiceSmall`.
-
->I personally recommend to use the SOTA model as time isn't a really big problem for offline processing.
-
-Here is a **simplest** example:
+Here is one of the **simplest** examples:
 
 ```python
 import praasper
 
-model = praasper.init_model()
+model = praasper.init_model()  # The default model is iic/SenseVoiceSmall
 model.annote("data")  # The folder where you store .wav
 ```
 
