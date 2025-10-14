@@ -47,9 +47,9 @@ model.annote(
 
 **Praditor** is applied to perform **Voice Activity Detection (VAD)** algorithm to trim the currently existing word/character-level timestamps to **millisecond level**. It is a Speech Onset Detection (SOT) algorithm we developed for langauge researchers.
 
-**SenseVoiceSmall** is used to transcribe the audio file, which does not offer timestamps. It has better support for short-length audio files, compared to *Whisper*.
+**SenseVoiceSmall** is used to transcribe the audio file, which does not offer timestamps. It is a lightweight ASR model compatible with even laptop. It has better support for short-length audio files, compared to *Whisper*.
 
-
+In addition, in case that users want to designate one langauge throughout transcription, an additional **LLM** (`Qwen/Qwen2.5-1.5B-Instruct`) is added to the framework to correct potential deviation from
 
 # Setup
 ## pip installation
