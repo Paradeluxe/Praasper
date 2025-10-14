@@ -61,6 +61,9 @@ pip install -U praasper
 
 
 ## GPU Acceleration (Windows/Linux)
+
+Currently, **Praasper** utilizes `SenseVoiceSmall` as the ASR core.
+
 `Whisper` can automaticly detects the best currently available device to use. But you still need to first install GPU-support version `torch` in order to enable CUDA acceleration.
 
 - For **macOS** users, `Whisper` only supports `CPU` as the processing device.
