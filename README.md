@@ -11,7 +11,7 @@ https://pypi.org/project/praasper/)
 
 In ***Praasper***, we adopt a rather simple and straightforward pipeline to extract utterance-level information from audio files. The pipeline includes [***Praditor***](https://github.com/Paradeluxe/Praditor), [**SenseVoiceSmall (FunASR)**](https://github.com/modelscope/funasr) and **Qwen2.5-1.5B-Instruct**. 
 
-For more information about supported languages, please refer to the [***FunASR***](https://github.com/modelscope/funasr) repository.
+For more information about supported languages, please refer to the [**FunASR**](https://github.com/modelscope/funasr) repository.
 
 
 # How to use
@@ -35,7 +35,7 @@ Here are some other parameters you can pass to the `annote` method:
 | `input_path` | - | Path to the input audio file or folder. |
 | `seg_dur` | 10. | Segment large audio into pieces, in seconds. |
 | `min_pause` | 0.2 | Minimum pause duration between two utterances, in seconds. |
-| `min_speech` | 0.2 | Minimum speech duration for an utterance, in seconds. |
+| `min_speech` | 0.2 | Minimum duration for an utterance, in seconds. |
 | `language` | None | "zh" for Mandarin, "yue" for Cantonese, "en" for English, "ja" for Japanese, "ko" for Korean, and None for automatic language detection. |
 
 Here is an code example indicating how you can use these parameters:
@@ -53,13 +53,9 @@ model.annote(
 ```
 
 
-
-
-
-
 ## Cope with Praditor
 
-***Praasper*** is embedded with a default set of parameters for ***Praditor***. But the default parameters may not be always optimal. In that case, you are recommended to use a custome set of parameters for ***Praditor***.
+***Praasper*** is embedded with a default set of parameters for ***Praditor***. But the default parameters may not be always optimal. In that case, you are recommended to use a custom set of parameters for ***Praditor***.
 
 1. Use the lastest version of [***Praditor* (v1.3.1)**](https://github.com/Paradeluxe/Praditor/releases). It supports VAD.
 2. Annotate the audio file. Fine-tune the parameters until the results fits your standard.
@@ -69,11 +65,11 @@ model.annote(
 
 # Mechanism
 
-**Praditor** is applied to perform **Voice Activity Detection (VAD)** algorithm to trim the currently existing word/character-level timestamps to **millisecond level**. It is a Speech Onset Detection (SOT) algorithm we developed for langauge researchers.
+***Praditor*** is applied to perform **Voice Activity Detection (VAD)** algorithm to trim the currently existing word/character-level timestamps to **millisecond level**. It is a Speech Onset Detection (SOT) algorithm we developed for langauge researchers.
 
 **SenseVoiceSmall** is used to transcribe the audio file, which does not offer timestamps. It is a lightweight ASR model compatible with even laptop. It has better support for short-length audio files, compared to *Whisper*.
 
-In addition, in case that users want to designate one langauge throughout transcription, an additional **LLM** (`Qwen/Qwen2.5-1.5B-Instruct`) is added to the framework to correct potential deviation from
+In addition, in case that users want to designate one langauge throughout transcription, an additional **LLM** (`Qwen/Qwen2.5-1.5B-Instruct`) is added to the framework to correct potential error in the transcription.
 
 # Setup
 ## pip installation
@@ -86,7 +82,7 @@ pip install -U praasper
 
 ## GPU Acceleration (Windows/Linux)
 
-Currently, ***Praasper*** utilizes `SenseVoiceSmall` from [`FunASR`](https://github.com/modelscope/funasr) as the ASR core.
+Currently, ***Praasper*** utilizes `SenseVoiceSmall` from [**FunASR**](https://github.com/modelscope/funasr) as the ASR core.
 
 > `FunASR` can automaticly detects the best currently available device to use. But you still need to first install GPU-support version `torch` in order to enable CUDA acceleration.
 
