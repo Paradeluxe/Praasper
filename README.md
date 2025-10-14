@@ -11,7 +11,6 @@ https://pypi.org/project/praasper/)
 
 In ***Praasper***, we adopt a rather simple and straightforward pipeline to extract utterance-level information from audio files. The pipeline includes [***Praditor***](https://github.com/Paradeluxe/Praditor), [**SenseVoiceSmall (FunASR)**](https://github.com/modelscope/funasr) and **Qwen2.5-1.5B-Instruct**. 
 
-For more information about supported languages, please refer to the [**FunASR**](https://github.com/modelscope/funasr) repository.
 
 
 # How to use
