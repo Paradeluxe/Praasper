@@ -5,16 +5,13 @@ https://pypi.org/project/praasper/)
 ![GitHub License](https://img.shields.io/github/license/Paradeluxe/Praasper)
 
 
-**Praasper** is an Automatic Speech Recognition (ASR) framework designed to help researchers transribe audio files to **utterance-level** text with accurate transcriptoin and timestamps.
+***Praasper*** is an Automatic Speech Recognition (ASR) framework designed to help researchers transribe audio files to **utterance-level** text with decent level of accuracy in both transcriptoin and timestamps.
 
 ![mechanism](promote/mechanism.png)
 
-In **Praasper**, we adopt a rather simple and straightforward pipeline to extract utterance-level information from audio files. The pipeline includes [SenseVoiceSmall](https://github.com/modelscope/funasr) and [Praditor](https://github.com/Paradeluxe/Praditor). 
+In ***Praasper***, we adopt a rather simple and straightforward pipeline to extract utterance-level information from audio files. The pipeline includes [***Praditor***](https://github.com/Paradeluxe/Praditor), [**SenseVoiceSmall**](https://github.com/modelscope/funasr) and **Qwen2.5-1.5B-Instruct**. 
 
-
-For more information about supported languages, please refer to the [FunASR](https://github.com/modelscope/funasr) repository.
-
-
+For more information about supported languages, please refer to the [***FunASR***](https://github.com/modelscope/funasr) repository.
 
 
 # How to use
@@ -24,23 +21,50 @@ Here is one of the **simplest** examples:
 ```python
 import praasper
 
-model = praasper.init_model()  # The default model is iic/SenseVoiceSmall
-model.annote("data")  # The folder where you store .wav
+model = praasper.init_model()
+model.annote("data")
 ```
+
+
 
 Here are some other parameters you can pass to the `annote` method:
 
+| Param | Default | Description |
+| --- | --- | --- |
+| `model_name` | iic/SenseVoiceSmall | Model name as the ASR core. Check out [**FunASR's model list**](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo) for available models. |
+| `input_path` | - | Path to the input audio file or folder. |
+| `seg_dur` | 10. | Segment large audio into pieces, in seconds. |
+| `min_pause` | 0.2 | Minimum pause duration between two utterances, in seconds. |
+| `min_speech` | 0.2 | Minimum speech duration for an utterance, in seconds. |
+| `language` | None | "zh" for Mandarin, "yue" for Cantonese, "en" for English, "ja" for Japanese, "ko" for Korean, and None for automatic language detection. |
+
+Here is an code example indicating how you can use these parameters:
 ```python
 import praasper
 
-model = praasper.init_model("iic/SenseVoiceSmall")  # Refer to funasr's GitHub repo for all supported models.
+model = praasper.init_model(model_name="iic/SenseVoiceSmall")
 model.annote(
     input_path="data",
-    min_pause=.8,  # Minimum pause duration between two utterances, 0.2 seconds as default.
-    language=None,  # "zh" for Mandarin, "yue" for Cantonese, "en" for English, None for automatic language detection
-    seg_dur=15.,  # Segment large audio into pieces, 15 seconds as default.
+    min_pause=.8,
+    min_speech=.2,
+    language=None,
+    seg_dur=15.
 )
 ```
+
+
+
+
+
+
+## Cope with Praditor
+
+***Praasper*** is embedded with a default set of parameters for ***Praditor***. But the default parameters may not be always optimal. In that case, you are recommended to use a custome set of parameters for ***Praditor***.
+
+1. Use the lastest version of [***Praditor* (v1.3.1)**](https://github.com/Paradeluxe/Praditor/releases). It supports VAD.
+2. Annotate the audio file. Fine-tune the parameters until the results fits your standard.
+
+***Praditor*** will automatcally save a .txt param file to the same folder as the input audio file, with which ***Praasper*** will overrule the default params.
 
 
 # Mechanism
@@ -62,11 +86,11 @@ pip install -U praasper
 
 ## GPU Acceleration (Windows/Linux)
 
-Currently, **Praasper** utilizes `SenseVoiceSmall` as the ASR core.
+Currently, ***Praasper*** utilizes `SenseVoiceSmall` from [`FunASR`](https://github.com/modelscope/funasr) as the ASR core.
 
-`Whisper` can automaticly detects the best currently available device to use. But you still need to first install GPU-support version `torch` in order to enable CUDA acceleration.
+> `FunASR` can automaticly detects the best currently available device to use. But you still need to first install GPU-support version `torch` in order to enable CUDA acceleration.
 
-- For **macOS** users, `Whisper` only supports `CPU` as the processing device.
+- For **macOS** users, only `CPU` is supported as the processing device.
 - For **Windows/Linux** users, the priority order should be: `CUDA` -> `CPU`.
 
 If you have no experience in installing `CUDA`, follow the steps below:
@@ -117,9 +141,9 @@ Lastly, install `praasper` (by adding `uv` before `pip`):
 ```bash
 uv pip install -U praasper
 ```
-For `CUDA` support,
+
+For `CUDA` support, here is an example for downloading `torch` that fits CUDA 12.9:
 
 ```bash
 uv pip install --reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu129
-# Or whichever version that matches your CUDA version
 ```
