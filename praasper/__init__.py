@@ -113,7 +113,7 @@ class init_model:
 
 
 if __name__ == "__main__":
-    model = init_model()
+    model = init_model("iic/SenseVoiceSmall")
     model.annote(
         input_path=os.path.abspath("input"),
         seg_dur=20.,

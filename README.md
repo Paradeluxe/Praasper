@@ -65,7 +65,7 @@ model.annote(
 
 # Mechanism
 
-***Praditor*** is applied to perform **Voice Activity Detection (VAD)** algorithm to trim the currently existing word/character-level timestamps to **millisecond level**. It is a Speech Onset Detection (SOT) algorithm we developed for langauge researchers.
+***Praditor*** is applied to perform **Voice Activity Detection (VAD)** algorithm to segment large audio files into smaller pieces. It can generate intervals with **millisecond-level precision**. It is a Speech Onset Detection (SOT) algorithm we developed for langauge researchers.
 
 **SenseVoiceSmall** is used to transcribe the audio file, which does not offer timestamps. It is a lightweight ASR model compatible with even laptop. It has better support for short-length audio files, compared to *Whisper*.
 
