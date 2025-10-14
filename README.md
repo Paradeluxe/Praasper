@@ -58,8 +58,9 @@ model.annote(
 
 1. Use the lastest version of [***Praditor* (v1.3.1)**](https://github.com/Paradeluxe/Praditor/releases). It supports VAD.
 2. Annotate the audio file. Fine-tune the parameters until the results fits your standard.
+3. Click `Save` under the `Current` mode (top-right corner).
 
-***Praditor*** will automatcally save a .txt param file to the same folder as the input audio file, with which ***Praasper*** will overrule the default params.
+***Praditor*** will then save a .txt param file to the same folder as the input audio file, with which ***Praasper*** will overrule the default params.
 
 
 # Mechanism
