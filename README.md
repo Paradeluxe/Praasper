@@ -29,7 +29,7 @@ model.annote("data")
 Here are some other parameters you can pass to the `annote` method:
 
 | Param | Default | Description |
-| --- | --- | --- |
+| :---: | :---: | :--- |
 | `model_name` | iic/SenseVoiceSmall | Model name as the ASR core. Check out [**FunASR's model list**](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo) for available models. |
 | `input_path` | - | Path to the input audio file or folder. |
 | `seg_dur` | 10. | Segment large audio into pieces, in seconds. |
