@@ -5,7 +5,7 @@ https://pypi.org/project/praasper/)
 ![GitHub License](https://img.shields.io/github/license/Paradeluxe/Praasper)
 
 
-***Praasper*** is an Automatic Speech Recognition (ASR) framework designed to help researchers transribe audio files to **utterance-level** text with decent level of accuracy in both transcriptoin and timestamps.
+***Praasper*** is an Automatic Speech Recognition (ASR) framework designed to help researchers transribe audio files to utterance from **a single word** to **a complete sentence** with decent level of accuracy in both transcriptoin and timestamps.
 
 ![mechanism](promote/mechanism.png)
 
@@ -143,3 +143,7 @@ For `CUDA` support, here is an example for downloading `torch` that fits CUDA 12
 ```bash
 uv pip install --reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu129
 ```
+
+# Dev Plan
+- Add more LLM models support.
+- Seperate LLM strategies for error correction and language correction.

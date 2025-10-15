@@ -35,7 +35,6 @@ class init_model:
         language=None,
         verbose: bool=False
     ):
-        # whisper_model = whisper.load_model("large-v3-turbo", device="cuda:0")
 
         fnames = [os.path.splitext(f)[0] for f in os.listdir(input_path) if f.endswith('.wav')]
         print(f"[{show_elapsed_time()}] {len(fnames)} valid audio files detected in {input_path}")
@@ -115,7 +114,7 @@ class init_model:
 if __name__ == "__main__":
     model = init_model("iic/SenseVoiceSmall")
     model.annote(
-        input_path=os.path.abspath("input"),
+        input_path = os.path.abspath("input"),
         seg_dur=20.,
         min_pause=.8,
         language="yue",
