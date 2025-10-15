@@ -9,7 +9,7 @@ https://pypi.org/project/praasper/)
 
 ![mechanism](promote/mechanism.png)
 
-In ***Praasper***, we adopt a rather simple and straightforward pipeline to extract utterance-level information from audio files. The pipeline includes [***Praditor***](https://github.com/Paradeluxe/Praditor), [**SenseVoiceSmall (FunASR)**](https://github.com/modelscope/funasr) and **Qwen2.5-1.5B-Instruct**. 
+In ***Praasper***, we adopt a rather simple and straightforward pipeline to extract utterance-level information from audio files. The pipeline includes **VAD** ([*Praditor*](https://github.com/Paradeluxe/Praditor)), **ASR** ([*SenseVoiceSmall* of FunASR](https://github.com/modelscope/funasr)) and **LLM** (Qwen2.5-1.5B-Instruct). 
 
 
 
