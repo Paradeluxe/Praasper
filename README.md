@@ -32,6 +32,7 @@ Here are some other parameters you can pass to the `annote` method:
 | Param | Default | Description |
 | :---: | :---: | :--- |
 | `ASR` | iic/SenseVoiceSmall | Model name as the ASR core. Check out [**FunASR's model list**](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo) for available models. |
+| `LLM` | Qwen/Qwen2.5-1.5B-Instruct | Model name as the LLM core. Check out [**Qwen's model list**](https://huggingface.co/Qwen) for available models. |
 | `input_path` | - | Path to the folder where audio files are stored. |
 | `seg_dur` | 10. | Segment large audio into pieces, in seconds. |
 | `min_pause` | 0.2 | Minimum pause duration between two utterances, in seconds. |
@@ -42,7 +43,11 @@ Here is an code example indicating how you can use these parameters:
 ```python
 import praasper
 
-model = praasper.init_model(model_name="iic/SenseVoiceSmall")
+model = praasper.init_model(
+    ASR="iic/SenseVoiceSmall",
+    LLM="Qwen/Qwen2.5-1.5B-Instruct"
+)
+
 model.annote(
     input_path="data",
     min_pause=.8,
@@ -53,7 +58,7 @@ model.annote(
 ```
 
 
-## Cope with Praditor
+## Fine-tune *Praditor*
 
 ***Praasper*** is embedded with a default set of parameters for ***Praditor***. But the default parameters may not be always optimal. In that case, you are recommended to use a custom set of parameters for ***Praditor***.
 
@@ -62,6 +67,13 @@ model.annote(
 3. Click `Save` under the `Current` mode (top-right corner).
 
 ***Praditor*** will then save a .txt param file to the same folder as the input audio file, with which ***Praasper*** will overrule the default params.
+
+## ASR/LLM model recommendation
+
+For ASR core, `iic/SenseVoiceSmall` is the only recommendedation at this moment.
+
+For LLM core, the recommended models include (from large to small ones): `Qwen/Qwen3-4B-Instruct-2507`, `Qwen/Qwen2.5-3B-Instruct`, `Qwen/Qwen2.5-1.5B-Instruct` (default). The default is small but good enough for laptop users. You are also welcome to try other Qwen models.
+
 
 
 # Mechanism

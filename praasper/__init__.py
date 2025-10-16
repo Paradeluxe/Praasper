@@ -123,7 +123,7 @@ class init_model:
 if __name__ == "__main__":
     model = init_model(
         "iic/SenseVoiceSmall",
-        "Qwen/Qwen3-4B-Instruct-2507" # "Qwen/Qwen2.5-1.5B-Instruct"
+        "Qwen/Qwen2.5-3B-Instruct"
     )
     model.annote(
         input_path = os.path.abspath("input_single"),
