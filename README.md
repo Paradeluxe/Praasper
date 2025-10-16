@@ -70,9 +70,9 @@ model.annote(
 
 ## ASR/LLM model recommendation
 
-For ASR core, `iic/SenseVoiceSmall` is the only recommendedation at this moment.
+For **ASR** core, `iic/SenseVoiceSmall` is the only recommendedation at this moment.
 
-For LLM core, the recommended models include (from large to small ones): `Qwen/Qwen3-4B-Instruct-2507`, `Qwen/Qwen2.5-3B-Instruct`, `Qwen/Qwen2.5-1.5B-Instruct` (default). The default is small but good enough for laptop users. You are also welcome to try other Qwen models.
+For **LLM** core, the recommended models include (from large to small ones): `Qwen/Qwen3-4B-Instruct-2507`, `Qwen/Qwen2.5-1.5B-Instruct` (default). The default is small but good enough for laptop users. You are also welcome to try other Qwen models.
 
 
 
