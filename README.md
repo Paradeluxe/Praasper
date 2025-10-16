@@ -4,6 +4,7 @@ https://pypi.org/project/praasper/)
 ![Python](https://img.shields.io/badge/python->=3.10-blue.svg)
 ![GitHub License](https://img.shields.io/github/license/Paradeluxe/Praasper)
 
+[**Setup**](#setup) | [**Usage**](#how-to-use) | [**Mechanism**](#mechanism)
 
 ***Praasper*** is an Automatic Speech Recognition (ASR) framework designed to help researchers transribe audio files to utterance from **a single word** to **a complete sentence** with decent level of accuracy in both transcriptoin and timestamps.
 
@@ -30,7 +31,7 @@ Here are some other parameters you can pass to the `annote` method:
 
 | Param | Default | Description |
 | :---: | :---: | :--- |
-| `model_name` | iic/SenseVoiceSmall | Model name as the ASR core. Check out [**FunASR's model list**](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo) for available models. |
+| `ASR` | iic/SenseVoiceSmall | Model name as the ASR core. Check out [**FunASR's model list**](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo) for available models. |
 | `input_path` | - | Path to the folder where audio files are stored. |
 | `seg_dur` | 10. | Segment large audio into pieces, in seconds. |
 | `min_pause` | 0.2 | Minimum pause duration between two utterances, in seconds. |

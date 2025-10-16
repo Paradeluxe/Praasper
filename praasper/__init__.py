@@ -15,13 +15,20 @@ import shutil
 
 class init_model:
 
-    def __init__(self, model_name: str="iic/SenseVoiceSmall"):
+    def __init__(
+        self,
+        ASR: str="iic/SenseVoiceSmall",
+        LLM: str="Qwen/Qwen2.5-1.5B-Instruct",
+    ):
 
-        self.name = model_name
-        print(f"[{show_elapsed_time()}] Initializing model with {self.name}")
+        self.ASR = ASR
+        self.LLM = LLM
+        print(f"[{show_elapsed_time()}] Initializing model with {self.ASR}")
+
+        init_LLM(self.LLM)
 
         self.model = SelectWord(
-            model=self.name
+            model=self.ASR
         )
         print(f"[{show_elapsed_time()}] Using device: {self.model.device}")
         
@@ -96,8 +103,10 @@ class init_model:
                     if not text:
                         continue
                     
-                    if not is_single_language(text) and language is None:
-                        text = post_process(text, language)
+                    if not is_single_language(text) and language is not None:
+                        text_proc = post_process(text, language)
+                        print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Activate post-process: ({text}) -> ({text_proc})")
+                        text = text_proc
 
                     final_tg.tiers[0].add(s+start/1000, e+start/1000, text)
                     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Detect speech: {s:.3f} - {e:.3f} ({text})")
@@ -112,11 +121,14 @@ class init_model:
 
 
 if __name__ == "__main__":
-    model = init_model("iic/SenseVoiceSmall")
+    model = init_model(
+        "iic/SenseVoiceSmall",
+        "Qwen/Qwen3-4B-Instruct-2507" # "Qwen/Qwen2.5-1.5B-Instruct"
+    )
     model.annote(
-        input_path = os.path.abspath("input"),
+        input_path = os.path.abspath("input_single"),
         seg_dur=20.,
         min_pause=.8,
-        language="yue",
+        language="zh",
         verbose=False
     )

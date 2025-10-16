@@ -11,17 +11,17 @@ item []:
 		name = "words"
 		xmin = 0.0
 		xmax = 318.57
-		intervals: size = 231
+		intervals: size = 229
 			intervals [1]:
 				xmin = 0.0
 				xmax = 0.74304
 				text = ""
 			intervals [2]:
 				xmin = 0.74304
-				xmax = 1.2015
+				xmax = 3.25018
 				text = "可以开始"
 			intervals [3]:
-				xmin = 1.2015
+				xmin = 3.25018
 				xmax = 4.28519
 				text = ""
 			intervals [4]:
@@ -571,7 +571,7 @@ item []:
 			intervals [140]:
 				xmin = 199.43382582766438
 				xmax = 200.43282582766437
-				text = "溫和"
+				text = "温和"
 			intervals [141]:
 				xmin = 200.43282582766437
 				xmax = 202.06354582766437
@@ -827,7 +827,7 @@ item []:
 			intervals [204]:
 				xmin = 285.4848110430839
 				xmax = 286.5212010430839
-				text = "有望"
+				text = "有旺"
 			intervals [205]:
 				xmin = 286.5212010430839
 				xmax = 288.1055510430839
@@ -890,49 +890,41 @@ item []:
 				text = ""
 			intervals [220]:
 				xmin = 306.60834018140594
-				xmax = 306.84893018140593
-				text = "度"
-			intervals [221]:
-				xmin = 306.84893018140593
-				xmax = 307.6210901814059
-				text = ""
-			intervals [222]:
-				xmin = 307.6210901814059
 				xmax = 308.3209501814059
-				text = "重新开"
-			intervals [223]:
+				text = "等重新开"
+			intervals [221]:
 				xmin = 308.3209501814059
 				xmax = 309.92347018140595
 				text = ""
-			intervals [224]:
+			intervals [222]:
 				xmin = 309.92347018140595
 				xmax = 310.64819018140594
 				text = "极度"
-			intervals [225]:
+			intervals [223]:
 				xmin = 310.64819018140594
 				xmax = 312.25193018140595
 				text = ""
-			intervals [226]:
+			intervals [224]:
 				xmin = 312.25193018140595
 				xmax = 313.1118601814059
 				text = "平均"
-			intervals [227]:
+			intervals [225]:
 				xmin = 313.1118601814059
 				xmax = 314.48399018140594
 				text = ""
-			intervals [228]:
+			intervals [226]:
 				xmin = 314.48399018140594
 				xmax = 315.38315018140594
 				text = "充足"
-			intervals [229]:
+			intervals [227]:
 				xmin = 315.38315018140594
 				xmax = 316.50855018140595
 				text = ""
-			intervals [230]:
+			intervals [228]:
 				xmin = 316.50855018140595
 				xmax = 317.24138018140593
 				text = "粗鲁"
-			intervals [231]:
+			intervals [229]:
 				xmin = 317.24138018140593
 				xmax = 318.57
 				text = ""

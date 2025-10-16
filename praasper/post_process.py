@@ -2,14 +2,16 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
 
-# 加载模型和tokenizer（自动从Hugging Face Hub下载）
-model_name = "Qwen/Qwen2.5-1.5B-Instruct"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCausalLM.from_pretrained(
-    model_name,
-    dtype=torch.bfloat16,  # 节省显存
-    device_map="auto"            # 自动分配GPU/CPU
-)
+def init_LLM(LLM: str="Qwen/Qwen2.5-1.5B-Instruct"):
+    global tokenizer, model
+    model_name = LLM
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        # dtype=torch.bfloat16,  # 节省显存
+        device_map="auto"            # 自动分配GPU/CPU
+    )
+    return tokenizer, model
 
 
 def model_infer(messages):
