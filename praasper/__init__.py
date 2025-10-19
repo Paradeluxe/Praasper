@@ -109,7 +109,7 @@ class init_model:
                         text = text_proc
 
                     final_tg.tiers[0].add(s+start/1000, e+start/1000, text)
-                    print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Detect speech: {s:.3f} - {e:.3f} ({text})")
+                    print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Detect speech: {s+start/1000:.3f} - {e+start/1000:.3f} ({text})")
 
 
 

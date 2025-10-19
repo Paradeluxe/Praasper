@@ -10,7 +10,7 @@ https://pypi.org/project/praasper/)
 
 ![mechanism](promote/mechanism.png)
 
-In ***Praasper***, we adopt a rather simple and straightforward pipeline to extract utterance-level information from audio files. The pipeline includes **VAD** (*Praditor*), **ASR** (*SenseVoiceSmall*) and **LLM** (Qwen2.5-1.5B-Instruct). 
+In ***Praasper***, we adopt a rather simple and straightforward pipeline to extract utterance-level information from audio files. The pipeline includes **VAD** (*Praditor*), **ASR** (*SenseVoiceSmall*) and **LLM** (Qwen). 
 
 
 
@@ -78,7 +78,7 @@ For **LLM** core, the recommended models include (from large to small ones): `Qw
 
 # Mechanism
 
-***Praditor*** is applied to perform **Voice Activity Detection (VAD)** algorithm to segment large audio files into smaller pieces. It can generate intervals with **millisecond-level precision**. It is a Speech Onset Detection (SOT) algorithm we developed for langauge researchers.
+***Praditor*** is applied to perform **Voice Activity Detection (VAD)** algorithm to (1) segment large audio files into smaller pieces and (2) extract utterance. It can generate intervals with **millisecond-level precision**. It is originally a Speech Onset Detection (SOT) algorithm we developed for langauge researchers.
 
 **SenseVoiceSmall** is used to transcribe the audio file, which does not offer timestamps. It is a lightweight ASR model compatible with even laptop. It has better support for short-length audio files, compared to *Whisper*.
 
