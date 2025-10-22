@@ -10,7 +10,7 @@ https://pypi.org/project/praasper/)
 
 ![mechanism](promote/mechanism.png)
 
-In ***Praasper***, we adopt a rather simple and straightforward pipeline to extract utterance-level information from audio files. The pipeline includes **VAD** (*Praditor*), **ASR** (*SenseVoiceSmall*) and **LLM** (Qwen). 
+In ***Praasper***, we adopt a rather simple and straightforward pipeline to extract utterance-level information from audio files. The pipeline includes **VAD** (*Praditor*), **ASR** (*SenseVoiceSmall*) and **LLM** (*Qwen*). 
 
 
 
@@ -22,13 +22,13 @@ Here is one of the **simplest** examples:
 import praasper
 
 model = praasper.init_model()
-model.annote("data")
+model.annote("data_folder")
 ```
 
 
 
 Here are some other parameters you can pass to the `annote` method:
-
+                                                                                                                                                                                                                                                                                                                                                               
 | Param | Default | Description |
 | :---: | :---: | :--- |
 | `ASR` | iic/SenseVoiceSmall | Model name as the ASR core. Check out [**FunASR's model list**](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo) for available models. |
@@ -49,7 +49,7 @@ model = praasper.init_model(
 )
 
 model.annote(
-    input_path="data",
+    input_path="data_folder",
     min_pause=.8,
     min_speech=.2,
     language=None,
