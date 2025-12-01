@@ -1,3 +1,6 @@
+import os
+import shutil
+
 try:
     from .utils import *
     from .process import *
@@ -5,13 +8,13 @@ try:
     from .post_process import *
 
 except ImportError:
-    from utils import *
-    from process import *
-    from select_word import *
-    from post_process import *
+    from praasper.utils import *
+    from praasper.process import *
+    from praasper.select_word import *
+    from praasper.post_process import *
 
-import os
-import shutil
+os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'  # 设置镜像源
+
 
 class init_model:
 
@@ -42,9 +45,15 @@ class init_model:
         language=None,
         verbose: bool=False
     ):
+        if os.path.isdir(input_path):
+            fnames = [os.path.splitext(f)[0] for f in os.listdir(input_path) if f.endswith('.wav')]
+            print(f"[{show_elapsed_time()}] {len(fnames)} valid audio files detected in {input_path}")
 
-        fnames = [os.path.splitext(f)[0] for f in os.listdir(input_path) if f.endswith('.wav')]
-        print(f"[{show_elapsed_time()}] {len(fnames)} valid audio files detected in {input_path}")
+        else:
+            fnames = [os.path.splitext(os.path.basename(input_path))[0]]
+            input_path = os.path.dirname(input_path)
+            print(f"[{show_elapsed_time()}] {fnames[0]} is detected in {input_path}")
+
 
         if not fnames:
             return
@@ -69,6 +78,7 @@ class init_model:
 
             final_tg = TextGrid()
             final_tg.tiers.append(IntervalTier(name="words", minTime=0., maxTime=audio_obj.duration_seconds))
+            final_tg.tiers[0].strict = False
 
             print(f"--------------- Processing {os.path.basename(wav_path)} ({idx+1}/{len(fnames)}) ---------------")
             count = 0
@@ -108,11 +118,67 @@ class init_model:
                         print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Activate post-process: ({text}) -> ({text_proc})")
                         text = text_proc
 
-                    final_tg.tiers[0].add(s+start/1000, e+start/1000, text)
+                    s_point = s + start/1000
+                    e_point = e + start/1000
+
+                    if e_point >= audio_obj.duration_seconds:
+                        e_point = audio_obj.duration_seconds
+                    final_tg.tiers[0].add(s_point, e_point, text)
+
+                    # print(audio_obj.duration_seconds)
                     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Detect speech: {s+start/1000:.3f} - {e+start/1000:.3f} ({text})")
 
 
+            #############################
+            # 因为在建立textgrid的时候使用了strict=False的mode，有可能存在某个tier是重复的
+            # 需要检查并调整
+            #############################
 
+
+            # 检查并合并重叠的interval
+            tier = final_tg.tiers[0]
+            i = 1
+            while i < len(tier.intervals):
+                prev = tier.intervals[i - 1]
+                curr = tier.intervals[i]
+                # 如果当前interval与上一个interval重叠
+                if curr.minTime < prev.maxTime:
+                    # 合并：取最早开始和最晚结束
+                    new_min = prev.minTime
+                    new_max = max(prev.maxTime, curr.maxTime)
+                    # 替换上一个interval
+                    prev.maxTime = new_max
+                    prev.mark = "(-)"
+                    # 删除当前interval
+                    del tier.intervals[i]
+                    # 从头重新检查
+                    i = 1
+                else:
+                    i += 1
+            
+            # 从头开始遍历每一个interval，如果其mark是"(-)"，则去audio_obj截取出这一段，保存到临时文件夹，并且用ASR跑一遍
+            tier = final_tg.tiers[0]
+            for interval in tier.intervals:
+                if interval.mark == "(-)":
+                    s_ms = interval.minTime * 1000
+                    e_ms = interval.maxTime * 1000
+                    clip = audio_obj[s_ms:e_ms]
+                    tmp_wav = os.path.join(tmp_path, f"{os.path.splitext(os.path.basename(wav_path))[0]}_redo_{s_ms}_{e_ms}.wav")
+                    clip.save(tmp_wav)
+                    text = self.model.transcribe(tmp_wav)
+                    text = purify_text(text)
+                    if not text:
+                        continue
+                    
+                    if not is_single_language(text) and language is not None:
+                        text_proc = post_process(text, language)
+                        print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Activate post-process: ({text}) -> ({text_proc})")
+                        text = text_proc
+                        
+                    interval.mark = text
+                    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Redo speech: {interval.minTime:.3f} - {interval.maxTime:.3f} ({text})")
+
+            # ----------------------------
             final_tg.write(final_path)
                 
         
@@ -123,12 +189,12 @@ class init_model:
 if __name__ == "__main__":
     model = init_model(
         "iic/SenseVoiceSmall",
-        # "Qwen/Qwen3-4B-Instruct-2507"
+        "Qwen/Qwen3-4B-Instruct-2507"
     )
     model.annote(
-        input_path = os.path.abspath("input_single"),
-        seg_dur=20.,
-        min_pause=.8,
+        input_path = r"E:\Corpus\ma\audio\50-2.wav",# os.path.abspath("input_single"),
+        # seg_dur=20.,
+        # min_pause=.8,
         language="zh",
-        verbose=False
+        # verbose=False
     )

@@ -3,22 +3,14 @@ import math
 import os
 
 import numpy as np
-from textgrid import TextGrid, PointTier, Point, IntervalTier, Interval
 from sklearn.cluster import DBSCAN
-# from dbscan import DBSCAN
-
-
 
 try:
-    from .tool_auto import bandpass_filter, get_current_time, ReadSound
+    from .tool_auto import ReadSound
+    from ..utils import show_elapsed_time, bandpass_filter
 except ImportError:
-    from tool_auto import bandpass_filter, get_current_time, ReadSound
-
-try:
-    from ..utils import show_elapsed_time
-except ImportError:
-    # from tool_auto import bandpass_filter, get_current_time, ReadSound
-    from utils import show_elapsed_time
+    from praasper.VAD.tool_auto import ReadSound
+    from praasper.utils import show_elapsed_time, bandpass_filter
 
 # plat = os.name.lower()
 # check if ffmpeg exists in the system path or the pydub package can find it
@@ -260,8 +252,6 @@ def autoPraditor(params, audio_obj, which_set, verbose=False):
         # print(np.argmin(candidate_y1_area), ref_midpoint)
 
         # ----------------- Processing onset area --------------
-        # print(f"\r{audio_file}\t|\t{get_current_time()}\t|\tProcessing >> onset {onset} + offset {offset}", end="")
-
 
         # print(y1_threshold)
 
@@ -318,78 +308,6 @@ def autoPraditor(params, audio_obj, which_set, verbose=False):
     _answer_frames = list(set(_answer_frames))
 
     return [frm/_audio_samplerate for frm in _answer_frames]
-
-
-
-
-
-
-def create_textgrid_with_time_point(audio_file_path, onsets=[], offsets=[]):
-
-
-    # 检测 onsets 和 offsets 的数量是否一致
-    if len(onsets) != len(offsets):
-        raise ValueError(f"The number of onsets ({len(onsets)}) and offsets ({len(offsets)}) does not match. ")
-
-    # 检测并删除包含 None 的对应元素
-    indices_to_remove = [i for i in range(len(onsets)) if onsets[i] is None or offsets[i] is None]
-    for idx in sorted(indices_to_remove, reverse=True):
-        del onsets[idx]
-        del offsets[idx]
-
-
-    # 获取音频文件的目录和文件名（不包括扩展名）
-    audio_dir = os.path.dirname(os.path.abspath(audio_file_path))
-    audio_filename = os.path.splitext(os.path.basename(audio_file_path))[0]
-    audio_extension = os.path.splitext(os.path.basename(audio_file_path))[1]
-    audio_obj = ReadSound(os.path.join(audio_dir, audio_filename+audio_extension))
-    audio_duration = audio_obj.duration_seconds
-    audio_samplerate = audio_obj.frame_rate
-
-    # 创建一个新的TextGrid对象
-    tg_filename = os.path.join(audio_dir, audio_filename + ".TextGrid")
-    tg = TextGrid()
-
-    # 时间
-    # time_points = [frm/audio_samplerate for frm in frame_points]
-
-    for set_mode in ["onset", "offset"]:
-        point_tier = PointTier(name=set_mode, minTime=0., maxTime=audio_duration)
-
-        if set_mode == "onset":
-            xsets = onsets
-        elif set_mode == "offset":
-            xsets = offsets
-            # print(xsets)
-        for time_point in xsets:
-            try:
-                point_tier.addPoint(Point(time_point, set_mode))
-            except ValueError:
-                continue
-
-        tg.append(point_tier)  # 不再使用pointtier
-    
-
-    tg.append(point_tier)
-    tg.write(tg_filename)  # 将TextGrid对象写入文件
-
-
-    tg_filename = os.path.join(audio_dir, audio_filename + "_VAD.TextGrid")
-    tg = TextGrid()
-
-    # 间隔
-    interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_duration)
-    for i in range(len(onsets)):
-        try:
-            interval_tier.addInterval(Interval(onsets[i], offsets[i], "sound"))
-        except ValueError:
-            continue
-    tg.append(interval_tier)
-    tg.write(tg_filename)  # 将TextGrid对象写入文件
-
-    print(f"{audio_filename}\t|\t{get_current_time()}\t|\tTextGrid created at: {tg_filename}")
-
-
 
 
 
