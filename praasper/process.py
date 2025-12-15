@@ -34,7 +34,7 @@ def purify_text(text):
     return text
 
 
-def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="self", verbose=False):
+def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="folder", verbose=False):
     wav_path = audio_obj.fpath
 
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Start segmentation (<= {segment_duration}s)...")
@@ -42,33 +42,33 @@ def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="self", 
 
     audio_obj = ReadSound(wav_path)
 
-    # 获取 wav 文件所在的文件夹路径
-    wav_folder = os.path.dirname(wav_path)
-    all_txt_path = os.path.join(wav_folder, "params.txt")
-    self_txt_path = wav_path.replace(".wav", ".txt")
+    folder_param_path = os.path.join(os.path.dirname(wav_path), "params_vad.txt")
+    file_txt_path = wav_path.replace(".wav", "_vad.txt")
 
-    
-
-    if params == "all":
-        if os.path.exists(all_txt_path):
-            with open(all_txt_path, "r") as f:
-                params = eval(f.read())
-        else:
+    match params:
+        case "file":
+            if os.path.exists(file_txt_path):
+                with open(file_txt_path, "r") as f:
+                    params = eval(f.read())
+            else:
+                params = default_params
+        case "folder":
+            if os.path.exists(folder_param_path):
+                with open(folder_param_path, "r") as f:
+                    params = eval(f.read())
+            else:
+                params = default_params
+        case "default":
             params = default_params
+        case _:  # 最好直接输入dict
+            if type(params) == dict:
+                params = params
+            elif type(params) == str:
+                params = eval(params)
+            else:
+                params = default_params
     
-    elif params == "self":
-        if os.path.exists(self_txt_path):
-            with open(self_txt_path, "r") as f:
-                params = eval(f.read())
-        else:
-            params = default_params
-
-    elif params == "default":
-        params = default_params
-
-    else:  # 具体参数
-        params = params
-    
+    params["offset"] = params["onset"]  # VAD特供
 
     segments = []
 
@@ -91,31 +91,33 @@ def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="self", 
             segments[-1][1] = end
             # continue
         else:
+
+            ################
+            # 找到一个尽可能大的pause，使得onset和offset之间的差值大于pause
+            ################
+
             # 从最后一个onset开始往前遍历
-            for i in range(len(onsets)-1, 0, -1):
-                current_onset = onsets[i]
-                # 找到当前onset之前的最后一个offset
-                prev_offset = [xset for xset in offsets if xset < current_onset][-1]
-                # prev_offset = offsets[i-1]
-                if current_onset - prev_offset > min_pause:
-                    # print()
-                    # print(start)
-                    # 若差值大于min_pause，则取得他们的均值
-                    # print(prev_offset, current_onset)
-                    target_offset = (current_onset + prev_offset) / 2
-                    end = start + target_offset * 1000
-                    break
-            else:
-                # print(start)
-                # print(onsets[-1], offsets[0])
-                # print(onsets)
-                # print(offsets)
-                # 若所有onset和对应offset差值都不大于min_pause，则取最后offset的均值
-                target_offset = (onsets[-1] + [offset for offset in offsets if offset < onsets[-1]][-1]) / 2
-                end = start + target_offset * 1000
+            tmp_pause = min_pause
+            found = False
+            while tmp_pause > 0 and not found:
+                for i in range(len(onsets)-1, 0, -1):
+                    current_onset = onsets[i]
 
+                    # 找到当前onset之前的最后一个offset
+                    try:
+                        prev_offset = [offset for offset in offsets if offset < current_onset][-1]
+                    except IndexError:
+                        continue
 
-            # end = start + (target_offset + onsets[-1]) / 2 * 1000
+                    if current_onset - prev_offset > tmp_pause:
+                        # 若差值大于tmp_pause，则取得他们的均值
+                        target_offset = (current_onset + prev_offset) / 2
+                        end = start + target_offset * 1000
+                        found = True
+                        break
+                if not found:
+                    tmp_pause -= 0.01
+            # -----------------
 
             segments.append([start, end])
 
@@ -138,52 +140,65 @@ def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="self", 
     return segments
 
 
-def get_vad(wav_path, ori_wav_path, min_pause=0.2, params="self", if_save=False, verbose=False):
+def get_vad(wav_path, min_pause=0.2, params="folder", if_save=False, verbose=False):
     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD processing started...")
 
 
     audio_obj = ReadSound(wav_path)
 
-    # 获取 wav 文件所在的文件夹路径
-    wav_folder = os.path.dirname(wav_path)
-    all_txt_path = os.path.join(wav_folder, "params.txt")
-    self_txt_path = ori_wav_path.replace(".wav", "_vad.txt")
-    if not os.path.exists(self_txt_path):
-        self_txt_path = ori_wav_path.replace(".wav", ".txt")
+    folder_param_path = os.path.join(os.path.dirname(wav_path), "params_vad.txt")
+    file_txt_path = wav_path.replace(".wav", "_vad.txt")
 
-    
-    # print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD params: {params}")
-    # print(default_params)
-    if params == "all":
-        if os.path.exists(all_txt_path):
-            with open(all_txt_path, "r") as f:
-                params = eval(f.read())
-        else:
+    match params:
+        case "file":
+            if os.path.exists(file_txt_path):
+                with open(file_txt_path, "r") as f:
+                    params = eval(f.read())
+            else:
+                params = default_params
+        case "folder":
+            if os.path.exists(folder_param_path):
+                with open(folder_param_path, "r") as f:
+                    params = eval(f.read())
+            else:
+                params = default_params
+        case "default":
             params = default_params
+        case _:  # 最好直接输入dict
+            if type(params) == dict:
+                params = params
+            elif type(params) == str:
+                params = eval(params)
+            else:
+                params = default_params
     
-    elif params == "self":
-        if os.path.exists(self_txt_path):
-            with open(self_txt_path, "r") as f:
-                params = eval(f.read())
-        else:
-            params = default_params
-    elif params == "default":
-        params = default_params
+    params["offset"] = params["onset"]  # VAD模式特供
 
-    else:  # 具体参数
-        params = params
     # print(params)
 
 
     onsets = autoPraditorWithTimeRange(params, audio_obj, "onset", verbose=False)
     offsets = autoPraditorWithTimeRange(params, audio_obj, "offset", verbose=False)
 
-    if verbose:   
-        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD onsets: {onsets}")
-        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD offsets: {offsets}")
+    onsets = sorted(onsets)
+    offsets = sorted(offsets)
 
 
+    # if verbose:   
+    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD onsets: {onsets}")
+    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD offsets: {offsets}")
+    tg = TextGrid()
+    interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_obj.duration_seconds)
+    tg.append(interval_tier)
 
+    if onsets or offsets:
+        if not onsets:
+            onsets = [0.0]
+        if not offsets:
+            offsets = [audio_obj.duration_seconds]
+    else:
+        return tg
+    
     if onsets[0] >= offsets[0]:
         onsets = [0.0] + onsets
     
@@ -210,9 +225,6 @@ def get_vad(wav_path, ori_wav_path, min_pause=0.2, params="self", if_save=False,
 
     onsets = sorted(valid_onsets)
     offsets = sorted(valid_offsets)
-
-    tg = TextGrid()
-    interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_obj.duration_seconds)
 
 
 

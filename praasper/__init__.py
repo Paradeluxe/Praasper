@@ -43,7 +43,8 @@ class init_model:
         min_speech=0.2,
         min_pause=0.2,
         language=None,
-        verbose: bool=False
+        verbose: bool=False,
+        skip_existing: bool=False
     ):
         if os.path.isdir(input_path):
             fnames = [os.path.splitext(f)[0] for f in os.listdir(input_path) if f.endswith('.wav')]
@@ -62,19 +63,30 @@ class init_model:
             wav_path = os.path.join(input_path, fname + ".wav")
 
             dir_name = os.path.dirname(os.path.dirname(wav_path))
-
             tmp_path = os.path.join(dir_name, "tmp")
+            output_path = os.path.join(dir_name, "output")
+            final_path = os.path.join(output_path, os.path.basename(wav_path).replace(".wav", ".TextGrid"))
+
+            # 检查结果文件是否已存在，如果存在且skip_existing为True则跳过处理
+            if skip_existing and os.path.exists(final_path):
+                print(f"[{show_elapsed_time()}] Skipping {os.path.basename(wav_path)} (result exists)")
+                continue
+
+            try:
+                # 尝试加载音频文件
+                audio_obj = ReadSound(wav_path)
+            except Exception as e:
+                print(f"[{show_elapsed_time()}] Error loading audio file {wav_path}: {str(e)}")
+                continue
+
+            # 仅在音频加载成功后创建临时目录（很正确）
             if os.path.exists(tmp_path):
                 shutil.rmtree(tmp_path)
                 print(f"[{show_elapsed_time()}] Temporary directory {tmp_path} removed.")
             os.makedirs(tmp_path, exist_ok=False)
 
-            output_path = os.path.join(dir_name, "output")
             os.makedirs(output_path, exist_ok=True)
-            
-            final_path = os.path.join(output_path, os.path.basename(wav_path).replace(".wav", ".TextGrid"))
 
-            audio_obj = ReadSound(wav_path)
 
             final_tg = TextGrid()
             final_tg.tiers.append(IntervalTier(name="words", minTime=0., maxTime=audio_obj.duration_seconds))
@@ -82,7 +94,7 @@ class init_model:
 
             print(f"--------------- Processing {os.path.basename(wav_path)} ({idx+1}/{len(fnames)}) ---------------")
             count = 0
-            segments = segment_audio(audio_obj, segment_duration=seg_dur, min_pause=min_pause)
+            segments = segment_audio(audio_obj, segment_duration=seg_dur, params="folder", min_pause=min_pause)
             for start, end in segments:
                 count += 1
 
@@ -92,11 +104,11 @@ class init_model:
                 audio_clip.save(clip_path)
 
 
-                # try:
-                vad_tg = get_vad(clip_path, wav_path, min_pause=min_pause, verbose=verbose)
-                # except Exception as e:
-                #     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) VAD Error: {e}")
-                #     continue
+                try:
+                    vad_tg = get_vad(clip_path, params="folder", min_pause=min_pause, verbose=verbose)
+                except Exception as e:
+                    print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) VAD Error: {e}")
+                    continue
                 
                 intervals = vad_tg.tiers[0].intervals
                 valid_intervals = [interval for interval in intervals if interval.mark not in ["", None] and interval.maxTime - interval.minTime > min_speech]

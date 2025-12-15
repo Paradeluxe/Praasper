@@ -20,9 +20,12 @@ class ReadSound:
                 self.duration_seconds = duration_seconds
                 self.frame_rate = frame_rate
             else:
-                self.arr, self.frame_rate = librosa.load(fpath, sr=None, dtype=np.float32)
-                # self.arr = (self.arr * 32767).astype('int16')  # 转换为 int16 类型
-                self.duration_seconds = librosa.get_duration(y=self.arr, sr=self.frame_rate)
+                try:
+                    self.arr, self.frame_rate = librosa.load(fpath, sr=None, dtype=np.float32)
+                    # self.arr = (self.arr * 32767).astype('int16')  # 转换为 int16 类型
+                    self.duration_seconds = librosa.get_duration(y=self.arr, sr=self.frame_rate)
+                except Exception as e:
+                    raise IOError(f"Failed to load audio file {fpath}: {str(e)}") from e
 
 
 
