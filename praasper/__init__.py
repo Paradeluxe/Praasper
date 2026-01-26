@@ -44,7 +44,8 @@ class init_model:
         min_pause=0.2,
         language=None,
         verbose: bool=False,
-        skip_existing: bool=False
+        skip_existing: bool=False,
+        enable_post_process: bool=True
     ):
         if os.path.isdir(input_path):
             fnames = [os.path.splitext(f)[0] for f in os.listdir(input_path) if f.endswith('.wav')]
@@ -125,7 +126,7 @@ class init_model:
                     if not text:
                         continue
                     
-                    if not is_single_language(text) and language is not None:
+                    if not is_single_language(text) and language is not None and enable_post_process:
                         text_proc = post_process(text, language)
                         print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Activate post-process: ({text}) -> ({text_proc})")
                         text = text_proc
@@ -182,7 +183,7 @@ class init_model:
                     if not text:
                         continue
                     
-                    if not is_single_language(text) and language is not None:
+                    if not is_single_language(text) and language is not None and enable_post_process:
                         text_proc = post_process(text, language)
                         print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Activate post-process: ({text}) -> ({text_proc})")
                         text = text_proc

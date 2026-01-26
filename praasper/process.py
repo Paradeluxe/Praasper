@@ -184,9 +184,10 @@ def get_vad(wav_path, min_pause=0.2, params="folder", if_save=False, verbose=Fal
     offsets = sorted(offsets)
 
 
-    # if verbose:   
-    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD onsets: {onsets}")
-    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD offsets: {offsets}")
+    if verbose:   
+        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD onsets: {onsets}")
+        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD offsets: {offsets}")
+        
     tg = TextGrid()
     interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_obj.duration_seconds)
     tg.append(interval_tier)
@@ -208,18 +209,34 @@ def get_vad(wav_path, min_pause=0.2, params="folder", if_save=False, verbose=Fal
     # Select the one offset that is closest to onset and earlier than onset
     valid_onsets = []
     valid_offsets = []
-    for i, onset in enumerate(onsets):
-        # print(onset)
-        if i == 0:
-            valid_offsets.append(offsets[-1])
-            valid_onsets.append(onset)
-        else:
-            try:
-                valid_offsets.append(max([offset for offset in offsets if onsets[i-1] < offset < onset]))
-                valid_onsets.append(onset)
 
-            except ValueError:
-                pass
+    if len(onsets) <= len(offsets):
+        for i, onset in enumerate(onsets):
+            # print(onset)
+            if i == 0:
+                valid_offsets.append(offsets[-1])  # 最后一个offset
+                valid_onsets.append(onsets[0])  # 第一个offset
+            else:
+                try:
+                    valid_offsets.append(max([offset for offset in offsets if onsets[i-1] < offset < onset]))  # 不会影响到最后一个offset，应为需要夹在onset中间
+                    valid_onsets.append(onset)  # 下一个onset
+
+                except ValueError:
+                    pass
+    else:  # len(onsets) > len(offsets)
+        reversed_offsets = list(reversed(offsets))
+        for i, reversed_offset in enumerate(reversed_offsets):
+            if i == 0:
+                valid_onsets.append(onsets[0])
+                valid_offsets.append(reversed_offset)
+            else:
+                try:
+                    valid_onsets.append(min([onset for onset in onsets if reversed_offset < onset < reversed_offsets[i-1]]))
+                    valid_offsets.append(reversed_offset)
+
+                except ValueError:
+                    pass
+        valid_offsets = list(reversed(valid_offsets))
     
 
 
