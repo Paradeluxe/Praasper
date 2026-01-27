@@ -1,43 +1,65 @@
 from funasr import AutoModel
 from funasr.utils.postprocess_utils import lang_dict, emoji_dict, emo_set, event_set
 
-
-# model_dir = "paraformer-zh"
 class SelectWord:
-    def __init__(self, model: str="iic/SenseVoiceSmall", vad_model: str="fsmn-vad", device: str="auto"):
+    def __init__(self, model: str="iic/SenseVoiceSmall", vad_model: str="fsmn-vad", device: str="auto", infer_mode: str="direct"):
         # 自动检测设备
         if device == "auto":
             import torch
             device = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.device = device
+        self.infer_mode = infer_mode
+        self.kwargs = {}
         
-        self.model = AutoModel(
-            model=model,
-            vad_model=vad_model,
-            # punc_model="ct-punc",
-            vad_kwargs={"max_single_segment_time": 30000},
-            device=self.device,
-            disable_update=True,
-            disable_pbar=True,
-            disable_log=True,
-            # use_timestamp=True
-            download_model=False,
-            # trust_remote_code=True,
-        )
+        if infer_mode == "direct":
+            # 使用 FunASRNano 直接模式
+            from funasr.models.fun_asr_nano.model import FunASRNano
+            # from model import FunASRNano
+            self.model, self.kwargs = FunASRNano.from_pretrained(
+                model=model,
+                # trust_remote_code=False,
+                device=self.device,
+            )
+            self.model.eval()
 
-    def transcribe(self, input_path):
 
-        res = self.model.generate(
-            input=input_path,
-            language="zh", 
-            use_itn=False,
-            #hotword="必须使用中文输出",
-            # batch_size_s=60,
-            # merge_length_s=15,
+        else:
+            # 默认使用 AutoModel
+            self.model = AutoModel(
+                model=model,
+                vad_model=vad_model,
+                # punc_model="ct-punc",
+                vad_kwargs={"max_single_segment_time": 30000},
+                device=self.device,
+                # disable_update=True,
+                # disable_pbar=True,
+                # disable_log=True,
+                # use_timestamp=True
+                download_model=False,
+                # trust_remote_code=True,
+            )
+        
 
-        )
-        text = rich_transcription_postprocess_text_only(res[0]["text"])
+    def transcribe(self, input_path, lang: str="zh"):
 
+        if self.infer_mode == "direct":
+            # 使用 FunASRNano 的 inference 方法
+            res = self.model.inference(data_in=[input_path], **self.kwargs)
+            text = res[0][0]["text"]
+        else:
+            # 使用 AutoModel 的 generate 方法
+            res = self.model.generate(
+                input=input_path,
+                language=lang, 
+                use_itn=False,
+                #hotword="必须使用中文输出",
+                # batch_size_s=60,
+                # merge_length_s=15,
+
+            )
+            text = res[0]["text"]
+
+        text = rich_transcription_postprocess_text_only(text)
         return text
 
 

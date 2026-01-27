@@ -21,17 +21,28 @@ class init_model:
     def __init__(
         self,
         ASR: str="iic/SenseVoiceSmall",
+        infer_mode: str = "funasr",
         LLM: str="Qwen/Qwen2.5-1.5B-Instruct",
+        device: str= "cpu"
     ):
 
+        # 验证 infer_mode 参数值
+        allowed_modes = ["direct", "funasr"]
+        if infer_mode not in allowed_modes:
+            raise ValueError(f"infer_mode must be one of {allowed_modes}, got {infer_mode}")
+        
         self.ASR = ASR
+        self.infer_mode = infer_mode
         self.LLM = LLM
+        self.device = device
         print(f"[{show_elapsed_time()}] Initializing model with {self.ASR}")
 
         init_LLM(self.LLM)
 
         self.model = SelectWord(
-            model=self.ASR
+            model=self.ASR,
+            infer_mode=self.infer_mode,
+            device=self.device
         )
         print(f"[{show_elapsed_time()}] Using device: {self.model.device}")
         
