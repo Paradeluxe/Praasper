@@ -76,7 +76,10 @@ class init_model:
 
             dir_name = os.path.dirname(os.path.dirname(wav_path))
             tmp_path = os.path.join(dir_name, "tmp")
-            output_path = os.path.join(dir_name, "output")
+            # 获取输入文件夹的名称
+            input_folder_name = os.path.basename(input_path)
+            # 在output目录下创建与输入文件夹同名的子目录
+            output_path = os.path.join(dir_name, "output", input_folder_name)
             final_path = os.path.join(output_path, os.path.basename(wav_path).replace(".wav", ".TextGrid"))
 
             # 检查结果文件是否已存在，如果存在且skip_existing为True则跳过处理
