@@ -213,15 +213,166 @@ class init_model:
         print(f"--------------- Processing completed ---------------")
 
 
-if __name__ == "__main__":
-    model = init_model(
-        "iic/SenseVoiceSmall",
-        "Qwen/Qwen3-4B-Instruct-2507"
-    )
-    model.annote(
-        input_path = r"E:\Corpus\ma\audio\50-2.wav",# os.path.abspath("input_single"),
-        # seg_dur=20.,
-        # min_pause=.8,
-        language="zh",
-        # verbose=False
-    )
+
+    def autoplay(
+        self,
+        wav_path: str
+    ):
+        """
+        输入音频，输出推荐参数。
+
+        以完整音频转录得出的答案是100%，然后设定一个正确率阈值
+
+        需要自动调整的参数是Threshold和NetActive
+        """
+
+    def auto_vad(self, wav_path, min_pause=0.2, verbose=False):
+        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD processing started...")
+
+
+
+        dir_name = os.path.dirname(os.path.dirname(wav_path))
+        tmp_path = os.path.join(dir_name, "tmp")
+
+        audio_obj = ReadSound(wav_path)
+
+        params = default_params
+        params["offset"] = params["onset"]  # VAD模式特供
+
+        from itertools import product
+
+        def generate_param_grid(params):
+            """生成参数组合列表"""
+            keys = params.keys()
+            values = params.values()
+            for combination in product(*values):
+                yield dict(zip(keys, combination))
+
+        # 使用示例
+        param_grid = {
+            'amp': [round(n, 2) for n in np.arange(1.1, 2.00, 0.1)],
+            'numValid': range(1000, 3000, 1000)
+        }
+
+
+        for params_replace in generate_param_grid(param_grid):
+            
+            adjusted_params = params.copy()
+
+            for p in params_replace:
+                adjusted_params["onset"][p] = str(params_replace[p])
+            
+            adjusted_params["offset"] = adjusted_params["onset"]
+
+            # print(adjusted_params)
+            
+            
+            onsets = autoPraditorWithTimeRange(adjusted_params, audio_obj, "onset", verbose=False)
+            offsets = autoPraditorWithTimeRange(adjusted_params, audio_obj, "offset", verbose=False)
+
+            onsets = sorted(onsets)
+            offsets = sorted(offsets)
+
+
+            if verbose:   
+                print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD onsets: {onsets}")
+                print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD offsets: {offsets}")
+                
+
+
+            if onsets or offsets:
+                if not onsets:
+                    onsets = [0.0]
+                if not offsets:
+                    offsets = [audio_obj.duration_seconds]
+            else:
+                return tg
+            
+            if onsets[0] >= offsets[0]:
+                onsets = [0.0] + onsets
+            
+            if offsets[-1] <= onsets[-1]:
+                offsets.append(audio_obj.duration_seconds)
+
+            # Select the one offset that is closest to onset and earlier than onset
+            valid_onsets = []
+            valid_offsets = []
+
+            if len(onsets) <= len(offsets):
+                for i, onset in enumerate(onsets):
+                    # print(onset)
+                    if i == 0:
+                        valid_offsets.append(offsets[-1])  # 最后一个offset
+                        valid_onsets.append(onsets[0])  # 第一个offset
+                    else:
+                        try:
+                            valid_offsets.append(max([offset for offset in offsets if onsets[i-1] < offset < onset]))  # 不会影响到最后一个offset，应为需要夹在onset中间
+                            valid_onsets.append(onset)  # 下一个onset
+
+                        except ValueError:
+                            pass
+            else:  # len(onsets) > len(offsets)
+                reversed_offsets = list(reversed(offsets))
+                for i, reversed_offset in enumerate(reversed_offsets):
+                    if i == 0:
+                        valid_onsets.append(onsets[0])
+                        valid_offsets.append(reversed_offset)
+                    else:
+                        try:
+                            valid_onsets.append(min([onset for onset in onsets if reversed_offset < onset < reversed_offsets[i-1]]))
+                            valid_offsets.append(reversed_offset)
+
+                        except ValueError:
+                            pass
+                valid_offsets = list(reversed(valid_offsets))
+            
+
+
+            onsets = sorted(valid_onsets)
+            offsets = sorted(valid_offsets)
+
+
+            # 根据min pause 调整onset和offset
+            bad_onsets = []
+            bad_offsets = []
+
+            for i in range(len(onsets)-1):
+                if onsets[i+1] - offsets[i] < min_pause:
+                    bad_onsets.append(onsets[i+1])
+                    bad_offsets.append(offsets[i])
+
+            onsets = [x for x in onsets if x not in bad_onsets]
+            offsets = [x for x in offsets if x not in bad_offsets]
+
+            print(params_replace)
+            print(onsets, offsets)
+            print()
+
+
+            # 确保临时目录存在
+            os.makedirs(tmp_path, exist_ok=True)
+            
+            for i, (onset, offset) in enumerate(zip(onsets, offsets)):
+                audio_obj_clipped = audio_obj[onset*1000:offset*1000]
+                # 为裁剪的音频文件生成唯一的文件名
+                base_name = os.path.splitext(os.path.basename(wav_path))[0]
+                clip_path = os.path.join(tmp_path, f"{base_name}_clip_{i}.wav")
+                audio_obj_clipped.save(clip_path)
+
+                # 转录并获取结果
+                transcript = self.model.transcribe(clip_path)
+                transcript = purify_text(transcript)
+
+                # 输出日志
+                print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Clip {i+1}: {onset:.3f} - {offset:.3f}s, Transcript: {transcript}")
+
+
+        # 清理临时文件
+        import shutil
+        if os.path.exists(tmp_path):
+            try:
+                shutil.rmtree(tmp_path)
+                print(f"[{show_elapsed_time()}] Temporary directory {tmp_path} removed")
+            except Exception as e:
+                print(f"[{show_elapsed_time()}] Error removing temporary directory: {e}")
+

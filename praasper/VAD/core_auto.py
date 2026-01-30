@@ -44,7 +44,7 @@ def autoPraditor(params, audio_obj, which_set, verbose=False):
     params["ratio"] = 0.9
     params["win_size"] = 50
     params["ref_len"] = params["win_size"] * 5
-    params["penalty"] = 10
+    params["penalty"] = 1000000
 
 
     # print(params)

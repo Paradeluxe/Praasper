@@ -88,7 +88,10 @@ def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="folder"
         # print(start, end)
         # print(onsets, offsets, audio_len * 1000)
         if not onsets or not offsets:
-            segments[-1][1] = end
+            try:
+                segments[-1][1] = end
+            except IndexError:
+                pass
             # continue
         else:
 
@@ -276,5 +279,6 @@ def get_vad(wav_path, min_pause=0.2, params="folder", if_save=False, verbose=Fal
 
 
 if __name__ == "__main__":
-    segments = segment_audio("data/test_audio.wav", segment_duration=3.5)
+    # segments = segment_audio("data/test_audio.wav", segment_duration=3.5)
     # print(segments)
+    auto_vad("data/test_audio.wav", min_pause=0.2, if_save=True, verbose=True)
