@@ -248,6 +248,9 @@ class init_model:
             for combination in product(*values):
                 yield dict(zip(keys, combination))
 
+
+        transcript_dict = {}
+
         # 使用示例
         param_grid = {
             'amp': [round(n, 2) for n in np.arange(1.1, 2.00, 0.1)],
@@ -363,9 +366,12 @@ class init_model:
                 transcript = self.model.transcribe(clip_path)
                 transcript = purify_text(transcript)
 
+                key = tuple(sorted(params_replace.items()))
+                transcript_dict[key] = transcript
+
                 # 输出日志
                 print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Clip {i+1}: {onset:.3f} - {offset:.3f}s, Transcript: {transcript}")
-
+        print(transcript_dict)
 
         # 清理临时文件
         import shutil

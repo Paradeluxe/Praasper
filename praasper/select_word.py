@@ -45,6 +45,7 @@ class SelectWord:
         if self.infer_mode == "direct":
             # 使用 FunASRNano 的 inference 方法
             res = self.model.inference(data_in=[input_path], **self.kwargs)
+            # print(res)
             text = res[0][0]["text"]
         else:
             # 使用 AutoModel 的 generate 方法

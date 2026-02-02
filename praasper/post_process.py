@@ -1,6 +1,12 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, T5ForConditionalGeneration
 import torch
 import numpy as np
+import sys
+import os
+from langdetect import detect
+import jellyfish
+import re
+
 
 
 # 全局变量，用于存储初始化的tokenizer和model
@@ -105,204 +111,153 @@ def post_process(text, language):
     return answer
 
 
-def get_char_language(char):
+def transliterate_to_en(text):
     """
-    检测单个字符的语言类型
+    将任何语言的文本（单语或混语）按最近音译的方式转换为英文文本
     
     参数:
-        char: str - 单个字符
+        text: str - 输入文本（可以是任何语言）
     
     返回:
-        str - 语言类型
+        str - 音译后的英文文本（仅包含音译结果，无多余解释或备注）
     """
-    if '\u4e00' <= char <= '\u9fff':  # 中文字符范围
-        return 'chinese'
-    elif '\u3040' <= char <= '\u309f':  # 平假名
-        return 'japanese'
-    elif '\u30a0' <= char <= '\u30ff':  # 片假名
-        return 'japanese'
-    elif '\uac00' <= char <= '\ud7a3':  # 韩文字符
-        return 'korean'
-    elif 'a' <= char <= 'z' or 'A' <= char <= 'Z':  # 英文字母
-        return 'english'
-    elif '\u0400' <= char <= '\u04ff':  # 西里尔字母（俄语等）
-        return 'cyrillic'
-    elif '\u0600' <= char <= '\u06ff':  # 阿拉伯字母
-        return 'arabic'
-    else:
-        return 'other'  # 标点、数字、空格等非文字字符
-
-
-def detect_main_language(text):
-    """
-    检测文本的主要语言
-    
-    参数:
-        text: str - 输入文本
-    
-    返回:
-        str - 主要语言类型
-    """
-    # 统计每种语言的出现次数
-    lang_counts = {}
-    for char in text:
-        lang = get_char_language(char)
-        if lang != 'other':
-            lang_counts[lang] = lang_counts.get(lang, 0) + 1
-    
-    # 如果没有检测到语言字符，默认返回英语
-    if not lang_counts:
-        return 'english'
-    
-    # 返回出现次数最多的语言
-    return max(lang_counts, key=lang_counts.get)
-
-
-def text_to_ipa(text, language=None):
-    """
-    将文本转换为字符级别的表示（作为IPA的替代方案）
-    
-    参数:
-        text: str - 输入文本
-        language: str - 语言类型，如果为None则自动检测
-    
-    返回:
-        list - 字符列表
-    """
-    # 直接返回字符列表作为音素的替代方案
-    # 这样可以避免对外部依赖的要求
-    return list(text)
-
-
-def is_single_language(text):
-    """
-    检测文本中所有字符是否属于同一种语言
-    
-    参数:
-        text: str - 输入文本
-    
-    返回:
-        bool - 是否单一语言
-    """
-    # 收集所有字符的语言类型（忽略'other'类型）
-    languages = set()
-    for char in text:
-        lang = get_char_language(char)
-        if lang != 'other':  # 只关心实际的语言字符
-            languages.add(lang)
-    
-    # 判断是否单一语言
-    return len(languages) <= 1
-
-
-def which_is_closer(text1, text2, text):
-    """
-    判断两个文本中哪个在发音上与目标文本更接近
-    
-    参数:
-        text1: str - 第一个对比文本
-        text2: str - 第二个对比文本
-        text: str - 目标文本
-    
-    返回:
-        str - 更接近的文本（text1或text2）
-    """
-    prompt = f"发音对比：请严格判断'{text2}'和'{text1}'，哪一个在发音上与'{text}'更接近？你的回答必须且只能是'{text2}'或'{text1}'这两个选项之一，不要有任何其他内容。"
-
+    # 构建对话格式
     messages = [
-        # {"role": "system", "content": "你是一个AI助手"},
-        {"role": "user", "content": prompt}
+        {"role": "system", "content": "你是一位精通多语言音译的语言学家。你的任务是将用户提供的任何语言的文本（单语或混语）按最近音译的方式转换为英文文本。音译是指根据发音将一种语言的词语用另一种语言的字母拼写出来，而不是翻译成该语言的对应词汇。核心要求：1. 确保音译结果的发音与原文高度接近。2. 拼写自然，符合英语的拼写规则和语言习惯。3. 对于所有非拉丁字母文本（如中文、日语、韩语等），必须完全音译，绝对不能翻译。4. 如果输入的内容已经是英文文本或使用拉丁字母拼写的语言（如英语、法语、西班牙语、德语等），直接返回原文。5. 对于混合语言文本，必须严格保持原文中的英文部分或拉丁字母部分不变，只对非拉丁字母部分进行音译。6. 只返回音译结果，绝对不要添加任何解释、备注或额外信息。7. 输出必须简洁明了，只包含音译后的英文文本。示例：1. 中文'你好世界'的音译是'Ni Hao Shijie'，而不是'Ni Hao World'。2. 日语'こんにちは'的音译是'Konnichiwa'。3. 混合语言'你好 Hello'的处理结果是'Ni Hao Hello'。4. 英语'Hello world'直接返回'Hello world'。5. 法语'Bonjour'直接返回'Bonjour'。6. 混合语言'こんにちは world'的处理结果是'Konnichiwa world'，而不是'Konnichiwa shijie'。"},
+        {"role": "user", "content": f"将以下文本按最近音译的方式转换为英文：{text}"}
     ]
+
     # 使用模型生成回答
     answer = model_infer(messages)
     return answer
 
 
-def dtw_distance(seq1, seq2):
+# 全局变量，用于存储G2P模型和分词器
+g2p_model = None
+g2p_tokenizer = None
+
+def init_g2p_model():
     """
-    纯Python实现的DTW算法，计算两个序列之间的距离
-    
-    参数:
-        seq1: list - 第一个序列
-        seq2: list - 第二个序列
+    初始化G2P模型和分词器
     
     返回:
-        float - 两个序列之间的DTW距离
+        tuple - (g2p_tokenizer, g2p_model) - G2P分词器和模型实例
     """
-    # 获取序列长度
-    n, m = len(seq1), len(seq2)
+    global g2p_model, g2p_tokenizer
+    # 检查是否已经初始化，避免重复加载
+    if g2p_model is not None and g2p_tokenizer is not None:
+        print(f"G2P model already initialized, skipping...")
+        return g2p_tokenizer, g2p_model
     
-    # 创建距离矩阵
-    dtw_matrix = np.zeros((n+1, m+1))
-    
-    # 初始化第一行和第一列
-    for i in range(1, n+1):
-        dtw_matrix[i, 0] = float('inf')
-    for j in range(1, m+1):
-        dtw_matrix[0, j] = float('inf')
-    dtw_matrix[0, 0] = 0
-    
-    # 填充距离矩阵
-    for i in range(1, n+1):
-        for j in range(1, m+1):
-            # 计算当前元素的距离（使用字符的ASCII码差异）
-            cost = abs(ord(seq1[i-1]) - ord(seq2[j-1]))
-            # 取最小值
-            dtw_matrix[i, j] = cost + min(dtw_matrix[i-1, j],    # 上
-                                         dtw_matrix[i, j-1],    # 左
-                                         dtw_matrix[i-1, j-1])  # 对角线
-    
-    return dtw_matrix[n, m]
+    print(f"Initializing G2P model...")
+    # 加载G2P模型和分词器
+    g2p_model = T5ForConditionalGeneration.from_pretrained('charsiu/g2p_multilingual_byT5_tiny_16_layers_100')
+    g2p_tokenizer = AutoTokenizer.from_pretrained('google/byt5-small')
+    print(f"G2P model initialized successfully")
+    return g2p_tokenizer, g2p_model
 
-
-def calculate_ipa_similarity(text1, text2):
+def text_to_ipa(text_list, language=None):
     """
-    使用DTW算法比较两个文本的相似度
+    将文本列表转换为IPA表示
     
     参数:
-        text1: str - 第一个文本
-        text2: str - 第二个文本
+        text_list: list - 输入文本列表
+        language: str - 语言类型，如果为None则自动检测
     
     返回:
-        float - 相似度分数（0-1之间，值越大表示相似度越高）
+        list - IPA表示的列表
     """
-    # 将两个文本转换为字符列表
-    ipa1 = text_to_ipa(text1)
-    ipa2 = text_to_ipa(text2)
+    # 初始化G2P模型
+    init_g2p_model()
     
-    # 如果任一转换失败，返回相似度0
+    # 处理输入文本
+    words = text_list
+    # 添加语言前缀
+    words = ['<eng-us>: '+i for i in words]
+    
+    # 编码输入
+    out = g2p_tokenizer(words, padding=True, add_special_tokens=False, return_tensors='pt')
+    
+    # 生成IPA表示
+    preds = g2p_model.generate(**out, num_beams=1, max_length=50)
+    
+    # 解码结果
+    phones = g2p_tokenizer.batch_decode(preds.tolist(), skip_special_tokens=True)
+    
+    return phones
+
+
+
+
+def jaro_winkler_similarity(s1, s2):
+    """
+    使用jellyfish库计算两个字符串之间的Jaro-Winkler相似度
+    
+    参数:
+        s1: str - 第一个字符串
+        s2: str - 第二个字符串
+    
+    返回:
+        float - 两个字符串之间的Jaro距离（0-1之间，值越小表示越相似）
+    """
+    # 处理空字符串情况
+    if not s1 or not s2:
+        return 0.0
+
+    
+    # 使用jellyfish库的jaro_similarity函数计算相似度
+    # 注意：jellyfish.jaro_similarity返回的是相似度（0-1之间，值越大表示越相似）
+    similarity = jellyfish.jaro_similarity(s1, s2)
+    
+    # 返回距离（1 - 相似度）
+    return 1.0 - similarity
+
+
+def calculate_ipa_similarity(ipa1, ipa2):
+    """
+    使用Jaro算法比较两个IPA列表的相似度
+    
+    参数:
+        ipa1: list - 第一个IPA表示的列表
+        ipa2: list - 第二个IPA表示的列表
+    
+    返回:
+        float - 相似度分数（0-1之间，值越大表示越相似）
+    """
+    # print(ipa1, ipa2)
+    
+    # 如果任一列表为空，返回相似度0
     if not ipa1 or not ipa2:
         return 0.0
     
-    # 使用自定义的DTW算法计算距离
-    try:
-        distance = dtw_distance(ipa1, ipa2)
-        
-        # 将距离转换为相似度分数（0-1之间）
-        # 相似度 = 1 / (1 + 归一化距离)
-        max_possible_distance = (len(ipa1) + len(ipa2)) * 255  # 最大ASCII差异
-        normalized_distance = distance / max_possible_distance
-        similarity = 1.0 / (1.0 + normalized_distance)
-        
-        return similarity
-    except Exception as e:
-        print(f"Error calculating DTW similarity: {e}")
-        return 0.0
+    # 计算当前对IPA的Jaro相似度
+    # 注意：jaro_distance返回的是距离（0-1），需要转换为相似度
+    distance = jaro_winkler_similarity(remove_symbols("".join(ipa1)), remove_symbols("".join(ipa2)))
+    similarity = 1.0 - distance
 
+    return similarity
+
+def remove_symbols(text):
+    """
+    移除字符串中的所有符号，只保留字母、数字和空格
+    """
+    # 移除非字母、数字、空格和中文字符的所有字符
+    return re.sub(r'[^\w\s\u4e00-\u9fff]', '', text)
 
 
 if __name__ == "__main__":
-    # 测试粤语文本
-    cantonese_text1 = "早晨"  # 粤语：早上好
-    cantonese_text2 = "早唞"  # 粤语：晚安
-    mandarin_text = "早上好"    # 普通话：早上好
-    
-    # 测试语言检测
-    print(f"语言检测 - '早晨': {detect_main_language(cantonese_text1)}")
-    print(f"语言检测 - '早唞': {detect_main_language(cantonese_text2)}")
+    # 测试英文文本
+    test_text1 = ['Char', 'siu', 'is', 'a', 'Cantonese', 'style', 'of', 'barbecued', 'pork']
+    test_text2 = ['Hello', 'world', 'this', 'is', 'a', 'test']
+
+    # 将文本转换为IPA列表
+    ipa_text1 = text_to_ipa(test_text1)
+    ipa_text2 = text_to_ipa(test_text2)
+    print(f"Original text 1: {test_text1}")
+    print(f"IPA text 1: {ipa_text1}")
+    print(f"Original text 2: {test_text2}")
+    print(f"IPA text 2: {ipa_text2}")
     
     # 测试相似度比较
-    similarity1 = calculate_ipa_similarity(cantonese_text1, cantonese_text2)
-    similarity2 = calculate_ipa_similarity(cantonese_text1, mandarin_text)
-    print(f"'早晨' vs '早唞' -> 相似度: {similarity1:.4f}")
-    print(f"'早晨' vs '早上好' -> 相似度: {similarity2:.4f}")
+    similarity = calculate_ipa_similarity(ipa_text1, ipa_text2)
+    print(f"Similarity: {similarity:.4f}")
