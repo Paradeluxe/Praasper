@@ -156,27 +156,22 @@ def init_g2p_model():
     print(f"G2P model initialized successfully")
     return g2p_tokenizer, g2p_model
 
-def text_to_ipa(text_list, language=None):
+
+def text_to_ipa(text):
     """
-    将文本列表转换为IPA表示
+    将文本转换为IPA表示
     
     参数:
-        text_list: list - 输入文本列表
-        language: str - 语言类型，如果为None则自动检测
+        text: str - 输入文本
     
     返回:
         list - IPA表示的列表
     """
-    # 初始化G2P模型
-    init_g2p_model()
+
     
-    # 处理输入文本
-    words = text_list
-    # 添加语言前缀
-    words = ['<eng-us>: '+i for i in words]
     
     # 编码输入
-    out = g2p_tokenizer(words, padding=True, add_special_tokens=False, return_tensors='pt')
+    out = g2p_tokenizer('<eng-us>: '+text, padding=True, add_special_tokens=False, return_tensors='pt')
     
     # 生成IPA表示
     preds = g2p_model.generate(**out, num_beams=1, max_length=50)
@@ -213,26 +208,35 @@ def jaro_winkler_similarity(s1, s2):
     return 1.0 - similarity
 
 
-def calculate_ipa_similarity(ipa1, ipa2):
+def calculate_ipa_similarity(text1, text2):
     """
-    使用Jaro算法比较两个IPA列表的相似度
+    使用Jaro算法比较两个文本列表的相似度
     
     参数:
-        ipa1: list - 第一个IPA表示的列表
-        ipa2: list - 第二个IPA表示的列表
+        text1: list - 第一个文本列表
+        text2: list - 第二个文本列表
     
     返回:
         float - 相似度分数（0-1之间，值越大表示越相似）
     """
-    # print(ipa1, ipa2)
-    
+    # print(text1, text2)
+
     # 如果任一列表为空，返回相似度0
-    if not ipa1 or not ipa2:
+    if not text1 or not text2:
         return 0.0
+
+    # 初始化G2P模型
+    init_g2p_model()
+
+    ipa1 = text_to_ipa(text1)
+    ipa2 = text_to_ipa(text2)
+
+    ipa1 = remove_symbols("".join(ipa1))
+    ipa2 = remove_symbols("".join(ipa2))
     
     # 计算当前对IPA的Jaro相似度
     # 注意：jaro_distance返回的是距离（0-1），需要转换为相似度
-    distance = jaro_winkler_similarity(remove_symbols("".join(ipa1)), remove_symbols("".join(ipa2)))
+    distance = jaro_winkler_similarity(ipa1, ipa2)
     similarity = 1.0 - distance
 
     return similarity
@@ -244,20 +248,65 @@ def remove_symbols(text):
     # 移除非字母、数字、空格和中文字符的所有字符
     return re.sub(r'[^\w\s\u4e00-\u9fff]', '', text)
 
+def calculate_time_diff(list1, list2):
+    """
+    比较两个包含(onset, offset)对的列表，计算最小累计距离
+    
+    参数:
+        list1: list - 第一个包含(onset, offset)对的列表
+        list2: list - 第二个包含(onset, offset)对的列表
+    
+    返回:
+        float - 最小累计距离
+    """
+    # 确保两个列表都不为空
+    if not list1 or not list2:
+        return float('inf')
+    
+    # 确定哪个列表更短，作为参考
+    if len(list1) > len(list2):
+        list1, list2 = list2, list1
+    
+    n, m = len(list1), len(list2)
+    
+    # 初始化动态规划表
+    dp = [[float('inf')] * (m + 1) for _ in range(n + 1)]
+    dp[0][0] = 0
+    
+    # 填充动态规划表
+    for i in range(1, n + 1):
+        for j in range(1, m + 1):
+            # 计算当前对的距离
+            onset_diff = abs(list1[i-1][0] - list2[j-1][0])
+            offset_diff = abs(list1[i-1][1] - list2[j-1][1])
+            current_distance = onset_diff + offset_diff
+            
+            # 选择最小距离
+            dp[i][j] = min(dp[i-1][j-1] + current_distance, dp[i][j-1])
+    
+    # 返回最小累计距离
+    return dp[n][m]
+
 
 if __name__ == "__main__":
     # 测试英文文本
-    test_text1 = ['Char', 'siu', 'is', 'a', 'Cantonese', 'style', 'of', 'barbecued', 'pork']
-    test_text2 = ['Hello', 'world', 'this', 'is', 'a', 'test']
+    test_text1 = 'Char siu is a Cantonese style of barbecued pork'
+    test_text2 = 'Hello world this is a test'
 
-    # 将文本转换为IPA列表
-    ipa_text1 = text_to_ipa(test_text1)
-    ipa_text2 = text_to_ipa(test_text2)
-    print(f"Original text 1: {test_text1}")
-    print(f"IPA text 1: {ipa_text1}")
-    print(f"Original text 2: {test_text2}")
-    print(f"IPA text 2: {ipa_text2}")
+
     
     # 测试相似度比较
-    similarity = calculate_ipa_similarity(ipa_text1, ipa_text2)
+    similarity = calculate_ipa_similarity(test_text1, test_text2)
     print(f"Similarity: {similarity:.4f}")
+    
+    # 测试compare_offset_lists函数
+    list1 = [(0, 1), (2, 3), (4, 5)]
+    list2 = [(0.1, 1.1), (2.2, 3.2), (4.3, 5.3)]
+    distance = calculate_time_diff(list1, list2)
+    print(f"Distance between list1 and list2: {distance}")
+    
+    # 测试不同长度的列表
+    list3 = [(0, 1), (2, 3)]
+    list4 = [(0., 1.), (2., 3.), (4.3, 5.3)]
+    distance2 = calculate_time_diff(list3, list4)
+    print(f"Distance between list3 and list4: {distance2}")

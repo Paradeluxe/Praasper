@@ -1,5 +1,7 @@
 import os
 import shutil
+import itertools
+import numpy as np
 
 try:
     from .utils import *
@@ -15,6 +17,7 @@ except ImportError:
 
 os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'  # 设置镜像源
 
+# default_params = {'onset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
 
 class init_model:
 
@@ -103,6 +106,13 @@ class init_model:
             os.makedirs(output_path, exist_ok=True)
 
 
+ 
+            # auto search best params
+            self.auto_vad(
+                wav_path=wav_path,
+                min_pause=min_pause,
+            )
+
             final_tg = TextGrid()
             final_tg.tiers.append(IntervalTier(name="words", minTime=0., maxTime=audio_obj.duration_seconds))
             final_tg.tiers[0].strict = False
@@ -110,6 +120,10 @@ class init_model:
             print(f"--------------- Processing {os.path.basename(wav_path)} ({idx+1}/{len(fnames)}) ---------------")
             count = 0
             segments = segment_audio(audio_obj, segment_duration=seg_dur, params="folder", min_pause=min_pause)
+
+
+
+
             for start, end in segments:
                 count += 1
 
@@ -213,28 +227,51 @@ class init_model:
         print(f"--------------- Processing completed ---------------")
 
 
-
-    def autoplay(
-        self,
-        wav_path: str
-    ):
-        """
-        输入音频，输出推荐参数。
-
-        以完整音频转录得出的答案是100%，然后设定一个正确率阈值
-
-        需要自动调整的参数是Threshold和NetActive
-        """
-
     def auto_vad(self, wav_path, min_pause=0.2, verbose=False):
-        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD processing started...")
+        """
+        自动选取最优的VAD参数，根据随机选取的10秒音频。
 
+        """
+
+
+        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD processing started...")
 
 
         dir_name = os.path.dirname(os.path.dirname(wav_path))
         tmp_path = os.path.join(dir_name, "tmp")
 
         audio_obj = ReadSound(wav_path)
+        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Full audio duration: {audio_obj.duration_seconds:.3f}")
+        # 随机选取连续十秒音频，如果音频不够十秒则选取整个音频
+        import random
+        if audio_obj.duration_seconds > 10:
+            # 计算最大起始时间
+            max_start = audio_obj.duration_seconds - 10
+            # 随机生成起始时间
+            start_time = random.uniform(0, max_start)
+            end_time = start_time + 10
+        else:
+            # 音频不足十秒，选取整个音频
+            start_time = 0
+            end_time = audio_obj.duration_seconds
+        
+        # 截取选定的音频段
+        selected_audio = audio_obj[start_time*1000:end_time*1000]
+        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Selected audio: {start_time:.3f} - {end_time:.3f}")
+        
+        # 确保临时目录存在
+        os.makedirs(tmp_path, exist_ok=True)
+        # 将selected_audio保存到tmp文件夹
+        base_name = os.path.splitext(os.path.basename(wav_path))[0]
+        selected_audio_path = os.path.join(tmp_path, f"{base_name}_selected_{start_time:.0f}_{end_time:.0f}.wav")
+        selected_audio.save(selected_audio_path)
+        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Selected audio saved to: {selected_audio_path}")
+
+
+
+        standard_transcript = self.model.transcribe(selected_audio_path)
+        standard_transcript = purify_text(standard_transcript)
+
 
         params = default_params
         params["offset"] = params["onset"]  # VAD模式特供
@@ -249,12 +286,13 @@ class init_model:
                 yield dict(zip(keys, combination))
 
 
-        transcript_dict = {}
+        # df_res = pd.DataFrame(columns=["params", "transcript", "similarity"])
+        res = {}
 
         # 使用示例
         param_grid = {
             'amp': [round(n, 2) for n in np.arange(1.1, 2.00, 0.1)],
-            'numValid': range(1000, 3000, 1000)
+            'numValid': range(1000, 4000, 1000)
         }
 
 
@@ -270,8 +308,8 @@ class init_model:
             # print(adjusted_params)
             
             
-            onsets = autoPraditorWithTimeRange(adjusted_params, audio_obj, "onset", verbose=False)
-            offsets = autoPraditorWithTimeRange(adjusted_params, audio_obj, "offset", verbose=False)
+            onsets = autoPraditorWithTimeRange(adjusted_params, selected_audio, "onset", verbose=False)
+            offsets = autoPraditorWithTimeRange(adjusted_params, selected_audio, "offset", verbose=False)
 
             onsets = sorted(onsets)
             offsets = sorted(offsets)
@@ -287,7 +325,7 @@ class init_model:
                 if not onsets:
                     onsets = [0.0]
                 if not offsets:
-                    offsets = [audio_obj.duration_seconds]
+                    offsets = [selected_audio.duration_seconds]
             else:
                 return tg
             
@@ -295,7 +333,7 @@ class init_model:
                 onsets = [0.0] + onsets
             
             if offsets[-1] <= onsets[-1]:
-                offsets.append(audio_obj.duration_seconds)
+                offsets.append(selected_audio.duration_seconds)
 
             # Select the one offset that is closest to onset and earlier than onset
             valid_onsets = []
@@ -347,16 +385,16 @@ class init_model:
             onsets = [x for x in onsets if x not in bad_onsets]
             offsets = [x for x in offsets if x not in bad_offsets]
 
-            print(params_replace)
-            print(onsets, offsets)
-            print()
+            # print(params_replace)
+            # print(onsets, offsets)
+            # print()
 
 
             # 确保临时目录存在
             os.makedirs(tmp_path, exist_ok=True)
-            
+            this_transcript = ""
             for i, (onset, offset) in enumerate(zip(onsets, offsets)):
-                audio_obj_clipped = audio_obj[onset*1000:offset*1000]
+                audio_obj_clipped = selected_audio[onset*1000:offset*1000]
                 # 为裁剪的音频文件生成唯一的文件名
                 base_name = os.path.splitext(os.path.basename(wav_path))[0]
                 clip_path = os.path.join(tmp_path, f"{base_name}_clip_{i}.wav")
@@ -365,13 +403,46 @@ class init_model:
                 # 转录并获取结果
                 transcript = self.model.transcribe(clip_path)
                 transcript = purify_text(transcript)
+                
+                this_transcript += transcript
+            
+            similarity = calculate_ipa_similarity(this_transcript, standard_transcript)
 
-                key = tuple(sorted(params_replace.items()))
-                transcript_dict[key] = transcript
+            if similarity > 0.9:
+                try:
+                    res[params_replace["amp"]][params_replace["numValid"]] = list(zip(onsets, offsets))
+                except KeyError:
+                    res[params_replace["amp"]] = {params_replace["numValid"]: list(zip(onsets, offsets))}
+            # print(res[params_replace["amp"]], )
+            if len(res[params_replace["amp"]]) == len(param_grid["numValid"]):
+                # 获取当前amp下所有numValid值对应的列表
+                num_valid_lists = list(res[params_replace["amp"]].values())
+                # 获取对应的numValid值
+                # num_valid_values = list(res[params_replace["amp"]].keys())
+                
+                time_diffs = []
+                # 生成所有numValid列表的两两组合
+                for i, j in itertools.combinations(range(len(num_valid_lists)), 2):
+                    list1 = num_valid_lists[i]
+                    list2 = num_valid_lists[j]
+                    # nv1 = num_valid_values[i]
+                    # nv2 = num_valid_values[j]
+                    # 计算时间差异
+                    time_diff = calculate_time_diff(list1, list2)
+                    # print(f"[{show_elapsed_time()}] Amp: {params_replace['amp']}, NumValid {nv1} vs {nv2}: Time difference = {time_diff:.4f}")
+                    time_diffs.append(time_diff)
 
-                # 输出日志
-                print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Clip {i+1}: {onset:.3f} - {offset:.3f}s, Transcript: {transcript}")
-        print(transcript_dict)
+                # 计算当前 amp 下所有 numValid 两两组合的平均时间差异
+                average_time_diff = np.mean(time_diffs) if time_diffs else np.inf
+                print(f"[{show_elapsed_time()}] Amp: {params_replace['amp']}, Average time difference = {average_time_diff:.4f}")
+
+                if average_time_diff == 0.:
+                    print(f"Best parameters are {params_replace}")
+                    break
+
+
+
+        # print(res)
 
         # 清理临时文件
         import shutil
@@ -382,3 +453,5 @@ class init_model:
             except Exception as e:
                 print(f"[{show_elapsed_time()}] Error removing temporary directory: {e}")
 
+
+        return params_replace
