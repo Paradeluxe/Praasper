@@ -6,6 +6,9 @@ import os
 from langdetect import detect
 import jellyfish
 import re
+from .utils import show_elapsed_time
+
+
 
 
 
@@ -31,7 +34,7 @@ def init_LLM(LLM: str="Qwen/Qwen2.5-1.5B-Instruct"):
         return tokenizer, model
     
     model_name = LLM
-    print(f"Initializing LLM: {model_name}")
+    print(f"[{show_elapsed_time()}] Initializing LLM: {model_name}")
     # 加载分词器
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     # 加载模型
@@ -40,7 +43,7 @@ def init_LLM(LLM: str="Qwen/Qwen2.5-1.5B-Instruct"):
         # dtype=torch.bfloat16,  # 节省显存
         device_map="auto"            # 自动分配GPU/CPU
     )
-    print(f"LLM initialized successfully")
+    print(f"[{show_elapsed_time()}] LLM initialized successfully")
     return tokenizer, model
 
 
@@ -132,114 +135,98 @@ def transliterate_to_en(text):
     return answer
 
 
-# 全局变量，用于存储G2P模型和分词器
-g2p_model = None
-g2p_tokenizer = None
-
-def init_g2p_model():
-    """
-    初始化G2P模型和分词器
+class G2PModel:
+    def __init__(self):
+        self.model = None
+        self.tokenizer = None
+        self._initialize()
     
-    返回:
-        tuple - (g2p_tokenizer, g2p_model) - G2P分词器和模型实例
-    """
-    global g2p_model, g2p_tokenizer
-    # 检查是否已经初始化，避免重复加载
-    if g2p_model is not None and g2p_tokenizer is not None:
-        print(f"G2P model already initialized, skipping...")
-        return g2p_tokenizer, g2p_model
+    def _initialize(self):
+        if self.model is not None and self.tokenizer is not None:
+            print(f"G2P model already initialized, skipping...")
+            return
+        print(f"[{show_elapsed_time()}] Initializing G2P model...")
+        # 加载G2P模型和分词器
+        self.model = T5ForConditionalGeneration.from_pretrained('charsiu/g2p_multilingual_byT5_tiny_16_layers_100', tie_word_embeddings=False)
+        self.tokenizer = AutoTokenizer.from_pretrained('google/byt5-small', tie_word_embeddings=False)
+        print(f"[{show_elapsed_time()}] G2P model initialized successfully")
     
-    print(f"Initializing G2P model...")
-    # 加载G2P模型和分词器
-    g2p_model = T5ForConditionalGeneration.from_pretrained('charsiu/g2p_multilingual_byT5_tiny_16_layers_100')
-    g2p_tokenizer = AutoTokenizer.from_pretrained('google/byt5-small')
-    print(f"G2P model initialized successfully")
-    return g2p_tokenizer, g2p_model
+    def text_to_ipa(self, text):
+        """
+        将文本转换为IPA表示
+        
+        参数:
+            text: str - 输入文本
+        
+        返回:
+            list - IPA表示的列表
+        """
+        # 编码输入
+        out = self.tokenizer('<eng-us>: ' + text, padding=True, add_special_tokens=False, return_tensors='pt')
+        
+        # 生成IPA表示
+        preds = self.model.generate(**out, num_beams=1, max_length=50)
+        
+        # 解码结果
+        phones = self.tokenizer.batch_decode(preds.tolist(), skip_special_tokens=True)
+        
+        return phones
+    
+    def jaro_winkler_similarity(self, s1, s2):
+        """
+        使用jellyfish库计算两个字符串之间的Jaro-Winkler相似度
+        
+        参数:
+            s1: str - 第一个字符串
+            s2: str - 第二个字符串
+        
+        返回:
+            float - 两个字符串之间的Jaro距离（0-1之间，值越小表示越相似）
+        """
+        # 处理空字符串情况
+        if not s1 or not s2:
+            return 0.0
+
+        # 使用jellyfish库的jaro_similarity函数计算相似度
+        # 注意：jellyfish.jaro_similarity返回的是相似度（0-1之间，值越大表示越相似）
+        similarity = jellyfish.jaro_similarity(s1, s2)
+        
+        # 返回距离（1 - 相似度）
+        return 1.0 - similarity
+    
+    def calculate_ipa_similarity(self, text1, text2):
+        """
+        使用Jaro算法比较两个文本列表的相似度
+        
+        参数:
+            text1: list - 第一个文本列表
+            text2: list - 第二个文本列表
+        
+        返回:
+            float - 相似度分数（0-1之间，值越大表示越相似）
+        """
+        # print(text1, text2)
+
+        # 如果任一列表为空，返回相似度0
+        if not text1 or not text2:
+            return 0.0
+
+        ipa1 = self.text_to_ipa(text1)
+        ipa2 = self.text_to_ipa(text2)
+
+        ipa1 = remove_symbols("" .join(ipa1))
+        ipa2 = remove_symbols("" .join(ipa2))
+        
+        # 计算当前对IPA的Jaro相似度
+        # 注意：jaro_distance返回的是距离（0-1），需要转换为相似度
+        distance = self.jaro_winkler_similarity(ipa1, ipa2)
+        similarity = 1.0 - distance
+
+        return similarity
 
 
-def text_to_ipa(text):
-    """
-    将文本转换为IPA表示
-    
-    参数:
-        text: str - 输入文本
-    
-    返回:
-        list - IPA表示的列表
-    """
-
-    
-    
-    # 编码输入
-    out = g2p_tokenizer('<eng-us>: '+text, padding=True, add_special_tokens=False, return_tensors='pt')
-    
-    # 生成IPA表示
-    preds = g2p_model.generate(**out, num_beams=1, max_length=50)
-    
-    # 解码结果
-    phones = g2p_tokenizer.batch_decode(preds.tolist(), skip_special_tokens=True)
-    
-    return phones
 
 
-
-
-def jaro_winkler_similarity(s1, s2):
-    """
-    使用jellyfish库计算两个字符串之间的Jaro-Winkler相似度
-    
-    参数:
-        s1: str - 第一个字符串
-        s2: str - 第二个字符串
-    
-    返回:
-        float - 两个字符串之间的Jaro距离（0-1之间，值越小表示越相似）
-    """
-    # 处理空字符串情况
-    if not s1 or not s2:
-        return 0.0
-
-    
-    # 使用jellyfish库的jaro_similarity函数计算相似度
-    # 注意：jellyfish.jaro_similarity返回的是相似度（0-1之间，值越大表示越相似）
-    similarity = jellyfish.jaro_similarity(s1, s2)
-    
-    # 返回距离（1 - 相似度）
-    return 1.0 - similarity
-
-
-def calculate_ipa_similarity(text1, text2):
-    """
-    使用Jaro算法比较两个文本列表的相似度
-    
-    参数:
-        text1: list - 第一个文本列表
-        text2: list - 第二个文本列表
-    
-    返回:
-        float - 相似度分数（0-1之间，值越大表示越相似）
-    """
-    # print(text1, text2)
-
-    # 如果任一列表为空，返回相似度0
-    if not text1 or not text2:
-        return 0.0
-
-    # 初始化G2P模型
-    init_g2p_model()
-
-    ipa1 = text_to_ipa(text1)
-    ipa2 = text_to_ipa(text2)
-
-    ipa1 = remove_symbols("".join(ipa1))
-    ipa2 = remove_symbols("".join(ipa2))
-    
-    # 计算当前对IPA的Jaro相似度
-    # 注意：jaro_distance返回的是距离（0-1），需要转换为相似度
-    distance = jaro_winkler_similarity(ipa1, ipa2)
-    similarity = 1.0 - distance
-
-    return similarity
 
 def remove_symbols(text):
     """

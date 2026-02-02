@@ -2,6 +2,7 @@ import os
 import shutil
 import itertools
 import numpy as np
+from itertools import product
 
 try:
     from .utils import *
@@ -17,7 +18,6 @@ except ImportError:
 
 os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'  # 设置镜像源
 
-# default_params = {'onset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
 
 class init_model:
 
@@ -48,7 +48,9 @@ class init_model:
             device=self.device
         )
         print(f"[{show_elapsed_time()}] Using device: {self.model.device}")
-        
+
+        self.params = {'onset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
+
 
     def annote(
         self,
@@ -119,11 +121,7 @@ class init_model:
 
             print(f"--------------- Processing {os.path.basename(wav_path)} ({idx+1}/{len(fnames)}) ---------------")
             count = 0
-            segments = segment_audio(audio_obj, segment_duration=seg_dur, params="folder", min_pause=min_pause)
-
-
-
-
+            segments = segment_audio(audio_obj, segment_duration=seg_dur, params=self.params, min_pause=min_pause)
             for start, end in segments:
                 count += 1
 
@@ -134,7 +132,7 @@ class init_model:
 
 
                 try:
-                    vad_tg = get_vad(clip_path, params="folder", min_pause=min_pause, verbose=verbose)
+                    vad_tg = get_vad(clip_path, params=self.params, min_pause=min_pause, verbose=verbose)
                 except Exception as e:
                     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) VAD Error: {e}")
                     continue
@@ -154,10 +152,10 @@ class init_model:
                     if not text:
                         continue
                     
-                    if not is_single_language(text) and language is not None and enable_post_process:
-                        text_proc = post_process(text, language)
-                        print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Activate post-process: ({text}) -> ({text_proc})")
-                        text = text_proc
+                    # if not is_single_language(text) and language is not None and enable_post_process:
+                    #     text_proc = post_process(text, language)
+                    #     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Activate post-process: ({text}) -> ({text_proc})")
+                    #     text = text_proc
 
                     s_point = s + start/1000
                     e_point = e + start/1000
@@ -222,8 +220,8 @@ class init_model:
             # ----------------------------
             final_tg.write(final_path)
                 
-        
-        shutil.rmtree(tmp_path)
+        if os.path.exists(tmp_path):
+            shutil.rmtree(tmp_path)
         print(f"--------------- Processing completed ---------------")
 
 
@@ -276,7 +274,7 @@ class init_model:
         params = default_params
         params["offset"] = params["onset"]  # VAD模式特供
 
-        from itertools import product
+        g2p = G2PModel()
 
         def generate_param_grid(params):
             """生成参数组合列表"""
@@ -292,7 +290,8 @@ class init_model:
         # 使用示例
         param_grid = {
             'amp': [round(n, 2) for n in np.arange(1.1, 2.00, 0.1)],
-            'numValid': range(1000, 4000, 1000)
+            'numValid': range(500, 1500, 500),
+            "cutoff0": range(200, 0, -40)
         }
 
 
@@ -405,8 +404,8 @@ class init_model:
                 transcript = purify_text(transcript)
                 
                 this_transcript += transcript
-            
-            similarity = calculate_ipa_similarity(this_transcript, standard_transcript)
+
+            similarity = g2p.calculate_ipa_similarity(this_transcript, standard_transcript)
 
             if similarity > 0.9:
                 try:
@@ -441,17 +440,4 @@ class init_model:
                     break
 
 
-
-        # print(res)
-
-        # 清理临时文件
-        import shutil
-        if os.path.exists(tmp_path):
-            try:
-                shutil.rmtree(tmp_path)
-                print(f"[{show_elapsed_time()}] Temporary directory {tmp_path} removed")
-            except Exception as e:
-                print(f"[{show_elapsed_time()}] Error removing temporary directory: {e}")
-
-
-        return params_replace
+        self.params = adjusted_params
