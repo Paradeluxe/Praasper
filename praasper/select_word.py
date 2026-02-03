@@ -1,8 +1,14 @@
 from funasr import AutoModel
 from funasr.utils.postprocess_utils import lang_dict, emoji_dict, emo_set, event_set
+try:
+    from .utils import show_elapsed_time
+except ImportError:
+    from praasper.utils import show_elapsed_time
+
 
 class SelectWord:
     def __init__(self, model: str="iic/SenseVoiceSmall", vad_model: str="fsmn-vad", device: str="auto", infer_mode: str="direct"):
+        print(f"[{show_elapsed_time()}] Initializing ASR {model}")
         # 自动检测设备
         if device == "auto":
             import torch
@@ -17,7 +23,10 @@ class SelectWord:
             # from model import FunASRNano
             self.model, self.kwargs = FunASRNano.from_pretrained(
                 model=model,
+                disable_pbar=True,
+                # checkpoint_callback=False,
                 # trust_remote_code=False,
+                disable_tqdm=True,
                 device=self.device,
             )
             self.model.eval()

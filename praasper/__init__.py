@@ -2,6 +2,8 @@ import os
 import shutil
 import itertools
 import numpy as np
+import gc
+import torch
 from itertools import product
 
 try:
@@ -17,7 +19,17 @@ except ImportError:
     from praasper.post_process import *
 
 os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'  # 设置镜像源
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+os.environ["DISABLE_TQDM"] = "1"
 
+# 清空资源
+def clear_resources():
+    # 清理 CUDA 缓存
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.ipc_collect()
+    # 强制垃圾回收
+    gc.collect()
 
 class init_model:
 
@@ -34,20 +46,38 @@ class init_model:
         if infer_mode not in allowed_modes:
             raise ValueError(f"infer_mode must be one of {allowed_modes}, got {infer_mode}")
         
+        # if infer_mode == "direct" and ASR != "FunAudioLLM/Fun-ASR-Nano-2512":
+        #     self.tokenizer = init_tokenizer(ASR)
+        
         self.ASR = ASR
         self.infer_mode = infer_mode
         self.LLM = LLM
         self.device = device
-        print(f"[{show_elapsed_time()}] Initializing model with {self.ASR}")
 
-        init_LLM(self.LLM)
+
+        print(f"[{show_elapsed_time()}] Trying device ({self.device})...")
+        # 检测硬件
+        if self.device == "auto":
+            if torch.cuda.is_available():
+                self.device = "cuda"
+                print(f"[{show_elapsed_time()}] CUDA detected, using GPU.")
+            else:
+                self.device = "cpu"
+                print(f"[{show_elapsed_time()}] CUDA not available, using CPU.")
+        else:
+            print(f"[{show_elapsed_time()}] Using device: {self.device}")
+
 
         self.model = SelectWord(
             model=self.ASR,
             infer_mode=self.infer_mode,
             device=self.device
         )
-        print(f"[{show_elapsed_time()}] Using device: {self.model.device}")
+
+        init_LLM(self.LLM)
+
+
+        self.g2p = G2PModel()
 
         self.params = {'onset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
 
@@ -108,7 +138,7 @@ class init_model:
             os.makedirs(output_path, exist_ok=True)
 
 
- 
+            print(f"--------------- Locate optimal parameters for {os.path.basename(wav_path)} ---------------")
             # auto search best params
             self.auto_vad(
                 wav_path=wav_path,
@@ -263,8 +293,6 @@ class init_model:
         base_name = os.path.splitext(os.path.basename(wav_path))[0]
         selected_audio_path = os.path.join(tmp_path, f"{base_name}_selected_{start_time:.0f}_{end_time:.0f}.wav")
         selected_audio.save(selected_audio_path)
-        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Selected audio saved to: {selected_audio_path}")
-
 
 
         standard_transcript = self.model.transcribe(selected_audio_path)
@@ -274,7 +302,6 @@ class init_model:
         params = default_params
         params["offset"] = params["onset"]  # VAD模式特供
 
-        g2p = G2PModel()
 
         def generate_param_grid(params):
             """生成参数组合列表"""
@@ -289,9 +316,11 @@ class init_model:
 
         # 使用示例
         param_grid = {
-            'amp': [round(n, 2) for n in np.arange(1.1, 2.00, 0.1)],
-            'numValid': range(500, 1500, 500),
-            "cutoff0": range(200, 0, -40)
+            'amp': np.arange(1.1, 2.00, 0.1),
+            "cutoff0": range(0, 400, 100),
+            
+            'numValid': np.arange(int(4000/44100*audio_obj.frame_rate), int(8000/44100*audio_obj.frame_rate), int(500/44100*audio_obj.frame_rate))
+            # 'numValid': [int(500/44100*audio_obj.frame_rate), int(2000/44100*audio_obj.frame_rate)]#, int(500/44100*audio_obj.frame_rate))
         }
 
 
@@ -325,8 +354,7 @@ class init_model:
                     onsets = [0.0]
                 if not offsets:
                     offsets = [selected_audio.duration_seconds]
-            else:
-                return tg
+
             
             if onsets[0] >= offsets[0]:
                 onsets = [0.0] + onsets
@@ -405,17 +433,24 @@ class init_model:
                 
                 this_transcript += transcript
 
-            similarity = g2p.calculate_ipa_similarity(this_transcript, standard_transcript)
+            similarity = self.g2p.calculate_ipa_similarity(this_transcript, standard_transcript)
+            res_key = (params_replace["amp"], params_replace["cutoff0"])
+            # print(res_key)
+
 
             if similarity > 0.9:
                 try:
-                    res[params_replace["amp"]][params_replace["numValid"]] = list(zip(onsets, offsets))
+                    res[res_key][params_replace["numValid"]] = list(zip(onsets, offsets))
                 except KeyError:
-                    res[params_replace["amp"]] = {params_replace["numValid"]: list(zip(onsets, offsets))}
-            # print(res[params_replace["amp"]], )
-            if len(res[params_replace["amp"]]) == len(param_grid["numValid"]):
+                    res[res_key] = {params_replace["numValid"]: list(zip(onsets, offsets))}
+            
+
+                
+            
+            if res_key in res and len(res[res_key]) == len(param_grid["numValid"]):
                 # 获取当前amp下所有numValid值对应的列表
-                num_valid_lists = list(res[params_replace["amp"]].values())
+                num_valid_lists = list(res[res_key].values())
+                 
                 # 获取对应的numValid值
                 # num_valid_values = list(res[params_replace["amp"]].keys())
                 
@@ -433,11 +468,26 @@ class init_model:
 
                 # 计算当前 amp 下所有 numValid 两两组合的平均时间差异
                 average_time_diff = np.mean(time_diffs) if time_diffs else np.inf
-                print(f"[{show_elapsed_time()}] Amp: {params_replace['amp']}, Average time difference = {average_time_diff:.4f}")
+                print(f"[{show_elapsed_time()}] Amp: {params_replace['amp']}, Cutoff0 = {params_replace['cutoff0']}, T_diff_ave = {average_time_diff:.4f}")
 
-                if average_time_diff == 0.:
-                    print(f"Best parameters are {params_replace}")
+                if average_time_diff < 0.01:# == 0.:
+                    print(f"[{show_elapsed_time()}] Best parameters are {params_replace}")
                     break
 
 
         self.params = adjusted_params
+
+    def release_resources(self):
+        """释放模型资源"""
+        if hasattr(self, 'model') and self.model is not None:
+            # 如果是直接模式，尝试释放模型
+            if hasattr(self.model, 'to'):
+                self.model.to('cpu')
+            # 清空模型引用
+            del self.model
+        # 清空资源
+        clear_resources()
+        print("Resources released successfully")
+
+# 导出clear_resources函数
+__all__ = ['init_model', 'clear_resources']

@@ -1,15 +1,10 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer, T5ForConditionalGeneration
-import torch
-import numpy as np
-import sys
-import os
-from langdetect import detect
 import jellyfish
 import re
-from .utils import show_elapsed_time
-
-
-
+try:
+    from .utils import show_elapsed_time
+except ImportError:
+    from praasper.utils import show_elapsed_time
 
 
 # 全局变量，用于存储初始化的tokenizer和model
