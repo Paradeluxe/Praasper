@@ -316,7 +316,7 @@ class init_model:
 
         # 使用示例
         param_grid = {
-            'amp': np.arange(1.1, 2.00, 0.1),
+            'amp': np.arange(1.05, 2.00, 0.05),
             "cutoff0": range(0, 400, 100),
             
             'numValid': np.arange(
