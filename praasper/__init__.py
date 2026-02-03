@@ -255,7 +255,7 @@ class init_model:
         print(f"--------------- Processing completed ---------------")
 
 
-    def auto_vad(self, wav_path, min_pause=0.2, verbose=False):
+    def auto_vad(self, wav_path, min_speech=0.2, min_pause=0.2, verbose=False):
         """
         自动选取最优的VAD参数，根据随机选取的10秒音频。
 
@@ -319,7 +319,11 @@ class init_model:
             'amp': np.arange(1.1, 2.00, 0.1),
             "cutoff0": range(0, 400, 100),
             
-            'numValid': np.arange(int(4000/44100*audio_obj.frame_rate), int(8000/44100*audio_obj.frame_rate), int(500/44100*audio_obj.frame_rate))
+            'numValid': np.arange(
+                min(int(4000/44100*audio_obj.frame_rate), int(min_speech/2*audio_obj.frame_rate)), 
+                min(int(8000/44100*audio_obj.frame_rate), int(min_speech*audio_obj.frame_rate)), 
+                int(1000/44100*audio_obj.frame_rate)
+            )
             # 'numValid': [int(500/44100*audio_obj.frame_rate), int(2000/44100*audio_obj.frame_rate)]#, int(500/44100*audio_obj.frame_rate))
         }
 
