@@ -5,6 +5,7 @@ import numpy as np
 import gc
 import torch
 from itertools import product
+import copy
 
 try:
     from .utils import *
@@ -319,12 +320,15 @@ class init_model:
             'amp': np.arange(1.05, 2.00, 0.05),
             "cutoff0": range(0, 400, 100),
             
-            'numValid': np.arange(
-                min(int(4000/44100*audio_obj.frame_rate), int(min_speech/2*audio_obj.frame_rate)), 
-                min(int(8000/44100*audio_obj.frame_rate), int(min_speech*audio_obj.frame_rate)), 
-                int(1000/44100*audio_obj.frame_rate)
-            )
-            # 'numValid': [int(500/44100*audio_obj.frame_rate), int(2000/44100*audio_obj.frame_rate)]#, int(500/44100*audio_obj.frame_rate))
+            # 'numValid': np.arange(
+            #     # min(int(4000/44100*audio_obj.frame_rate), int(min_speech/2*audio_obj.frame_rate)), 
+            #     # min(int(8000/44100*audio_obj.frame_rate), int(min_speech*audio_obj.frame_rate)), 
+            #     int(min_speech/2*audio_obj.frame_rate), 
+            #     int(min_speech*audio_obj.frame_rate), 
+            #     int(1000/44100*audio_obj.frame_rate) # ?
+            # ),
+            "numValid": [int(min_speech/2*audio_obj.frame_rate)],
+            'eps_ratio': np.arange(0.18, 0.01, -0.03)
         }
 
 
@@ -439,47 +443,33 @@ class init_model:
 
             similarity = self.g2p.calculate_ipa_similarity(this_transcript, standard_transcript)
             res_key = (params_replace["amp"], params_replace["cutoff0"])
-            # print(res_key)
+            num_intervals = len(onsets)
 
-
+            # 记录相似度大于0.9的结果
             if similarity > 0.9:
-                try:
-                    res[res_key][params_replace["numValid"]] = list(zip(onsets, offsets))
-                except KeyError:
-                    res[res_key] = {params_replace["numValid"]: list(zip(onsets, offsets))}
+                if res_key not in res:
+                    res[res_key] = []
+
+                # 复制两个变量
+                num_intervals_copy = num_intervals
+                adjusted_params_copy = copy.deepcopy(adjusted_params)
+
+                # 然后可以像原来一样使用复制后的变量
+                res[res_key].append([num_intervals_copy, adjusted_params_copy])
+                # res[res_key].append([num_intervals, adjusted_params])
+                # print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD numIntervals: {num_intervals}, similarity: {similarity:.4f}, params: {adjusted_params['onset']}")
             
-
-                
-            
-            if res_key in res and len(res[res_key]) == len(param_grid["numValid"]):
-                # 获取当前amp下所有numValid值对应的列表
-                num_valid_lists = list(res[res_key].values())
-                 
-                # 获取对应的numValid值
-                # num_valid_values = list(res[params_replace["amp"]].keys())
-                
-                time_diffs = []
-                # 生成所有numValid列表的两两组合
-                for i, j in itertools.combinations(range(len(num_valid_lists)), 2):
-                    list1 = num_valid_lists[i]
-                    list2 = num_valid_lists[j]
-                    # nv1 = num_valid_values[i]
-                    # nv2 = num_valid_values[j]
-                    # 计算时间差异
-                    time_diff = calculate_time_diff(list1, list2)
-                    # print(f"[{show_elapsed_time()}] Amp: {params_replace['amp']}, NumValid {nv1} vs {nv2}: Time difference = {time_diff:.4f}")
-                    time_diffs.append(time_diff)
-
-                # 计算当前 amp 下所有 numValid 两两组合的平均时间差异
-                average_time_diff = np.mean(time_diffs) if time_diffs else np.inf
-                print(f"[{show_elapsed_time()}] Amp: {params_replace['amp']}, Cutoff0 = {params_replace['cutoff0']}, T_diff_ave = {average_time_diff:.4f}")
-
-                if average_time_diff < 0.01:# == 0.:
-                    print(f"[{show_elapsed_time()}] Best parameters are {params_replace}")
-                    break
+            # 当当前res_key收集了足够的结果后，找出最佳参数并结束
+            if res_key in res and len(res[res_key]) == len(param_grid["eps_ratio"]):
+                # 找出num_intervals最大的项
+                max_item = max(res[res_key], key=lambda x: x[0])[0]
+                best_params = [item for item in res[res_key] if item[0] == max_item][0][1]
+                print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD best numIntervals: {max_item}, params: {best_params['onset']}")
+                break
 
 
-        self.params = adjusted_params
+
+        self.params = best_params
 
     def release_resources(self):
         """释放模型资源"""
