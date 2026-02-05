@@ -55,7 +55,7 @@ class SelectWord:
             # 使用 FunASRNano 的 inference 方法
             res = self.model.inference(data_in=[input_path], **self.kwargs)
             # print(res)
-            text = res[0][0]["text"]
+            # text = res[0][0]["text"]
         else:
             # 使用 AutoModel 的 generate 方法
             res = self.model.generate(
@@ -67,10 +67,12 @@ class SelectWord:
                 # merge_length_s=15,
 
             )
-            text = res[0]["text"]
-
-        text = rich_transcription_postprocess_text_only(text)
-        return text
+            # text = res[0]["text"]
+        # print(res)
+        # exit()
+        # text = rich_transcription_postprocess_text_only(text)
+        # return text
+        return res
 
 
 

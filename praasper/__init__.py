@@ -164,6 +164,10 @@ class init_model:
                 clip_path = os.path.join(tmp_path, os.path.basename(wav_path).replace(".wav", f"_{count}.wav"))
                 audio_clip.save(clip_path)
 
+                audio_clip_result = self.model.transcribe(clip_path)
+                audio_clip_single_words = audio_clip_result[0][0]["ctc_timestamps"]
+                # print(audio_clip_single_words)
+
 
                 try:
                     vad_tg = get_vad(clip_path, params=self.params, min_pause=min_pause, verbose=verbose)
@@ -174,16 +178,67 @@ class init_model:
                 intervals = vad_tg.tiers[0].intervals
                 valid_intervals = [interval for interval in intervals if interval.mark not in ["", None] and interval.maxTime - interval.minTime > min_speech]
                 # print(valid_intervals)
-                
+
+                # 整体转录模式
+                for word in audio_clip_single_words:
+                    s_w = word["start_time"]
+                    e_w = word["end_time"]
+                    t_w = word['token']
+
+                    best_interval = None
+                    max_overlap = -1
+                    min_distance = float('inf')
+                    closest_interval = None
+
+                    for interval in valid_intervals:
+                        s_i, e_i = interval.minTime, interval.maxTime
+                        
+                        # 计算重叠时间
+                        overlap_start = max(s_w, s_i)
+                        overlap_end = min(e_w, e_i)
+                        overlap = max(0, overlap_end - overlap_start)
+                        
+                        # 如果有重叠且比当前最大重叠大
+                        if overlap > max_overlap:
+                            max_overlap = overlap
+                            best_interval = interval
+                        
+                        # 计算距离（无重叠时使用）
+                        if overlap == 0:
+                            # 计算单词与间隔的距离
+                            if e_w <= s_i:
+                                # 单词在间隔前
+                                distance = s_i - e_w
+                            else:
+                                # 单词在间隔后
+                                distance = s_w - e_i
+                            
+                            if distance < min_distance:
+                                min_distance = distance
+                                closest_interval = interval
+                    
+                    # 选择最佳间隔
+                    if best_interval is not None:
+                        selected_interval = best_interval
+                    else:
+                        selected_interval = closest_interval
+                    
+                    # 将单词添加到选定的间隔
+                    if selected_interval is not None:
+                        if selected_interval.mark == "+":
+                            selected_interval.mark = ""
+                        
+                        selected_interval.mark += f"{t_w}"
+                        # selected_interval.words.append((t_w, s_w, e_w))
+
                 for idx, valid_interval in enumerate(valid_intervals):
                     s, e = valid_interval.minTime, valid_interval.maxTime
 
-                    interval_path = os.path.join(tmp_path, os.path.basename(clip_path).replace(".wav", f"_{idx}.wav"))
-                    audio_clip[s*1000:e*1000].save(interval_path)
-                    text = self.model.transcribe(interval_path)
+                    # 获取间隔的文本（由前面的单词拼接而成）
+                    text = valid_interval.mark
 
                     text = purify_text(text)
-                    if not text:
+                    if not text or text == "+":
                         continue
                     
                     # if not is_single_language(text) and language is not None and enable_post_process:
@@ -201,6 +256,9 @@ class init_model:
                     # print(audio_obj.duration_seconds)
                     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Detect speech: {s+start/1000:.3f} - {e+start/1000:.3f} ({text})")
 
+                # print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Detect speech: {selected_interval.mark}")
+            
+            # final_tg.tiers[0] = vad_tg.tiers[0]
 
             #############################
             # 因为在建立textgrid的时候使用了strict=False的mode，有可能存在某个tier是重复的
@@ -239,7 +297,7 @@ class init_model:
                     tmp_wav = os.path.join(tmp_path, f"{os.path.splitext(os.path.basename(wav_path))[0]}_redo_{s_ms}_{e_ms}.wav")
                     clip.save(tmp_wav)
                     text = self.model.transcribe(tmp_wav)
-                    text = purify_text(text)
+                    # text = purify_text(text)
                     if not text:
                         continue
                     
@@ -275,12 +333,12 @@ class init_model:
         audio_obj = ReadSound(wav_path)
         print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Full audio duration: {audio_obj.duration_seconds:.3f}")
 
-        if audio_obj.duration_seconds > 15:
+        if audio_obj.duration_seconds > 10:
             # 计算最大起始时间
-            max_start = audio_obj.duration_seconds - 15
+            max_start = audio_obj.duration_seconds - 10
             # 随机生成起始时间
             start_time = random.uniform(0, max_start)
-            end_time = start_time + 15
+            end_time = start_time + 10
         else:
             # 音频不足时间，选取整个音频
             start_time = 0
@@ -298,8 +356,8 @@ class init_model:
         selected_audio.save(selected_audio_path)
 
 
-        standard_transcript = self.model.transcribe(selected_audio_path)
-        standard_transcript = purify_text(standard_transcript)
+        standard_result = self.model.transcribe(selected_audio_path)
+        standard_transcript = standard_result[0][0]["text_tn"]  # text_tn 没有标点符号
 
 
         params = default_params
@@ -320,16 +378,17 @@ class init_model:
 
         # 使用示例
         param_grid = {
-            'amp': np.arange(1.1, 1.5, 0.1),  #！找最多interval的amp
+            'amp': np.arange(1.1, 1.5, 0.2),  #！找最多interval的amp
             "cutoff0": range(0, 400, 200),
-            "numValid": [int(min_speech*audio_obj.frame_rate)],
+            'cutoff1': range(min(audio_obj.frame_rate, 10800), min(audio_obj.frame_rate//4*3, 10800) - 2000, -1000),
+            "numValid": [int(min_speech/2*audio_obj.frame_rate)],
 
-            'eps_ratio': np.arange(0.18, 0.1, -0.03)
+            'eps_ratio': np.arange(0.17, 0.01, -0.06)
         }
 
+        # print(range(min(audio_obj.frame_rate, 10800), max(audio_obj.frame_rate//2, 8000) - 3000, -1000))
         for params_replace in generate_param_grid(param_grid):
-            res_key = (params_replace["amp"], params_replace["cutoff0"])
-            print(f"[{show_elapsed_time()}] Testing {res_key}")
+            # res_key = (params_replace["amp"], params_replace["cutoff0"])
             adjusted_params = params.copy()
 
             for p in params_replace:
@@ -338,6 +397,7 @@ class init_model:
             adjusted_params["offset"] = adjusted_params["onset"]
 
             # print(adjusted_params)
+            print(f"[{show_elapsed_time()}] Testing {adjusted_params["onset"]}")
             
             
             onsets = autoPraditorWithTimeRange(adjusted_params, selected_audio, "onset", verbose=False)
@@ -423,23 +483,39 @@ class init_model:
 
                 # 确保临时目录存在
                 os.makedirs(tmp_path, exist_ok=True)
-                this_transcript = ""
+                # this_transcript = ""
+
+                audio_obj_clipped = None
                 for i, (onset, offset) in enumerate(zip(onsets, offsets)):
-                    audio_obj_clipped = selected_audio[onset*1000:offset*1000]
-                    # 为裁剪的音频文件生成唯一的文件名
-                    base_name = os.path.splitext(os.path.basename(wav_path))[0]
-                    clip_path = os.path.join(tmp_path, f"{base_name}_clip_{i}.wav")
-                    audio_obj_clipped.save(clip_path)
-
-                    # 转录并获取结果
-                    transcript = self.model.transcribe(clip_path)
-                    transcript = purify_text(transcript)
+                    if audio_obj_clipped is None:
+                        audio_obj_clipped = selected_audio[onset*1000:offset*1000]
+                    else:
+                        audio_obj_clipped += selected_audio[onset*1000:offset*1000]
                     
-                    this_transcript += transcript
+                    if i != len(onsets)-1:
+                        # 创建500ms空白音频
+                        silence_duration = 0.2  # 500ms
+                        silence_samples = int(silence_duration * selected_audio.frame_rate)
+                        silence_arr = np.zeros(silence_samples, dtype=np.float32)
+                        silence_audio = ReadSound(fpath=None, arr=silence_arr, duration_seconds=silence_duration, frame_rate=selected_audio.frame_rate)
+                        audio_obj_clipped += silence_audio 
+                # 为裁剪的音频文件生成唯一的文件名
+                base_name = os.path.splitext(os.path.basename(wav_path))[0]
+                clip_path = os.path.join(tmp_path, f"{base_name}_clip_{i}.wav")
+                audio_obj_clipped.save(clip_path)
 
-                similarity = jellyfish.jaro_winkler_similarity(this_transcript, standard_transcript)
+                # 转录并获取结果
+                clip_result = self.model.transcribe(clip_path)
+                clip_transcript = clip_result[0][0]["text_tn"]
+                # transcript = purify_text(transcript)
+                # print(clip_result)
+                # exit()
+                    
+                # this_transcript += transcript
+
+                similarity = jellyfish.jaro_winkler_similarity(clip_transcript, standard_transcript)
                 num_intervals = len(onsets)
-                print(f"[{show_elapsed_time()}] {this_transcript} | {standard_transcript}")
+                # print(f"[{show_elapsed_time()}] {clip_transcript} | {standard_transcript}")
             else:
                 similarity = 0.
                 num_intervals = 0  # 可能有潜在bug，即所有num_intervals都等于0（日后待修）
@@ -453,7 +529,7 @@ class init_model:
 
             # 然后可以像原来一样使用复制后的变量
             result.append([num_intervals_copy, similarity, adjusted_params_copy])
-            print(num_intervals_copy, similarity, adjusted_params_copy)
+            # print(num_intervals_copy, similarity, adjusted_params_copy)
                 # res[res_key].append([num_intervals, adjusted_params])
                 # print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD numIntervals: {num_intervals}, similarity: {similarity:.4f}, params: {adjusted_params['onset']}")
             #     print(len(res[res_key]))
