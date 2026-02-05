@@ -42,6 +42,9 @@ def bandpass_filter(data, lowcut, highcut, fs, order=4):
     nyquist = 0.5 * fs
     low = lowcut / nyquist
     high = highcut / nyquist
+
+    low = max(0.01, low)
+    high = min(nyquist - 0.01, high)
     if low == 0:
         b, a = butter(order, high, btype='low', output="ba")
         filtered_data = filtfilt(b, a, data)
