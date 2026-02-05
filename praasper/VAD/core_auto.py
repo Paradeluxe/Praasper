@@ -1,7 +1,7 @@
 import gc
 import math
 import os
-
+import copy
 import numpy as np
 from sklearn.cluster import DBSCAN
 
@@ -18,6 +18,7 @@ except ImportError:
 # print(resource_path(f".\\ffmpeg\\{plat}"))
 
 def autoPraditorWithTimeRange(params, audio_obj, which_set, stime=0, etime=-1,verbose=False):
+    params = copy.deepcopy(params)
     if etime == -1:
         ans_tps = autoPraditor(params, audio_obj, which_set, verbose=False)
 

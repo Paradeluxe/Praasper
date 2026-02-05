@@ -92,10 +92,10 @@ class init_model:
         seg_dur=10.,
         min_speech=0.2,
         min_pause=0.2,
-        language=None,
+        # language=None,
         verbose: bool=False,
         skip_existing: bool=False,
-        enable_post_process: bool=True
+        # enable_post_process: bool=True
     ):
         if os.path.isdir(input_path):
             fnames = [os.path.splitext(f)[0] for f in os.listdir(input_path) if f.endswith('.wav')]
@@ -176,7 +176,7 @@ class init_model:
                     continue
                 
                 intervals = vad_tg.tiers[0].intervals
-                valid_intervals = [interval for interval in intervals if interval.mark not in ["", None] and interval.maxTime - interval.minTime > min_speech]
+                valid_intervals = [interval for interval in intervals if interval.mark not in ["", None]]# and interval.maxTime - interval.minTime > min_speech]
                 # print(valid_intervals)
 
                 # 整体转录模式
@@ -279,7 +279,7 @@ class init_model:
                     new_max = max(prev.maxTime, curr.maxTime)
                     # 替换上一个interval
                     prev.maxTime = new_max
-                    prev.mark = "(-)"
+                    prev.mark += curr.mark
                     # 删除当前interval
                     del tier.intervals[i]
                     # 从头重新检查
@@ -287,27 +287,27 @@ class init_model:
                 else:
                     i += 1
             
-            # 从头开始遍历每一个interval，如果其mark是"(-)"，则去audio_obj截取出这一段，保存到临时文件夹，并且用ASR跑一遍
-            tier = final_tg.tiers[0]
-            for interval in tier.intervals:
-                if interval.mark == "(-)":
-                    s_ms = interval.minTime * 1000
-                    e_ms = interval.maxTime * 1000
-                    clip = audio_obj[s_ms:e_ms]
-                    tmp_wav = os.path.join(tmp_path, f"{os.path.splitext(os.path.basename(wav_path))[0]}_redo_{s_ms}_{e_ms}.wav")
-                    clip.save(tmp_wav)
-                    text = self.model.transcribe(tmp_wav)
-                    # text = purify_text(text)
-                    if not text:
-                        continue
+            # # 从头开始遍历每一个interval，如果其mark是"(-)"，则去audio_obj截取出这一段，保存到临时文件夹，并且用ASR跑一遍
+            # tier = final_tg.tiers[0]
+            # for interval in tier.intervals:
+            #     if interval.mark == "(-)":
+            #         s_ms = interval.minTime * 1000
+            #         e_ms = interval.maxTime * 1000
+            #         clip = audio_obj[s_ms:e_ms]
+            #         tmp_wav = os.path.join(tmp_path, f"{os.path.splitext(os.path.basename(wav_path))[0]}_redo_{s_ms}_{e_ms}.wav")
+            #         clip.save(tmp_wav)
+            #         text = self.model.transcribe(tmp_wav)
+            #         # text = purify_text(text)
+            #         if not text:
+            #             continue
                     
-                    # if not is_single_language(text) and language is not None and enable_post_process:
-                    #     text_proc = post_process(text, language)
-                    #     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Activate post-process: ({text}) -> ({text_proc})")
-                    #     text = text_proc
+            #         # if not is_single_language(text) and language is not None and enable_post_process:
+            #         #     text_proc = post_process(text, language)
+            #         #     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Activate post-process: ({text}) -> ({text_proc})")
+            #         #     text = text_proc
                         
-                    interval.mark = text
-                    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Redo speech: {interval.minTime:.3f} - {interval.maxTime:.3f} ({text})")
+            #         interval.mark = text
+            #         print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Redo speech: {interval.minTime:.3f} - {interval.maxTime:.3f} ({text})")
 
             # ----------------------------
             final_tg.write(final_path)
@@ -360,8 +360,8 @@ class init_model:
         standard_transcript = standard_result[0][0]["text_tn"]  # text_tn 没有标点符号
 
 
-        params = default_params
-        params["offset"] = params["onset"]  # VAD模式特供
+        # params = default_params
+        # params["offset"] = params["onset"]  # VAD模式特供
 
 
         def generate_param_grid(params):
@@ -379,26 +379,27 @@ class init_model:
         # 使用示例
         param_grid = {
             'amp': np.arange(1.1, 1.5, 0.2),  #！找最多interval的amp
-            "cutoff0": range(0, 400, 200),
-            'cutoff1': range(min(audio_obj.frame_rate, 10800), min(audio_obj.frame_rate//4*3, 10800) - 2000, -1000),
-            "numValid": [int(min_speech/2*audio_obj.frame_rate)],
+            "cutoff0": [200],#range(0, 400, 200),
+            'cutoff1': [min(audio_obj.frame_rate//2, 10800)],
+            "numValid": [2000],#[int(min_speech/2*audio_obj.frame_rate//2)],
 
-            'eps_ratio': np.arange(0.17, 0.01, -0.06)
+            'eps_ratio': np.arange(0.01, 0.1, 0.04)
         }
 
         # print(range(min(audio_obj.frame_rate, 10800), max(audio_obj.frame_rate//2, 8000) - 3000, -1000))
         for params_replace in generate_param_grid(param_grid):
             # res_key = (params_replace["amp"], params_replace["cutoff0"])
-            adjusted_params = params.copy()
-
+            adjusted_params = default_params.copy()
+            adjusted_params["offset"] = adjusted_params["onset"]
+            # print(adjusted_params)
             for p in params_replace:
                 adjusted_params["onset"][p] = str(params_replace[p])
-            
+            # print(params_replace)
             adjusted_params["offset"] = adjusted_params["onset"]
 
             # print(adjusted_params)
             print(f"[{show_elapsed_time()}] Testing {adjusted_params["onset"]}")
-            
+            # exit()
             
             onsets = autoPraditorWithTimeRange(adjusted_params, selected_audio, "onset", verbose=False)
             offsets = autoPraditorWithTimeRange(adjusted_params, selected_audio, "offset", verbose=False)
@@ -514,6 +515,7 @@ class init_model:
                 # this_transcript += transcript
 
                 similarity = jellyfish.jaro_winkler_similarity(clip_transcript, standard_transcript)
+                similarity = min(similarity, 0.9)
                 num_intervals = len(onsets)
                 # print(f"[{show_elapsed_time()}] {clip_transcript} | {standard_transcript}")
             else:
