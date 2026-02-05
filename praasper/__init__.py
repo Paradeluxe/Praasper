@@ -6,6 +6,9 @@ import gc
 import torch
 from itertools import product
 import copy
+# 随机选取连续十秒音频，如果音频不够十秒则选取整个音频
+import random
+import jellyfish
 
 try:
     from .utils import *
@@ -78,7 +81,7 @@ class init_model:
         init_LLM(self.LLM)
 
 
-        self.g2p = G2PModel()
+        # self.g2p = G2PModel()
 
         self.params = {'onset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
 
@@ -240,10 +243,10 @@ class init_model:
                     if not text:
                         continue
                     
-                    if not is_single_language(text) and language is not None and enable_post_process:
-                        text_proc = post_process(text, language)
-                        print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Activate post-process: ({text}) -> ({text_proc})")
-                        text = text_proc
+                    # if not is_single_language(text) and language is not None and enable_post_process:
+                    #     text_proc = post_process(text, language)
+                    #     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Activate post-process: ({text}) -> ({text_proc})")
+                    #     text = text_proc
                         
                     interval.mark = text
                     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Redo speech: {interval.minTime:.3f} - {interval.maxTime:.3f} ({text})")
@@ -271,16 +274,15 @@ class init_model:
 
         audio_obj = ReadSound(wav_path)
         print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Full audio duration: {audio_obj.duration_seconds:.3f}")
-        # 随机选取连续十秒音频，如果音频不够十秒则选取整个音频
-        import random
-        if audio_obj.duration_seconds > 10:
+
+        if audio_obj.duration_seconds > 15:
             # 计算最大起始时间
-            max_start = audio_obj.duration_seconds - 10
+            max_start = audio_obj.duration_seconds - 15
             # 随机生成起始时间
             start_time = random.uniform(0, max_start)
-            end_time = start_time + 10
+            end_time = start_time + 15
         else:
-            # 音频不足十秒，选取整个音频
+            # 音频不足时间，选取整个音频
             start_time = 0
             end_time = audio_obj.duration_seconds
         
@@ -313,27 +315,21 @@ class init_model:
 
 
         # df_res = pd.DataFrame(columns=["params", "transcript", "similarity"])
-        res = {}
+        # res = {}
+        result = []
 
         # 使用示例
         param_grid = {
-            'amp': np.arange(1.05, 2.00, 0.05),
-            "cutoff0": range(0, 400, 100),
-            
-            # 'numValid': np.arange(
-            #     # min(int(4000/44100*audio_obj.frame_rate), int(min_speech/2*audio_obj.frame_rate)), 
-            #     # min(int(8000/44100*audio_obj.frame_rate), int(min_speech*audio_obj.frame_rate)), 
-            #     int(min_speech/2*audio_obj.frame_rate), 
-            #     int(min_speech*audio_obj.frame_rate), 
-            #     int(1000/44100*audio_obj.frame_rate) # ?
-            # ),
-            "numValid": [int(min_speech/2*audio_obj.frame_rate)],
-            'eps_ratio': np.arange(0.18, 0.01, -0.03)
+            'amp': np.arange(1.1, 1.5, 0.1),  #！找最多interval的amp
+            "cutoff0": range(0, 400, 200),
+            "numValid": [int(min_speech*audio_obj.frame_rate)],
+
+            'eps_ratio': np.arange(0.18, 0.1, -0.03)
         }
 
-
         for params_replace in generate_param_grid(param_grid):
-            
+            res_key = (params_replace["amp"], params_replace["cutoff0"])
+            print(f"[{show_elapsed_time()}] Testing {res_key}")
             adjusted_params = params.copy()
 
             for p in params_replace:
@@ -363,111 +359,118 @@ class init_model:
                 if not offsets:
                     offsets = [selected_audio.duration_seconds]
 
-            
-            if onsets[0] >= offsets[0]:
-                onsets = [0.0] + onsets
-            
-            if offsets[-1] <= onsets[-1]:
-                offsets.append(selected_audio.duration_seconds)
 
-            # Select the one offset that is closest to onset and earlier than onset
-            valid_onsets = []
-            valid_offsets = []
-
-            if len(onsets) <= len(offsets):
-                for i, onset in enumerate(onsets):
-                    # print(onset)
-                    if i == 0:
-                        valid_offsets.append(offsets[-1])  # 最后一个offset
-                        valid_onsets.append(onsets[0])  # 第一个offset
-                    else:
-                        try:
-                            valid_offsets.append(max([offset for offset in offsets if onsets[i-1] < offset < onset]))  # 不会影响到最后一个offset，应为需要夹在onset中间
-                            valid_onsets.append(onset)  # 下一个onset
-
-                        except ValueError:
-                            pass
-            else:  # len(onsets) > len(offsets)
-                reversed_offsets = list(reversed(offsets))
-                for i, reversed_offset in enumerate(reversed_offsets):
-                    if i == 0:
-                        valid_onsets.append(onsets[0])
-                        valid_offsets.append(reversed_offset)
-                    else:
-                        try:
-                            valid_onsets.append(min([onset for onset in onsets if reversed_offset < onset < reversed_offsets[i-1]]))
-                            valid_offsets.append(reversed_offset)
-
-                        except ValueError:
-                            pass
-                valid_offsets = list(reversed(valid_offsets))
-            
-
-
-            onsets = sorted(valid_onsets)
-            offsets = sorted(valid_offsets)
-
-
-            # 根据min pause 调整onset和offset
-            bad_onsets = []
-            bad_offsets = []
-
-            for i in range(len(onsets)-1):
-                if onsets[i+1] - offsets[i] < min_pause:
-                    bad_onsets.append(onsets[i+1])
-                    bad_offsets.append(offsets[i])
-
-            onsets = [x for x in onsets if x not in bad_onsets]
-            offsets = [x for x in offsets if x not in bad_offsets]
-
-            # print(params_replace)
-            # print(onsets, offsets)
-            # print()
-
-
-            # 确保临时目录存在
-            os.makedirs(tmp_path, exist_ok=True)
-            this_transcript = ""
-            for i, (onset, offset) in enumerate(zip(onsets, offsets)):
-                audio_obj_clipped = selected_audio[onset*1000:offset*1000]
-                # 为裁剪的音频文件生成唯一的文件名
-                base_name = os.path.splitext(os.path.basename(wav_path))[0]
-                clip_path = os.path.join(tmp_path, f"{base_name}_clip_{i}.wav")
-                audio_obj_clipped.save(clip_path)
-
-                # 转录并获取结果
-                transcript = self.model.transcribe(clip_path)
-                transcript = purify_text(transcript)
+                if onsets[0] >= offsets[0]:
+                    onsets = [0.0] + onsets
                 
-                this_transcript += transcript
+                if offsets[-1] <= onsets[-1]:
+                    offsets.append(selected_audio.duration_seconds)
 
-            similarity = self.g2p.calculate_ipa_similarity(this_transcript, standard_transcript)
-            res_key = (params_replace["amp"], params_replace["cutoff0"])
-            num_intervals = len(onsets)
+                # Select the one offset that is closest to onset and earlier than onset
+                valid_onsets = []
+                valid_offsets = []
 
+                if len(onsets) <= len(offsets):
+                    for i, onset in enumerate(onsets):
+                        # print(onset)
+                        if i == 0:
+                            valid_offsets.append(offsets[-1])  # 最后一个offset
+                            valid_onsets.append(onsets[0])  # 第一个offset
+                        else:
+                            try:
+                                valid_offsets.append(max([offset for offset in offsets if onsets[i-1] < offset < onset]))  # 不会影响到最后一个offset，应为需要夹在onset中间
+                                valid_onsets.append(onset)  # 下一个onset
+
+                            except ValueError:
+                                pass
+                else:  # len(onsets) > len(offsets)
+                    reversed_offsets = list(reversed(offsets))
+                    for i, reversed_offset in enumerate(reversed_offsets):
+                        if i == 0:
+                            valid_onsets.append(onsets[0])
+                            valid_offsets.append(reversed_offset)
+                        else:
+                            try:
+                                valid_onsets.append(min([onset for onset in onsets if reversed_offset < onset < reversed_offsets[i-1]]))
+                                valid_offsets.append(reversed_offset)
+
+                            except ValueError:
+                                pass
+                    valid_offsets = list(reversed(valid_offsets))
+                
+
+
+                onsets = sorted(valid_onsets)
+                offsets = sorted(valid_offsets)
+
+
+                # 根据min pause 调整onset和offset
+                bad_onsets = []
+                bad_offsets = []
+
+                for i in range(len(onsets)-1):
+                    if onsets[i+1] - offsets[i] < min_pause:
+                        bad_onsets.append(onsets[i+1])
+                        bad_offsets.append(offsets[i])
+
+                onsets = [x for x in onsets if x not in bad_onsets]
+                offsets = [x for x in offsets if x not in bad_offsets]
+
+                # print(params_replace)
+                # print(onsets, offsets)
+                # print()
+
+
+                # 确保临时目录存在
+                os.makedirs(tmp_path, exist_ok=True)
+                this_transcript = ""
+                for i, (onset, offset) in enumerate(zip(onsets, offsets)):
+                    audio_obj_clipped = selected_audio[onset*1000:offset*1000]
+                    # 为裁剪的音频文件生成唯一的文件名
+                    base_name = os.path.splitext(os.path.basename(wav_path))[0]
+                    clip_path = os.path.join(tmp_path, f"{base_name}_clip_{i}.wav")
+                    audio_obj_clipped.save(clip_path)
+
+                    # 转录并获取结果
+                    transcript = self.model.transcribe(clip_path)
+                    transcript = purify_text(transcript)
+                    
+                    this_transcript += transcript
+
+                similarity = jellyfish.jaro_winkler_similarity(this_transcript, standard_transcript)
+                num_intervals = len(onsets)
+                print(f"[{show_elapsed_time()}] {this_transcript} | {standard_transcript}")
+            else:
+                similarity = 0.
+                num_intervals = 0  # 可能有潜在bug，即所有num_intervals都等于0（日后待修）
+            # print(similarity, num_intervals)
             # 记录相似度大于0.9的结果
-            if similarity > 0.9:
-                if res_key not in res:
-                    res[res_key] = []
+            # if similarity > 0.9:
 
-                # 复制两个变量
-                num_intervals_copy = num_intervals
-                adjusted_params_copy = copy.deepcopy(adjusted_params)
+            # 复制两个变量
+            num_intervals_copy = num_intervals
+            adjusted_params_copy = copy.deepcopy(adjusted_params)
 
-                # 然后可以像原来一样使用复制后的变量
-                res[res_key].append([num_intervals_copy, adjusted_params_copy])
+            # 然后可以像原来一样使用复制后的变量
+            result.append([num_intervals_copy, similarity, adjusted_params_copy])
+            print(num_intervals_copy, similarity, adjusted_params_copy)
                 # res[res_key].append([num_intervals, adjusted_params])
                 # print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD numIntervals: {num_intervals}, similarity: {similarity:.4f}, params: {adjusted_params['onset']}")
-            
-            # 当当前res_key收集了足够的结果后，找出最佳参数并结束
-            if res_key in res and len(res[res_key]) == len(param_grid["eps_ratio"]):
-                # 找出num_intervals最大的项
-                max_item = max(res[res_key], key=lambda x: x[0])[0]
-                best_params = [item for item in res[res_key] if item[0] == max_item][0][1]
-                print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD best numIntervals: {max_item}, params: {best_params['onset']}")
-                break
-
-
+            #     print(len(res[res_key]))
+            #     print(res[res_key])
+            # # 当当前res_key收集了足够的结果后，找出最佳参数并结束
+            # if res_key in res and len(res[res_key]) == len(param_grid["eps_ratio"]):
+            #     # 找出num_intervals最大的项
+            #     max_item = max(res[res_key], key=lambda x: x[0])[0]
+            #     best_params = [item for item in res[res_key] if item[0] == max_item][0][1]
+            #     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Candidate -> VAD numIntervals: {max_item}, params: {best_params['onset']}")
+            #     best_params_collection.append([max_item, best_params])
+        
+        # print(best_params_collection)        
+        max_result = max(result, key=lambda x: (x[1], x[0]))
+        max_item, best_params = max_result[0], max_result[2]
+        
+        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD best numIntervals: {max_item}, params: {best_params['onset']}")
 
         self.params = best_params
 

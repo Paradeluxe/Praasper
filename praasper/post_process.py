@@ -187,7 +187,7 @@ class G2PModel:
         similarity = jellyfish.jaro_similarity(s1, s2)
         
         # 返回距离（1 - 相似度）
-        return 1.0 - similarity
+        return similarity
     
     def calculate_ipa_similarity(self, text1, text2):
         """
