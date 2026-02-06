@@ -5,29 +5,6 @@ from scipy.signal import butter, filtfilt
 START_TIME = time.time()
 
 
-
-def has_time_overlap(start1, end1, start2, end2):
-    """判断两个时间段是否有交集
-
-    参数:
-        start1 (float): 第一个时间段的开始时间
-        end1 (float): 第一个时间段的结束时间
-        start2 (float): 第二个时间段的开始时间
-        end2 (float): 第二个时间段的结束时间
-
-    返回:
-        bool: 如果两个时间段有交集返回True，否则返回False
-    """
-    if start1 > end1 or start2 > end2:
-        raise ValueError("开始时间不能晚于结束时间")
-
-    if start1 < end2 and start2 < end1:
-        return min(end2 - start1, end1 - start2)
-    else:
-        return 0
-
-
-
 def show_elapsed_time():
     """显示从程序开始执行到现在的时间差"""
     elapsed = time.time() - START_TIME

@@ -41,7 +41,7 @@ class init_model:
         self,
         ASR: str="iic/SenseVoiceSmall",
         infer_mode: str = "funasr",
-        LLM: str="Qwen/Qwen2.5-1.5B-Instruct",
+        # LLM: str="Qwen/Qwen2.5-1.5B-Instruct",
         device: str= "cpu"
     ):
 
@@ -55,7 +55,7 @@ class init_model:
         
         self.ASR = ASR
         self.infer_mode = infer_mode
-        self.LLM = LLM
+        # self.LLM = LLM
         self.device = device
 
 
@@ -78,7 +78,7 @@ class init_model:
             device=self.device
         )
 
-        init_LLM(self.LLM)
+        # init_LLM(self.LLM)
 
 
         # self.g2p = G2PModel()
@@ -90,12 +90,9 @@ class init_model:
         self,
         input_path: str,
         seg_dur=10.,
-        min_speech=0.2,
         min_pause=0.2,
-        # language=None,
-        verbose: bool=False,
         skip_existing: bool=False,
-        # enable_post_process: bool=True
+        verbose: bool=False,
     ):
         if os.path.isdir(input_path):
             fnames = [os.path.splitext(f)[0] for f in os.listdir(input_path) if f.endswith('.wav')]
