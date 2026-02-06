@@ -144,7 +144,7 @@ def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="folder"
 
 
 def get_vad(wav_path, min_pause=0.2, params="folder", if_save=False, verbose=False):
-    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD processing started...")
+    # print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD processing started...")
 
 
     audio_obj = ReadSound(wav_path)

@@ -6,9 +6,10 @@ import gc
 import torch
 from itertools import product
 import copy
-# 随机选取连续十秒音频，如果音频不够十秒则选取整个音频
 import random
 import jellyfish
+import concurrent.futures
+from tqdm import tqdm
 
 try:
     from .utils import *
@@ -153,12 +154,15 @@ class init_model:
             print(f"--------------- Processing {os.path.basename(wav_path)} ({idx+1}/{len(fnames)}) ---------------")
             count = 0
             segments = segment_audio(audio_obj, segment_duration=seg_dur, params=self.params, min_pause=min_pause)
-            for start, end in segments:
-                count += 1
 
-                print(f"[{show_elapsed_time()}] Processing segment: {start/1000:.3f} - {end/1000:.3f} ({count})")
+            def process_segments(segment):
+            # for start, end in segments:
+                start, end = segment
+                # count += 1
+
+                # print(f"[{show_elapsed_time()}] Processing segment: {start/1000:.3f} - {end/1000:.3f} ({count})")
                 audio_clip = audio_obj[start:end]
-                clip_path = os.path.join(tmp_path, os.path.basename(wav_path).replace(".wav", f"_{count}.wav"))
+                clip_path = os.path.join(tmp_path, os.path.basename(wav_path).replace(".wav", f"_{start}_{end}.wav"))
                 audio_clip.save(clip_path)
 
                 audio_clip_result = self.model.transcribe(clip_path)
@@ -166,11 +170,11 @@ class init_model:
                 # print(audio_clip_single_words)
 
 
-                try:
-                    vad_tg = get_vad(clip_path, params=self.params, min_pause=min_pause, verbose=verbose)
-                except Exception as e:
-                    print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) VAD Error: {e}")
-                    continue
+                # try:
+                vad_tg = get_vad(clip_path, params=self.params, min_pause=min_pause, verbose=verbose)
+                # except Exception as e:
+                #     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) VAD Error: {e}")
+                #     return [None, None, None]
                 
                 intervals = vad_tg.tiers[0].intervals
                 valid_intervals = [interval for interval in intervals if interval.mark not in ["", None]]# and interval.maxTime - interval.minTime > min_speech]
@@ -227,7 +231,8 @@ class init_model:
                         
                         selected_interval.mark += f"{t_w}"
                         # selected_interval.words.append((t_w, s_w, e_w))
-
+                
+                timestamps = []
                 for idx, valid_interval in enumerate(valid_intervals):
                     s, e = valid_interval.minTime, valid_interval.maxTime
 
@@ -237,31 +242,32 @@ class init_model:
                     text = purify_text(text)
                     if not text or text == "+":
                         continue
-                    
-                    # if not is_single_language(text) and language is not None and enable_post_process:
-                    #     text_proc = post_process(text, language)
-                    #     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Activate post-process: ({text}) -> ({text_proc})")
-                    #     text = text_proc
+                
 
                     s_point = s + start/1000
                     e_point = e + start/1000
 
                     if e_point >= audio_obj.duration_seconds:
                         e_point = audio_obj.duration_seconds
-                    final_tg.tiers[0].add(s_point, e_point, text)
+                    
+                    timestamps.append([s_point, e_point, text])
 
-                    # print(audio_obj.duration_seconds)
-                    print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Detect speech: {s+start/1000:.3f} - {e+start/1000:.3f} ({text})")
+                return timestamps
 
-                # print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Detect speech: {selected_interval.mark}")
-            
-            # final_tg.tiers[0] = vad_tg.tiers[0]
+            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:  # 使用线程池并发处理
+                result = list(tqdm(executor.map(process_segments, segments), total=len(segments), desc="Processing segments"))
 
             #############################
             # 因为在建立textgrid的时候使用了strict=False的mode，有可能存在某个tier是重复的
             # 需要检查并调整
             #############################
-
+            results = result[0]
+            for r in result[1:]:
+                results.extend(r)
+            for s_point, e_point, text in results:
+                if s_point is None or e_point is None or text is None:
+                    continue
+                final_tg.tiers[0].add(s_point, e_point, text)
 
             # 检查并合并重叠的interval
             tier = final_tg.tiers[0]
@@ -283,29 +289,7 @@ class init_model:
                     i = 1
                 else:
                     i += 1
-            
-            # # 从头开始遍历每一个interval，如果其mark是"(-)"，则去audio_obj截取出这一段，保存到临时文件夹，并且用ASR跑一遍
-            # tier = final_tg.tiers[0]
-            # for interval in tier.intervals:
-            #     if interval.mark == "(-)":
-            #         s_ms = interval.minTime * 1000
-            #         e_ms = interval.maxTime * 1000
-            #         clip = audio_obj[s_ms:e_ms]
-            #         tmp_wav = os.path.join(tmp_path, f"{os.path.splitext(os.path.basename(wav_path))[0]}_redo_{s_ms}_{e_ms}.wav")
-            #         clip.save(tmp_wav)
-            #         text = self.model.transcribe(tmp_wav)
-            #         # text = purify_text(text)
-            #         if not text:
-            #             continue
-                    
-            #         # if not is_single_language(text) and language is not None and enable_post_process:
-            #         #     text_proc = post_process(text, language)
-            #         #     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) Activate post-process: ({text}) -> ({text_proc})")
-            #         #     text = text_proc
-                        
-            #         interval.mark = text
-            #         print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Redo speech: {interval.minTime:.3f} - {interval.maxTime:.3f} ({text})")
-
+ 
             # ----------------------------
             final_tg.write(final_path)
                 
@@ -321,7 +305,7 @@ class init_model:
         """
 
 
-        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD processing started...")
+        # print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD processing started...")
 
 
         dir_name = os.path.dirname(os.path.dirname(wav_path))
@@ -376,15 +360,14 @@ class init_model:
         # 使用示例
         param_grid = {
             'amp': np.arange(1.1, 1.5, 0.2),  #！找最多interval的amp
-            "cutoff0": [200],#range(0, 400, 200),
+            "cutoff0": [0, 200],#range(0, 400, 200),
             'cutoff1': [min(audio_obj.frame_rate//2, 10800)],
             "numValid": [2000],#[int(min_speech/2*audio_obj.frame_rate//2)],
 
-            'eps_ratio': np.arange(0.01, 0.1, 0.04)
+            'eps_ratio': np.arange(0.01, 0.15, 0.04)
         }
-
-        # print(range(min(audio_obj.frame_rate, 10800), max(audio_obj.frame_rate//2, 8000) - 3000, -1000))
-        for params_replace in generate_param_grid(param_grid):
+        def grid_search_optimal_params(params_replace):
+        # for params_replace in generate_param_grid(param_grid):
             # res_key = (params_replace["amp"], params_replace["cutoff0"])
             adjusted_params = default_params.copy()
             adjusted_params["offset"] = adjusted_params["onset"]
@@ -395,7 +378,7 @@ class init_model:
             adjusted_params["offset"] = adjusted_params["onset"]
 
             # print(adjusted_params)
-            print(f"[{show_elapsed_time()}] Testing {adjusted_params["onset"]}")
+            # print(f"[{show_elapsed_time()}] Testing {adjusted_params["onset"]}")
             # exit()
             
             onsets = autoPraditorWithTimeRange(adjusted_params, selected_audio, "onset", verbose=False)
@@ -474,14 +457,7 @@ class init_model:
                 onsets = [x for x in onsets if x not in bad_onsets]
                 offsets = [x for x in offsets if x not in bad_offsets]
 
-                # print(params_replace)
-                # print(onsets, offsets)
-                # print()
-
-
-                # 确保临时目录存在
-                os.makedirs(tmp_path, exist_ok=True)
-                # this_transcript = ""
+                os.makedirs(tmp_path, exist_ok=True)  # 确保临时目录存在
 
                 audio_obj_clipped = None
                 for i, (onset, offset) in enumerate(zip(onsets, offsets)):
@@ -502,46 +478,31 @@ class init_model:
                 clip_path = os.path.join(tmp_path, f"{base_name}_clip_{i}.wav")
                 audio_obj_clipped.save(clip_path)
 
+            
                 # 转录并获取结果
                 clip_result = self.model.transcribe(clip_path)
                 clip_transcript = clip_result[0][0]["text_tn"]
-                # transcript = purify_text(transcript)
-                # print(clip_result)
-                # exit()
-                    
-                # this_transcript += transcript
 
                 similarity = jellyfish.jaro_winkler_similarity(clip_transcript, standard_transcript)
                 similarity = min(similarity, 0.9)
                 num_intervals = len(onsets)
-                # print(f"[{show_elapsed_time()}] {clip_transcript} | {standard_transcript}")
             else:
                 similarity = 0.
                 num_intervals = 0  # 可能有潜在bug，即所有num_intervals都等于0（日后待修）
-            # print(similarity, num_intervals)
-            # 记录相似度大于0.9的结果
-            # if similarity > 0.9:
 
             # 复制两个变量
             num_intervals_copy = num_intervals
             adjusted_params_copy = copy.deepcopy(adjusted_params)
 
             # 然后可以像原来一样使用复制后的变量
-            result.append([num_intervals_copy, similarity, adjusted_params_copy])
-            # print(num_intervals_copy, similarity, adjusted_params_copy)
-                # res[res_key].append([num_intervals, adjusted_params])
-                # print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD numIntervals: {num_intervals}, similarity: {similarity:.4f}, params: {adjusted_params['onset']}")
-            #     print(len(res[res_key]))
-            #     print(res[res_key])
-            # # 当当前res_key收集了足够的结果后，找出最佳参数并结束
-            # if res_key in res and len(res[res_key]) == len(param_grid["eps_ratio"]):
-            #     # 找出num_intervals最大的项
-            #     max_item = max(res[res_key], key=lambda x: x[0])[0]
-            #     best_params = [item for item in res[res_key] if item[0] == max_item][0][1]
-            #     print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Candidate -> VAD numIntervals: {max_item}, params: {best_params['onset']}")
-            #     best_params_collection.append([max_item, best_params])
+            return [num_intervals_copy, similarity, adjusted_params_copy]
+            # result.append([num_intervals_copy, similarity, adjusted_params_copy])
         
-        # print(best_params_collection)        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:  # 使用线程池并发处理
+            result = list(tqdm(executor.map(grid_search_optimal_params, generate_param_grid(param_grid)),
+                              total=len(list(generate_param_grid(param_grid))),
+                              desc="Grid searching VAD params"))
+        
         max_result = max(result, key=lambda x: (x[1], x[0]))
         max_item, best_params = max_result[0], max_result[2]
         
