@@ -25,7 +25,7 @@ except ImportError:
 
 os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'  # 设置镜像源
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"
-os.environ["DISABLE_TQDM"] = "1"
+# os.environ["DISABLE_TQDM"] = "1"
 
 # 清空资源
 def clear_resources():
@@ -119,9 +119,12 @@ class init_model:
             output_path = os.path.join(dir_name, "output", input_folder_name)
             final_path = os.path.join(output_path, os.path.basename(wav_path).replace(".wav", ".TextGrid"))
 
+
+            file_info = f"[{show_elapsed_time()}] {idx+1}/{len(fnames)} ({os.path.basename(wav_path)})"
+
             # 检查结果文件是否已存在，如果存在且skip_existing为True则跳过处理
             if skip_existing and os.path.exists(final_path):
-                print(f"[{show_elapsed_time()}] Skipping {os.path.basename(wav_path)} (result exists)")
+                print(f"{file_info} Result exists, skipped", end="\r")
                 continue
 
             try:
@@ -134,26 +137,25 @@ class init_model:
             # 仅在音频加载成功后创建临时目录（很正确）
             if os.path.exists(tmp_path):
                 shutil.rmtree(tmp_path)
-                print(f"[{show_elapsed_time()}] Temporary directory {tmp_path} removed.")
+                if verbose:
+                    print(f"[{show_elapsed_time()}] Temporary directory {tmp_path} removed.")
             os.makedirs(tmp_path, exist_ok=False)
 
             os.makedirs(output_path, exist_ok=True)
 
 
-            print(f"--------------- Locate optimal parameters for {os.path.basename(wav_path)} ---------------")
             # auto search best params
             self.auto_vad(
                 wav_path=wav_path,
                 min_pause=min_pause,
+                file_info=file_info,
             )
 
             final_tg = TextGrid()
             final_tg.tiers.append(IntervalTier(name="words", minTime=0., maxTime=audio_obj.duration_seconds))
             final_tg.tiers[0].strict = False
 
-            print(f"--------------- Processing {os.path.basename(wav_path)} ({idx+1}/{len(fnames)}) ---------------")
-            count = 0
-            segments = segment_audio(audio_obj, segment_duration=seg_dur, params=self.params, min_pause=min_pause)
+            segments = segment_audio(audio_obj, segment_duration=seg_dur, params=self.params, min_pause=min_pause, file_info=file_info)
 
             def process_segments(segment):
             # for start, end in segments:
@@ -255,7 +257,7 @@ class init_model:
                 return timestamps
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:  # 使用线程池并发处理
-                result = list(tqdm(executor.map(process_segments, segments), total=len(segments), desc="Processing segments"))
+                result = list(tqdm(executor.map(process_segments, segments), total=len(segments), desc=f"{file_info} Processing segments", leave=False))
 
             #############################
             # 因为在建立textgrid的时候使用了strict=False的mode，有可能存在某个tier是重复的
@@ -298,7 +300,7 @@ class init_model:
         print(f"--------------- Processing completed ---------------")
 
 
-    def auto_vad(self, wav_path, min_speech=0.2, min_pause=0.2, verbose=False):
+    def auto_vad(self, wav_path, min_pause=0.2, verbose=False, file_info=""):
         """
         自动选取最优的VAD参数，根据随机选取的10秒音频。
 
@@ -312,7 +314,8 @@ class init_model:
         tmp_path = os.path.join(dir_name, "tmp")
 
         audio_obj = ReadSound(wav_path)
-        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Full audio duration: {audio_obj.duration_seconds:.3f}")
+        if verbose:
+            print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Full audio duration: {audio_obj.duration_seconds:.3f}")
 
         if audio_obj.duration_seconds > 10:
             # 计算最大起始时间
@@ -327,7 +330,8 @@ class init_model:
         
         # 截取选定的音频段
         selected_audio = audio_obj[start_time*1000:end_time*1000]
-        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Selected audio: {start_time:.3f} - {end_time:.3f}")
+        if verbose:
+            print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Selected audio: {start_time:.3f} - {end_time:.3f}")
         
         # 确保临时目录存在
         os.makedirs(tmp_path, exist_ok=True)
@@ -443,7 +447,8 @@ class init_model:
 
                 onsets = sorted(valid_onsets)
                 offsets = sorted(valid_offsets)
-
+                
+                num_intervals = len(onsets)
 
                 # 根据min pause 调整onset和offset
                 bad_onsets = []
@@ -485,7 +490,7 @@ class init_model:
 
                 similarity = jellyfish.jaro_winkler_similarity(clip_transcript, standard_transcript)
                 similarity = min(similarity, 0.9)
-                num_intervals = len(onsets)
+                
             else:
                 similarity = 0.
                 num_intervals = 0  # 可能有潜在bug，即所有num_intervals都等于0（日后待修）
@@ -501,12 +506,12 @@ class init_model:
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:  # 使用线程池并发处理
             result = list(tqdm(executor.map(grid_search_optimal_params, generate_param_grid(param_grid)),
                               total=len(list(generate_param_grid(param_grid))),
-                              desc="Grid searching VAD params"))
+                              desc=f"{file_info} Locate optimal params", leave=False))
         
         max_result = max(result, key=lambda x: (x[1], x[0]))
         max_item, best_params = max_result[0], max_result[2]
-        
-        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD best numIntervals: {max_item}, params: {best_params['onset']}")
+        if verbose:
+            print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD best numIntervals: {max_item}, params: {best_params['onset']}")
 
         self.params = best_params
 

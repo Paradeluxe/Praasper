@@ -15,6 +15,7 @@ except ImportError:
 import os
 
 import unicodedata
+from tqdm import tqdm
 
 default_params = {'onset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
 
@@ -34,10 +35,10 @@ def purify_text(text):
     return text
 
 
-def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="folder", verbose=False):
+def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="folder", verbose=False, file_info=""):
     wav_path = audio_obj.fpath
-
-    print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Start segmentation (<= {segment_duration}s)...")
+    if verbose:
+        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Start segmentation (<= {segment_duration}s)...")
 
 
     audio_obj = ReadSound(wav_path)
@@ -79,64 +80,74 @@ def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="folder"
 
     start = 0.0 * 1000
     end = segment_duration * 1000
-    while end <= audio_len * 1000:
-        segment = audio_obj[start:end]
-        # print(type(segment) == type(audio_obj))
-        onsets = autoPraditorWithTimeRange(params, segment, "onset", verbose=False)
-        offsets = autoPraditorWithTimeRange(params, segment, "offset", verbose=False)
-        # print()
-        # print(start, end)
-        # print(onsets, offsets, audio_len * 1000)
-        if not onsets or not offsets:
-            try:
-                segments[-1][1] = end
-            except IndexError:
-                pass
-            # continue
-        else:
-
-            ################
-            # 找到一个尽可能大的pause，使得onset和offset之间的差值大于pause
-            ################
-
-            # 从最后一个onset开始往前遍历
-            tmp_pause = min_pause
-            found = False
-            while tmp_pause > 0 and not found:
-                for i in range(len(onsets)-1, 0, -1):
-                    current_onset = onsets[i]
-
-                    # 找到当前onset之前的最后一个offset
-                    try:
-                        prev_offset = [offset for offset in offsets if offset < current_onset][-1]
-                    except IndexError:
-                        continue
-
-                    if current_onset - prev_offset > tmp_pause:
-                        # 若差值大于tmp_pause，则取得他们的均值
-                        target_offset = (current_onset + prev_offset) / 2
-                        end = start + target_offset * 1000
-                        found = True
-                        break
-                if not found:
-                    tmp_pause -= 0.01
-            # -----------------
-
-            segments.append([start, end])
-
-        start = end
-        end = start + segment_duration * 1000
-
-        if end > audio_len * 1000:
-            if audio_len * 1000 - start > 10:
-                segments[-1][1] = audio_len * 1000
-                break
+    total_length = audio_len * 1000
+    
+    desc = f"{file_info} Segmenting..."
+    with tqdm(total=total_length, desc=desc, unit="%", bar_format="{l_bar}{bar}", leave=False) as pbar:
+        while end <= total_length:
+            segment = audio_obj[start:end]
+            # print(type(segment) == type(audio_obj))
+            onsets = autoPraditorWithTimeRange(params, segment, "onset", verbose=False)
+            offsets = autoPraditorWithTimeRange(params, segment, "offset", verbose=False)
+            # print()
+            # print(start, end)
+            # print(onsets, offsets, total_length)
+            if not onsets or not offsets:
+                try:
+                    segments[-1][1] = end
+                except IndexError:
+                    pass
+                # continue
             else:
-                segments.append([start, audio_len * 1000])
-                break
+
+                ################
+                # 找到一个尽可能大的pause，使得onset和offset之间的差值大于pause
+                ################
+
+                # 从最后一个onset开始往前遍历
+                tmp_pause = min_pause
+                found = False
+                while tmp_pause > 0 and not found:
+                    for i in range(len(onsets)-1, 0, -1):
+                        current_onset = onsets[i]
+
+                        # 找到当前onset之前的最后一个offset
+                        try:
+                            prev_offset = [offset for offset in offsets if offset < current_onset][-1]
+                        except IndexError:
+                            continue
+
+                        if current_onset - prev_offset > tmp_pause:
+                            # 若差值大于tmp_pause，则取得他们的均值
+                            target_offset = (current_onset + prev_offset) / 2
+                            end = start + target_offset * 1000
+                            found = True
+                            break
+                    if not found:
+                        tmp_pause -= 0.01
+                # -----------------
+
+                segments.append([start, end])
+
+            start = end
+            end = start + segment_duration * 1000
+            pbar.n = start
+            pbar.refresh()
+
+            if end > total_length:
+                if total_length - start > 10:
+                    segments[-1][1] = total_length
+                    pbar.n = total_length
+                    pbar.refresh()
+                    break
+                else:
+                    segments.append([start, total_length])
+                    pbar.n = total_length
+                    pbar.refresh()
+                    break
     # print(segments)
     if not segments:
-        segments.append([0.0, audio_len * 1000])
+        segments.append([0.0, total_length])
     
     # print(segments)
     # exit()
