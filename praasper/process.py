@@ -134,8 +134,8 @@ def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="folder"
             pbar.n = start
             pbar.refresh()
 
-            if end > total_length:
-                if total_length - start > 10:
+            if end > total_length and end > start:
+                if total_length - start < 10:
                     segments[-1][1] = total_length
                     pbar.n = total_length
                     pbar.refresh()

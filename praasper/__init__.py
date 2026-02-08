@@ -297,7 +297,7 @@ class init_model:
                 
         if os.path.exists(tmp_path):
             shutil.rmtree(tmp_path)
-        print(f"--------------- Processing completed ---------------")
+        # print(f"--------------- Processing completed ---------------")
 
 
     def auto_vad(self, wav_path, min_pause=0.2, verbose=False, file_info=""):
