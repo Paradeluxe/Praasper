@@ -1,4 +1,4 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer, T5ForConditionalGeneration
+from transformers import AutoModelForCausalLM, AutoTokenizer
 import jellyfish
 import re
 try:
@@ -142,6 +142,7 @@ class G2PModel:
             return
         print(f"[{show_elapsed_time()}] Initializing G2P model...")
         # 加载G2P模型和分词器
+        from transformers import T5ForConditionalGeneration
         self.model = T5ForConditionalGeneration.from_pretrained('charsiu/g2p_multilingual_byT5_tiny_16_layers_100', tie_word_embeddings=False)
         self.tokenizer = AutoTokenizer.from_pretrained('google/byt5-small', tie_word_embeddings=False)
         print(f"[{show_elapsed_time()}] G2P model initialized successfully")
