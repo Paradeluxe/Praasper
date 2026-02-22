@@ -1,6 +1,5 @@
 import os
 import shutil
-import itertools
 import numpy as np
 import gc
 import torch
@@ -15,13 +14,13 @@ try:
     from .utils import *
     from .process import *
     from .select_word import *
-    from .post_process import *
+    # from .post_process import *
 
 except ImportError:
     from praasper.utils import *
     from praasper.process import *
     from praasper.select_word import *
-    from praasper.post_process import *
+    # from praasper.post_process import *
 
 os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'  # 设置镜像源
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"

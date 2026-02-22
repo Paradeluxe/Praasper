@@ -99,8 +99,8 @@ def autoPraditor(params, audio_obj, which_set, verbose=False):
     _eps = params["eps_ratio"] * float(np.max(np.sort(_audio_arr_ds)[:int(.8 * len(_audio_arr_ds))]))  # 找到合适的radius，防止异常值
 
 
-    del _audio_arr_ds
-    gc.collect()
+    # del _audio_arr_ds
+    # gc.collect()
 
     _min_samples = math.ceil(0.3/_dsFactor * _audio_obj.frame_rate) #math.ceil(2 / (target_audio_samplerate/44100) / (interval*2/4281))
     try:
