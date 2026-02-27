@@ -106,5 +106,5 @@ def rich_transcription_postprocess_text_only(s):
 if __name__ == "__main__":
     # input_path = r"tmp/15-1_5.wav" # f"{model.model_path}/example/en.mp3"
     input_path = r"input_single/15-1.wav"
-    text = get_text_from_audio(input_path)
-    print(text)
+    # text = get_text_from_audio(input_path)
+    # print(text)

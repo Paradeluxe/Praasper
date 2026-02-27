@@ -11,19 +11,19 @@ import concurrent.futures
 from tqdm import tqdm
 
 try:
+    from .VAD.tool_auto import *
+    from .select_word import *
     from .utils import *
     from .process import *
-    from .select_word import *
-    # from .post_process import *
 
 except ImportError:
+    from praasper.VAD.tool_auto import *
+    from praasper.select_word import *
     from praasper.utils import *
     from praasper.process import *
-    from praasper.select_word import *
-    # from praasper.post_process import *
 
 os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'  # 设置镜像源
-os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+# os.environ["TRANSFORMERS_VERBOSITY"] = "error"
 # os.environ["DISABLE_TQDM"] = "1"
 
 # 清空资源
@@ -77,11 +77,6 @@ class init_model:
             infer_mode=self.infer_mode,
             device=self.device
         )
-
-        # init_LLM(self.LLM)
-
-
-        # self.g2p = G2PModel()
 
         self.params = {'onset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
 

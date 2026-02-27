@@ -36,4 +36,4 @@ def bandpass_filter(data, lowcut, highcut, fs, order=4):
     
 
 if __name__ == '__main__':
-    print(extract_cvt('我', 'zh'))
+    pass

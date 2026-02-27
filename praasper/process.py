@@ -1,17 +1,17 @@
 from textgrid import IntervalTier, TextGrid
 
 try:
-    import matplotlib.pyplot as plt
-except ImportError:
-    pass
-
-try:
     from utils import *
     from VAD.core_auto import *
+    from VAD.tool_auto import *
+    # from process import *
 
 except ImportError:
     from praasper.utils import *
     from praasper.VAD.core_auto import *
+    from praasper.VAD.tool_auto import *
+    # from praasper.process import *
+
 import os
 
 import unicodedata

@@ -186,7 +186,6 @@ def check_requirements():
     
     # 检查twine
     try:
-        import twine
         log("✓ twine 已安装")
     except ImportError:
         log("错误: twine 未安装，请运行 'pip install twine'", level="error")
@@ -194,7 +193,6 @@ def check_requirements():
     
     # 检查build
     try:
-        import build
         log("✓ build 已安装")
     except ImportError:
         log("错误: build 未安装，请运行 'pip install build'", level="error")

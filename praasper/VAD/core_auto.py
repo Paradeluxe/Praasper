@@ -1,4 +1,3 @@
-import gc
 import math
 import os
 import copy
@@ -6,10 +5,8 @@ import numpy as np
 from sklearn.cluster import DBSCAN
 
 try:
-    from .tool_auto import ReadSound
     from ..utils import show_elapsed_time, bandpass_filter
 except ImportError:
-    from praasper.VAD.tool_auto import ReadSound
     from praasper.utils import show_elapsed_time, bandpass_filter
 
 # plat = os.name.lower()
