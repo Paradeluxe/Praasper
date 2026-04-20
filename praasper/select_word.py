@@ -7,17 +7,17 @@ except ImportError:
 
 
 class SelectWord:
-    def __init__(self, model: str="iic/SenseVoiceSmall", vad_model: str="fsmn-vad", device: str="auto", infer_mode: str="direct"):
+    def __init__(self, model: str="iic/SenseVoiceSmall", vad_model: str="fsmn-vad", device: str="auto"):
         print(f"[{show_elapsed_time()}] Initializing ASR {model}")
         # 自动检测设备
         if device == "auto":
             import torch
             device = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.device = device
-        self.infer_mode = infer_mode
         self.kwargs = {}
         
-        if infer_mode == "direct":
+        if model == "FunAudioLLM/Fun-ASR-Nano-2512":    
+            self.infer_mode = "direct"
             # 使用 FunASRNano 直接模式
             from funasr.models.fun_asr_nano.model import FunASRNano
             # from model import FunASRNano
@@ -40,14 +40,14 @@ class SelectWord:
                 # punc_model="ct-punc",
                 vad_kwargs={"max_single_segment_time": 30000},
                 device=self.device,
-                # disable_update=True,
+                disable_update=True,
                 # disable_pbar=True,
                 # disable_log=True,
                 # use_timestamp=True
                 download_model=False,
                 # trust_remote_code=True,
             )
-        
+    
 
     def transcribe(self, input_path, lang: str="zh"):
 

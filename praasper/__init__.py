@@ -40,21 +40,15 @@ class init_model:
     def __init__(
         self,
         ASR: str="iic/SenseVoiceSmall",
-        infer_mode: str = "funasr",
-        # LLM: str="Qwen/Qwen2.5-1.5B-Instruct",
         device: str= "cpu"
     ):
 
-        # 验证 infer_mode 参数值
-        allowed_modes = ["direct", "funasr"]
-        if infer_mode not in allowed_modes:
-            raise ValueError(f"infer_mode must be one of {allowed_modes}, got {infer_mode}")
         
-        # if infer_mode == "direct" and ASR != "FunAudioLLM/Fun-ASR-Nano-2512":
-        #     self.tokenizer = init_tokenizer(ASR)
+        if ASR != "FunAudioLLM/Fun-ASR-Nano-2512":
+            self.tokenizer = init_tokenizer(ASR)
         
         self.ASR = ASR
-        self.infer_mode = infer_mode
+        # self.infer_mode = infer_mode
         # self.LLM = LLM
         self.device = device
 
@@ -74,7 +68,7 @@ class init_model:
 
         self.model = SelectWord(
             model=self.ASR,
-            infer_mode=self.infer_mode,
+            # infer_mode=self.infer_mode,
             device=self.device
         )
 
@@ -337,8 +331,10 @@ class init_model:
 
         standard_result = self.model.transcribe(selected_audio_path)
         standard_transcript = standard_result[0][0]["text_tn"]  # text_tn 没有标点符号
+        standard_transcript_timestamps = standard_result[0][0]["timestamps"]
+        # print(standard_transcript_timestamps)
 
-
+        # exit()
         # params = default_params
         # params["offset"] = params["onset"]  # VAD模式特供
 
@@ -357,13 +353,14 @@ class init_model:
 
         # 使用示例
         param_grid = {
-            'amp': np.arange(1.1, 1.5, 0.2),  #！找最多interval的amp
-            "cutoff0": [0, 200],#range(0, 400, 200),
+            'amp': np.arange(1.05, 1.5, 0.1),  #！找最多interval的amp
+            "cutoff0": [0, 60, 200],#range(0, 400, 200),
             'cutoff1': [min(audio_obj.frame_rate//2, 10800)],
-            "numValid": [2000],#[int(min_speech/2*audio_obj.frame_rate//2)],
+            "numValid": [400, 2000],#[int(min_speech/2*audio_obj.frame_rate//2)],
 
-            'eps_ratio': np.arange(0.01, 0.15, 0.04)
+            'eps_ratio': np.arange(0.01, 0.08, 0.02)
         }
+        
         def grid_search_optimal_params(params_replace):
         # for params_replace in generate_param_grid(param_grid):
             # res_key = (params_replace["amp"], params_replace["cutoff0"])
@@ -456,45 +453,60 @@ class init_model:
                 onsets = [x for x in onsets if x not in bad_onsets]
                 offsets = [x for x in offsets if x not in bad_offsets]
 
-                os.makedirs(tmp_path, exist_ok=True)  # 确保临时目录存在
+                total_overlap = 0.0
+                for onset, offset in zip(onsets[1:-1], offsets[1:-1]):
+                    for ts in standard_transcript_timestamps:
+                        ts_start, ts_end = ts["start_time"], ts["end_time"]
+                        overlap_ratio = max(0.0, min(offset, ts_end) - max(onset, ts_start)) / (ts_end - ts_start)
+                        # print(ts_start, ts_end, onset, offset, overlap_ratio)
+                        # exit()
+                        # print(overlap)
+                        
+                        total_overlap += overlap_ratio
+                # print(total_overlap)
+                # exit()
+                # total_overlap_ratio = total_overlap / sum(ts["end_time"] - ts["start_time"] for ts in standard_transcript_timestamps) if standard_transcript_timestamps else 0.0
 
-                audio_obj_clipped = None
-                for i, (onset, offset) in enumerate(zip(onsets, offsets)):
-                    if audio_obj_clipped is None:
-                        audio_obj_clipped = selected_audio[onset*1000:offset*1000]
-                    else:
-                        audio_obj_clipped += selected_audio[onset*1000:offset*1000]
+            #     os.makedirs(tmp_path, exist_ok=True)  # 确保临时目录存在
+
+            #     audio_obj_clipped = None
+            #     for i, (onset, offset) in enumerate(zip(onsets, offsets)):
+            #         if audio_obj_clipped is None:
+            #             audio_obj_clipped = selected_audio[onset*1000:offset*1000]
+            #         else:
+            #             audio_obj_clipped += selected_audio[onset*1000:offset*1000]
                     
-                    if i != len(onsets)-1:
-                        # 创建500ms空白音频
-                        silence_duration = 0.2  # 500ms
-                        silence_samples = int(silence_duration * selected_audio.frame_rate)
-                        silence_arr = np.zeros(silence_samples, dtype=np.float32)
-                        silence_audio = ReadSound(fpath=None, arr=silence_arr, duration_seconds=silence_duration, frame_rate=selected_audio.frame_rate)
-                        audio_obj_clipped += silence_audio 
-                # 为裁剪的音频文件生成唯一的文件名
-                base_name = os.path.splitext(os.path.basename(wav_path))[0]
-                clip_path = os.path.join(tmp_path, f"{base_name}_clip_{i}.wav")
-                audio_obj_clipped.save(clip_path)
+            #         if i != len(onsets)-1:
+            #             # 创建500ms空白音频
+            #             silence_duration = 0.2  # 500ms
+            #             silence_samples = int(silence_duration * selected_audio.frame_rate)
+            #             silence_arr = np.zeros(silence_samples, dtype=np.float32)
+            #             silence_audio = ReadSound(fpath=None, arr=silence_arr, duration_seconds=silence_duration, frame_rate=selected_audio.frame_rate)
+            #             audio_obj_clipped += silence_audio 
+            #     # 为裁剪的音频文件生成唯一的文件名
+            #     base_name = os.path.splitext(os.path.basename(wav_path))[0]
+            #     clip_path = os.path.join(tmp_path, f"{base_name}_clip_{i}.wav")
+            #     audio_obj_clipped.save(clip_path)
 
             
-                # 转录并获取结果
-                clip_result = self.model.transcribe(clip_path)
-                clip_transcript = clip_result[0][0]["text_tn"]
+            #     # 转录并获取结果
+            #     clip_result = self.model.transcribe(clip_path)
+            #     clip_transcript = clip_result[0][0]["text_tn"]
 
-                similarity = jellyfish.jaro_winkler_similarity(clip_transcript, standard_transcript)
-                similarity = min(similarity, 0.9)
+            #     similarity = jellyfish.jaro_winkler_similarity(clip_transcript[2:-2], standard_transcript[2:-2])
+            #     similarity = min(similarity, 0.95)
                 
-            else:
-                similarity = 0.
-                num_intervals = 0  # 可能有潜在bug，即所有num_intervals都等于0（日后待修）
+            # else:
+            #     similarity = 0.
+            #     num_intervals = 0  # 可能有潜在bug，即所有num_intervals都等于0（日后待修）
 
-            # 复制两个变量
-            num_intervals_copy = num_intervals
+            # 复制变量
+            total_overlap_copy = copy.deepcopy(total_overlap)
+            num_intervals_copy = copy.deepcopy(num_intervals)
             adjusted_params_copy = copy.deepcopy(adjusted_params)
 
             # 然后可以像原来一样使用复制后的变量
-            return [num_intervals_copy, similarity, adjusted_params_copy]
+            return [total_overlap_copy, num_intervals_copy, adjusted_params_copy]
             # result.append([num_intervals_copy, similarity, adjusted_params_copy])
         
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:  # 使用线程池并发处理
@@ -502,10 +514,10 @@ class init_model:
                               total=len(list(generate_param_grid(param_grid))),
                               desc=f"{file_info} Locate optimal params", leave=False))
         
-        max_result = max(result, key=lambda x: (x[1], x[0]))
-        max_item, best_params = max_result[0], max_result[2]
-        if verbose:
-            print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD best numIntervals: {max_item}, params: {best_params['onset']}")
+        max_result = max(result, key=lambda x: (x[0], x[1]))
+        max_overlap, max_intervals, best_params = max_result
+        # if verbose:
+        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD best overlap: {max_overlap}, numIntervals: {max_intervals}, params: {best_params['onset']}")
 
         self.params = best_params
 
