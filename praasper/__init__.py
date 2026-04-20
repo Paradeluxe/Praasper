@@ -72,7 +72,7 @@ class init_model:
             device=self.device
         )
 
-        self.params = {'onset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.47', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
+        self.params = {'onset': {'amp': '1.05', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.05', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
 
 
     def annote(
@@ -353,12 +353,12 @@ class init_model:
 
         # 使用示例
         param_grid = {
-            'amp': np.arange(1.05, 1.5, 0.1),  #！找最多interval的amp
-            "cutoff0": [0, 60, 200],#range(0, 400, 200),
+            # 'amp': np.arange(1.05, 1.2, 0.1),  #！找最多interval的amp
+            "cutoff0": [60, 200],#range(0, 400, 200),
             'cutoff1': [min(audio_obj.frame_rate//2, 10800)],
             "numValid": [400, 2000],#[int(min_speech/2*audio_obj.frame_rate//2)],
 
-            'eps_ratio': np.arange(0.01, 0.08, 0.02)
+            'eps_ratio': np.arange(0.03, 0.08, 0.01)
         }
         
         def grid_search_optimal_params(params_replace):
@@ -463,42 +463,6 @@ class init_model:
                         # print(overlap)
                         
                         total_overlap += overlap_ratio
-                # print(total_overlap)
-                # exit()
-                # total_overlap_ratio = total_overlap / sum(ts["end_time"] - ts["start_time"] for ts in standard_transcript_timestamps) if standard_transcript_timestamps else 0.0
-
-            #     os.makedirs(tmp_path, exist_ok=True)  # 确保临时目录存在
-
-            #     audio_obj_clipped = None
-            #     for i, (onset, offset) in enumerate(zip(onsets, offsets)):
-            #         if audio_obj_clipped is None:
-            #             audio_obj_clipped = selected_audio[onset*1000:offset*1000]
-            #         else:
-            #             audio_obj_clipped += selected_audio[onset*1000:offset*1000]
-                    
-            #         if i != len(onsets)-1:
-            #             # 创建500ms空白音频
-            #             silence_duration = 0.2  # 500ms
-            #             silence_samples = int(silence_duration * selected_audio.frame_rate)
-            #             silence_arr = np.zeros(silence_samples, dtype=np.float32)
-            #             silence_audio = ReadSound(fpath=None, arr=silence_arr, duration_seconds=silence_duration, frame_rate=selected_audio.frame_rate)
-            #             audio_obj_clipped += silence_audio 
-            #     # 为裁剪的音频文件生成唯一的文件名
-            #     base_name = os.path.splitext(os.path.basename(wav_path))[0]
-            #     clip_path = os.path.join(tmp_path, f"{base_name}_clip_{i}.wav")
-            #     audio_obj_clipped.save(clip_path)
-
-            
-            #     # 转录并获取结果
-            #     clip_result = self.model.transcribe(clip_path)
-            #     clip_transcript = clip_result[0][0]["text_tn"]
-
-            #     similarity = jellyfish.jaro_winkler_similarity(clip_transcript[2:-2], standard_transcript[2:-2])
-            #     similarity = min(similarity, 0.95)
-                
-            # else:
-            #     similarity = 0.
-            #     num_intervals = 0  # 可能有潜在bug，即所有num_intervals都等于0（日后待修）
 
             # 复制变量
             total_overlap_copy = copy.deepcopy(total_overlap)
