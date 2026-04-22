@@ -7,72 +7,108 @@ except ImportError:
 
 
 class SelectWord:
-    def __init__(self, model: str="iic/SenseVoiceSmall", vad_model: str="fsmn-vad", device: str="auto"):
+    def __init__(self, model: str="iic/SenseVoiceSmall", vad_model: str="fsmn-vad", device: str="auto", api_key: str=None):
         print(f"[{show_elapsed_time()}] Initializing ASR {model}")
-        # 自动检测设备
-        if device == "auto":
-            import torch
-            device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        self.device = device
+        self.api_key = api_key
         self.kwargs = {}
         
-        if model == "FunAudioLLM/Fun-ASR-Nano-2512":    
+        if model.startswith("dashscope:"):
+            self.infer_mode = "dashscope"
+            self.dashscope_model = model.replace("dashscope:", "")
+            print(f"[{show_elapsed_time()}] Using DashScope API: {self.dashscope_model}")
+        elif device == "api" or model == "dashscope":
+            self.infer_mode = "dashscope"
+            self.dashscope_model = "fun-asr"
+            print(f"[{show_elapsed_time()}] Using DashScope API (default model: fun-asr)")
+        elif model == "FunAudioLLM/Fun-ASR-Nano-2512":    
             self.infer_mode = "direct"
-            # 使用 FunASRNano 直接模式
+            if device == "auto":
+                import torch
+                device = "cuda:0" if torch.cuda.is_available() else "cpu"
+            self.device = device
             from funasr.models.fun_asr_nano.model import FunASRNano
-            # from model import FunASRNano
             self.model, self.kwargs = FunASRNano.from_pretrained(
                 model=model,
                 disable_pbar=True,
-                # checkpoint_callback=False,
-                # trust_remote_code=False,
                 disable_tqdm=True,
                 device=self.device,
             )
             self.model.eval()
-
-
         else:
-            # 默认使用 AutoModel
+            if device == "auto":
+                import torch
+                device = "cuda:0" if torch.cuda.is_available() else "cpu"
+            self.device = device
+            self.infer_mode = "funasr"
             self.model = AutoModel(
                 model=model,
                 vad_model=vad_model,
-                # punc_model="ct-punc",
                 vad_kwargs={"max_single_segment_time": 30000},
                 device=self.device,
                 disable_update=True,
-                # disable_pbar=True,
-                # disable_log=True,
-                # use_timestamp=True
                 download_model=False,
-                # trust_remote_code=True,
             )
     
 
     def transcribe(self, input_path, lang: str="zh"):
-
-        if self.infer_mode == "direct":
-            # 使用 FunASRNano 的 inference 方法
+        if self.infer_mode == "dashscope":
+            return self._dashscope_transcribe(input_path, lang)
+        elif self.infer_mode == "direct":
             res = self.model.inference(data_in=[input_path], **self.kwargs)
-            # print(res)
-            # text = res[0][0]["text"]
         else:
-            # 使用 AutoModel 的 generate 方法
             res = self.model.generate(
                 input=input_path,
                 language=lang, 
                 use_itn=False,
-                #hotword="必须使用中文输出",
-                # batch_size_s=60,
-                # merge_length_s=15,
-
             )
-            # text = res[0]["text"]
-        # print(res)
-        # exit()
-        # text = rich_transcription_postprocess_text_only(text)
-        # return text
         return res
+
+    def _dashscope_transcribe(self, input_path, lang: str="zh"):
+        import os
+        from http import HTTPStatus
+        import dashscope
+        from dashscope.audio.asr import Transcription
+        from urllib import request
+        import json
+        import time
+        
+        if self.api_key:
+            dashscope.api_key = self.api_key
+        elif os.environ.get("DASHSCOPE_API_KEY"):
+            dashscope.api_key = os.environ.get("DASHSCOPE_API_KEY")
+        else:
+            raise ValueError("DashScope API key not found. Please set DASHSCOPE_API_KEY environment variable or provide api_key parameter.")
+        
+        dashscope.base_http_api_url = 'https://dashscope.aliyuncs.com/api/v1'
+        
+        file_url = input_path if input_path.startswith(('http://', 'https://', 'oss://')) else None
+        
+        if not file_url:
+            raise ValueError("DashScope API requires a public URL. Local file upload is not supported. Please upload your audio file to a public URL first.")
+        
+        task_response = Transcription.async_call(
+            model=self.dashscope_model,
+            file_urls=[file_url],
+            language_hints=[lang] if lang else None,
+        )
+        
+        if task_response.status_code != HTTPStatus.OK:
+            raise Exception(f"Failed to submit task: {task_response.message}")
+        
+        while True:
+            transcription_response = Transcription.wait(task=task_response.output.task_id)
+            
+            if transcription_response.status_code == HTTPStatus.OK:
+                results = transcription_response.output.get('results', [])
+                if results and results[0].get('subtask_status') == 'SUCCEEDED':
+                    url = results[0].get('transcription_url')
+                    result = json.loads(request.urlopen(url).read().decode('utf8'))
+                    text = result.get('text', '')
+                    return [[{"text": text, "text_tn": text, "timestamps": [], "ctc_timestamps": []}]]
+                elif results and results[0].get('subtask_status') == 'FAILED':
+                    raise Exception(f"Transcription failed: {results[0]}")
+            
+            time.sleep(1)
 
 
 
