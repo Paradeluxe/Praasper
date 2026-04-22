@@ -34,7 +34,68 @@ def clear_resources():
     # 强制垃圾回收
     gc.collect()
 
+
+# ── VAD param validation ────────────────────────────────────────────────────────
+VAD_REQUIRED_KEYS = {"amp", "cutoff0", "cutoff1", "numValid", "eps_ratio"}
+
+
+def validate_vad_params(params):
+    """
+    Validate that params is a dict with required VAD structure.
+
+    Expected format:
+        {
+            "onset": {"amp": str, "cutoff0": str, "cutoff1": str, "numValid": str, "eps_ratio": str},
+            "offset": {"amp": str, "cutoff0": str, "cutoff1": str, "numValid": str, "eps_ratio": str}
+        }
+
+    Raises ValueError if validation fails.
+    """
+    if not isinstance(params, dict):
+        raise ValueError(f"params must be a dict, got {type(params).__name__}")
+
+    for section in ("onset", "offset"):
+        if section not in params:
+            raise ValueError(f"params missing required section '{section}'")
+        if not isinstance(params[section], dict):
+            raise ValueError(f"params['{section}'] must be a dict, got {type(params[section]).__name__}")
+        missing = VAD_REQUIRED_KEYS - set(params[section].keys())
+        if missing:
+            raise ValueError(f"params['{section}'] missing required keys: {sorted(missing)}")
+
+
+def load_params_from_file(path):
+    """
+    Load VAD params from a .txt file.
+
+    The file must contain a valid Python dict literal that can be eval()'d.
+    The loaded dict is validated via validate_vad_params() before being returned.
+
+    Raises ValueError if the file cannot be read or the content is not valid VAD params.
+    """
+    if not os.path.isfile(path):
+        raise ValueError(f"params file not found: {path}")
+
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            raw = f.read()
+        params = eval(raw)
+    except Exception as e:
+        raise ValueError(f"Failed to eval params from '{path}': {e}") from e
+
+    validate_vad_params(params)
+    return params
+
+
+# ── Default params (exposed for users to copy and modify) ─────────────────────
+_default_params = {'onset': {'amp': '1.05', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'},
+                   'offset': {'amp': '1.05', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
+
+
 class init_model:
+
+    # Expose default params so users can copy and modify them
+    default_params = _default_params
 
     def __init__(
         self,
@@ -42,10 +103,10 @@ class init_model:
         device: str= "auto"
     ):
 
-        
+
         if ASR != "FunAudioLLM/Fun-ASR-Nano-2512":
             self.tokenizer = init_tokenizer(ASR)
-        
+
         self.ASR = ASR
         # self.infer_mode = infer_mode
         # self.LLM = LLM
@@ -71,7 +132,7 @@ class init_model:
             device=self.device
         )
 
-        self.params = {'onset': {'amp': '1.05', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}, 'offset': {'amp': '1.05', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
+        self.params = _default_params.copy()
 
 
     def annote(
@@ -81,7 +142,44 @@ class init_model:
         min_pause=0.2,
         skip_existing: bool=False,
         verbose: bool=False,
+        params=None,
     ):
+        """
+        Annotate audio file(s) with word-level timestamps.
+
+        Parameters
+        ----------
+        input_path : str
+            Path to a .wav file or a directory containing .wav files.
+        seg_dur : float, default 10.0
+            Maximum duration (seconds) per audio segment.
+        min_pause : float, default 0.2
+            Minimum pause (seconds) between speech segments.
+        skip_existing : bool, default False
+            If True, skip files that already have a output TextGrid.
+        verbose : bool, default False
+            Print verbose progress messages.
+        params : None or dict or str, default None
+            VAD parameters to use. Three modes:
+              - None           : run auto_vad() grid search to find optimal params (default).
+              - dict           : use the given params dict directly (must have onset/offset structure).
+              - str (filepath) : load params from a .txt file via eval(), then use them.
+        """
+        # ── Resolve and validate params ──────────────────────────────────────
+        if params is not None:
+            if isinstance(params, str):
+                # Filepath: load from .txt file
+                params = load_params_from_file(params)
+            elif isinstance(params, dict):
+                validate_vad_params(params)
+            else:
+                raise TypeError(
+                    f"params must be None, a dict, or a str filepath, got {type(params).__name__}"
+                )
+            self.params = params
+        # else: params is None → auto_vad() will run and set self.params below
+
+
         if os.path.isdir(input_path):
             fnames = [os.path.splitext(f)[0] for f in os.listdir(input_path) if f.endswith('.wav')]
             print(f"[{show_elapsed_time()}] {len(fnames)} valid audio files detected in {input_path}")
@@ -131,12 +229,13 @@ class init_model:
             os.makedirs(output_path, exist_ok=True)
 
 
-            # auto search best params
-            self.auto_vad(
-                wav_path=wav_path,
-                min_pause=min_pause,
-                file_info=file_info,
-            )
+            # auto search best params — only run when params was not provided
+            if params is None:
+                self.auto_vad(
+                    wav_path=wav_path,
+                    min_pause=min_pause,
+                    file_info=file_info,
+                )
 
             final_tg = TextGrid()
             final_tg.tiers.append(IntervalTier(name="words", minTime=0., maxTime=audio_obj.duration_seconds))
@@ -164,7 +263,7 @@ class init_model:
                 # except Exception as e:
                 #     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) VAD Error: {e}")
                 #     return [None, None, None]
-                
+
                 intervals = vad_tg.tiers[0].intervals
                 valid_intervals = [interval for interval in intervals if interval.mark not in ["", None]]# and interval.maxTime - interval.minTime > min_speech]
                 # print(valid_intervals)
@@ -182,17 +281,17 @@ class init_model:
 
                     for interval in valid_intervals:
                         s_i, e_i = interval.minTime, interval.maxTime
-                        
+
                         # 计算重叠时间
                         overlap_start = max(s_w, s_i)
                         overlap_end = min(e_w, e_i)
                         overlap = max(0, overlap_end - overlap_start)
-                        
+
                         # 如果有重叠且比当前最大重叠大
                         if overlap > max_overlap:
                             max_overlap = overlap
                             best_interval = interval
-                        
+
                         # 计算距离（无重叠时使用）
                         if overlap == 0:
                             # 计算单词与间隔的距离
@@ -202,25 +301,25 @@ class init_model:
                             else:
                                 # 单词在间隔后
                                 distance = s_w - e_i
-                            
+
                             if distance < min_distance:
                                 min_distance = distance
                                 closest_interval = interval
-                    
+
                     # 选择最佳间隔
                     if best_interval is not None:
                         selected_interval = best_interval
                     else:
                         selected_interval = closest_interval
-                    
+
                     # 将单词添加到选定的间隔
                     if selected_interval is not None:
                         if selected_interval.mark == "+":
                             selected_interval.mark = ""
-                        
+
                         selected_interval.mark += f"{t_w}"
                         # selected_interval.words.append((t_w, s_w, e_w))
-                
+
                 timestamps = []
                 for idx, valid_interval in enumerate(valid_intervals):
                     s, e = valid_interval.minTime, valid_interval.maxTime
@@ -231,14 +330,14 @@ class init_model:
                     text = purify_text(text)
                     if not text or text == "+":
                         continue
-                
+
 
                     s_point = s + start/1000
                     e_point = e + start/1000
 
                     if e_point >= audio_obj.duration_seconds:
                         e_point = audio_obj.duration_seconds
-                    
+
                     timestamps.append([s_point, e_point, text])
 
                 return timestamps
@@ -278,13 +377,30 @@ class init_model:
                     i = 1
                 else:
                     i += 1
- 
+
             # ----------------------------
             final_tg.write(final_path)
-                
+
         if os.path.exists(tmp_path):
             shutil.rmtree(tmp_path)
         # print(f"--------------- Processing completed ---------------")
+
+
+    def export_params(self, path):
+        """
+        Export the current VAD params to a .txt file.
+
+        The file is written as a valid Python dict literal so it can be
+        loaded again via annote(params='/path/to/file.txt').
+
+        Parameters
+        ----------
+        path : str
+            Destination file path (should have .txt extension).
+        """
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(repr(self.params))
+        print(f"[{show_elapsed_time()}] Params exported to {path}")
 
 
     def auto_vad(self, wav_path, min_pause=0.2, verbose=False, file_info=""):
@@ -292,6 +408,7 @@ class init_model:
         自动选取最优的VAD参数，根据随机选取的10秒音频。
 
         """
+
 
 
         # print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD processing started...")
@@ -314,12 +431,12 @@ class init_model:
             # 音频不足时间，选取整个音频
             start_time = 0
             end_time = audio_obj.duration_seconds
-        
+
         # 截取选定的音频段
         selected_audio = audio_obj[start_time*1000:end_time*1000]
         if verbose:
             print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Selected audio: {start_time:.3f} - {end_time:.3f}")
-        
+
         # 确保临时目录存在
         os.makedirs(tmp_path, exist_ok=True)
         # 将selected_audio保存到tmp文件夹
@@ -359,11 +476,11 @@ class init_model:
 
             'eps_ratio': np.arange(0.03, 0.08, 0.01)
         }
-        
+
         def grid_search_optimal_params(params_replace):
         # for params_replace in generate_param_grid(param_grid):
             # res_key = (params_replace["amp"], params_replace["cutoff0"])
-            adjusted_params = default_params.copy()
+            adjusted_params = _default_params.copy()
             adjusted_params["offset"] = adjusted_params["onset"]
             # print(adjusted_params)
             for p in params_replace:
@@ -372,9 +489,9 @@ class init_model:
             adjusted_params["offset"] = adjusted_params["onset"]
 
             # print(adjusted_params)
-            # print(f"[{show_elapsed_time()}] Testing {adjusted_params["onset"]}")
+            # print(f"[{show_elapsed_time()}] Testing {adjusted_params['onset']}")
             # exit()
-            
+
             onsets = autoPraditorWithTimeRange(adjusted_params, selected_audio, "onset", verbose=False)
             offsets = autoPraditorWithTimeRange(adjusted_params, selected_audio, "offset", verbose=False)
 
@@ -382,10 +499,10 @@ class init_model:
             offsets = sorted(offsets)
 
 
-            if verbose:   
+            if verbose:
                 print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD onsets: {onsets}")
                 print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD offsets: {offsets}")
-                
+
 
 
             if onsets or offsets:
@@ -397,7 +514,7 @@ class init_model:
 
                 if onsets[0] >= offsets[0]:
                     onsets = [0.0] + onsets
-                
+
                 if offsets[-1] <= onsets[-1]:
                     offsets.append(selected_audio.duration_seconds)
 
@@ -432,12 +549,12 @@ class init_model:
                             except ValueError:
                                 pass
                     valid_offsets = list(reversed(valid_offsets))
-                
+
 
 
                 onsets = sorted(valid_onsets)
                 offsets = sorted(valid_offsets)
-                
+
                 num_intervals = len(onsets)
 
                 # 根据min pause 调整onset和offset
@@ -460,7 +577,7 @@ class init_model:
                         # print(ts_start, ts_end, onset, offset, overlap_ratio)
                         # exit()
                         # print(overlap)
-                        
+
                         total_overlap += overlap_ratio
 
             # 复制变量
@@ -471,12 +588,12 @@ class init_model:
             # 然后可以像原来一样使用复制后的变量
             return [total_overlap_copy, num_intervals_copy, adjusted_params_copy]
             # result.append([num_intervals_copy, similarity, adjusted_params_copy])
-        
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:  # 使用线程池并发处理
             result = list(tqdm(executor.map(grid_search_optimal_params, generate_param_grid(param_grid)),
                               total=len(list(generate_param_grid(param_grid))),
                               desc=f"{file_info} Locate optimal params", leave=False))
-        
+
         max_result = max(result, key=lambda x: (x[0], x[1]))
         max_overlap, max_intervals, best_params = max_result
         # if verbose:
