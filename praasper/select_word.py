@@ -7,7 +7,7 @@ except ImportError:
 
 
 class SelectWord:
-    def __init__(self, model: str="iic/SenseVoiceSmall", vad_model: str="fsmn-vad", device: str="auto", api_key: str=None):
+    def __init__(self, model: str="FunAudioLLM/Fun-ASR-Nano-2512", vad_model: str="fsmn-vad", device: str="auto", api_key: str=None):
         print(f"[{show_elapsed_time()}] Initializing ASR {model}")
         self.api_key = api_key
         self.kwargs = {}

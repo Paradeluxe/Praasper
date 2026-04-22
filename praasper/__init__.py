@@ -38,8 +38,8 @@ class init_model:
 
     def __init__(
         self,
-        ASR: str="iic/SenseVoiceSmall",
-        device: str= "cpu"
+        ASR: str="FunAudioLLM/Fun-ASR-Nano-2512",
+        device: str= "auto"
     ):
 
         
