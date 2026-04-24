@@ -34,12 +34,17 @@ from pathlib import Path
 from itertools import product
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
-HERMES_HUNTER = Path("/mnt/e/hermes_playground/hunter")
+# Defaults — override via CLI args: --audio-dir, --answers-dir, --results-dir, etc.
+SCRIPT_DIR    = Path(__file__).resolve().parent
+PRAASPER_REPO = SCRIPT_DIR.parent           # ../  (repo root)
+HERMES_HUNTER = PRAASPER_REPO.parent / "hunter"
 AUDIO_DIR     = Path("/mnt/e/ProjLegacy/Test_All_Models_for_Praasper/audio")
 ANSWERS_DIR   = Path("/mnt/e/ProjLegacy/Test_All_Models_for_Praasper/answers")
 RESULTS_DIR   = HERMES_HUNTER / "results"
-PRAASPER_REPO = Path("/mnt/e/praasper")
 MODELSCOPE_CACHE = "/mnt/e/modelscope_cache"
+
+# Patch scoring script path (HERMES_HUNTER may not exist yet — handled at runtime)
+sys.path.insert(0, str(HERMES_HUNTER))
 
 # ── Master CSV ─────────────────────────────────────────────────────────────────
 CSV_PATH = RESULTS_DIR / "results_all.csv"
@@ -66,10 +71,10 @@ GRID = {
     "eps_ratio":  EPS_VALS,
 }
 
-# ── Scoring ───────────────────────────────────────────────────────────────────
-# score_pinyin_wer.py is imported after we patch its RESULTS_DIR
-# We call score_pair() directly.
-sys.path.insert(0, str(HERMES_HUNTER))
+# ── Scoring via score_pinyin_wer helpers ─────────────────────────────────────
+from pypinyin import lazy_pinyin
+from Levenshtein import distance as lev_dist
+from collections import defaultdict
 
 
 def build_params_dict(amp, cutoff0, cutoff1, numValid, eps_ratio):
@@ -131,11 +136,6 @@ def load_out_intervals(out_path):
                 })
     return result
 
-
-# ── Import scoring helpers from score_pinyin_wer ──────────────────────────────
-from pypinyin import lazy_pinyin
-from Levenshtein import distance as lev_dist
-from collections import defaultdict
 
 
 def to_pinyin(text: str) -> list:
@@ -606,7 +606,22 @@ if __name__ == "__main__":
                         help="Suffix appended to result subdir name, e.g. '_r1' → results/01-1_r1/")
     parser.add_argument("--resume-skip", action="store_true",
                         help="Skip combos that already have a valid result (resume mode)")
+    parser.add_argument("--audio-dir", type=str, default=str(AUDIO_DIR),
+                        help="Path to audio files directory")
+    parser.add_argument("--answers-dir", type=str, default=str(ANSWERS_DIR),
+                        help="Path to ground truth TextGrid files")
+    parser.add_argument("--results-dir", type=str, default=str(RESULTS_DIR),
+                        help="Path to results output directory")
+    parser.add_argument("--modelscope-cache", type=str, default=MODELSCOPE_CACHE,
+                        help="Path to ModelScope cache directory")
     args = parser.parse_args()
+
+    # Apply CLI overrides to path variables
+    AUDIO_DIR = Path(args.audio_dir)
+    ANSWERS_DIR = Path(args.answers_dir)
+    RESULTS_DIR = Path(args.results_dir)
+    CSV_PATH = RESULTS_DIR / "results_all.csv"
+    MODELSCOPE_CACHE = args.modelscope_cache
 
     # Override EPS_VALS if --eps given
     if args.eps:
