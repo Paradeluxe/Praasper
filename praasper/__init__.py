@@ -469,12 +469,10 @@ class init_model:
 
         # 使用示例
         param_grid = {
-            # 'amp': np.arange(1.05, 1.2, 0.1),  #！找最多interval的amp
-            "cutoff0": [60, 200],#range(0, 400, 200),
-            'cutoff1': [min(audio_obj.frame_rate//2, 10800)],
-            "numValid": [400, 2000],#[int(min_speech/2*audio_obj.frame_rate//2)],
-
-            'eps_ratio': np.arange(0.03, 0.08, 0.01)
+            "cutoff0":   [200],
+            "cutoff1":   [5400],
+            "numValid":  [2000],
+            "eps_ratio": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05],
         }
 
         def grid_search_optimal_params(params_replace):
