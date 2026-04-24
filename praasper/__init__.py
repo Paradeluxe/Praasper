@@ -99,18 +99,26 @@ class init_model:
 
     def __init__(
         self,
-        ASR: str="FunAudioLLM/Fun-ASR-Nano-2512",
-        device: str= "auto"
+        ASR: str=None,  # 可选，默认使用 Nano 模型
+        device: str= "auto",
+        api_key: str=None
     ):
-
-
-        if ASR != "FunAudioLLM/Fun-ASR-Nano-2512":
+        # 如果用户没有指定 ASR，默认使用 Nano
+        if ASR is None:
+            ASR = "FunAudioLLM/Fun-ASR-Nano-2512"
+        # 如果用户指定了 device="api" 但没有明确指定 ASR，使用 DashScope
+        elif device == "api" and ASR == "dashscope":
+            ASR = "dashscope:fun-asr"
+        
+        # 只有当 ASR 不是 dashscope 模式且不是默认模型时，才需要 tokenizer
+        if ASR != "FunAudioLLM/Fun-ASR-Nano-2512" and not ASR.startswith("dashscope:"):
             self.tokenizer = init_tokenizer(ASR)
 
         self.ASR = ASR
         # self.infer_mode = infer_mode
         # self.LLM = LLM
         self.device = device
+        self.api_key = api_key
 
 
         print(f"[{show_elapsed_time()}] Trying device ({self.device})...")
@@ -129,7 +137,8 @@ class init_model:
         self.model = SelectWord(
             model=self.ASR,
             # infer_mode=self.infer_mode,
-            device=self.device
+            device=self.device,
+            api_key=self.api_key
         )
 
         self.params = _default_params.copy()

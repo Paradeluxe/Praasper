@@ -72,10 +72,15 @@ class SelectWord:
         import json
         import time
         
+        print(f"[{show_elapsed_time()}] API key status: {'provided' if self.api_key else 'not provided'}")
+        print(f"[{show_elapsed_time()}] Environment API key: {'found' if os.getenv('DASHSCOPE_API_KEY') else 'not found'}")
+        
         if self.api_key:
             dashscope.api_key = self.api_key
-        elif os.environ.get("DASHSCOPE_API_KEY"):
-            dashscope.api_key = os.environ.get("DASHSCOPE_API_KEY")
+            print(f"[{show_elapsed_time()}] Using provided API key (length: {len(self.api_key)})")
+        elif os.getenv("DASHSCOPE_API_KEY"):
+            dashscope.api_key = os.getenv("DASHSCOPE_API_KEY")
+            print(f"[{show_elapsed_time()}] Using environment API key")
         else:
             raise ValueError("DashScope API key not found. Please set DASHSCOPE_API_KEY environment variable or provide api_key parameter.")
         
@@ -100,13 +105,17 @@ class SelectWord:
             
             if transcription_response.status_code == HTTPStatus.OK:
                 results = transcription_response.output.get('results', [])
-                if results and results[0].get('subtask_status') == 'SUCCEEDED':
-                    url = results[0].get('transcription_url')
-                    result = json.loads(request.urlopen(url).read().decode('utf8'))
-                    text = result.get('text', '')
-                    return [[{"text": text, "text_tn": text, "timestamps": [], "ctc_timestamps": []}]]
-                elif results and results[0].get('subtask_status') == 'FAILED':
-                    raise Exception(f"Transcription failed: {results[0]}")
+                for result_item in results:
+                    if result_item.get('subtask_status') == 'SUCCEEDED':
+                        url = result_item.get('transcription_url')
+                        result = json.loads(request.urlopen(url).read().decode('utf8'))
+                        text = result.get('text', '')
+                        timestamps = result.get('timestamp', [])
+                        return [[{"text": text, "text_tn": text, "timestamps": timestamps, "ctc_timestamps": []}]]
+                    elif result_item.get('subtask_status') == 'FAILED':
+                        raise Exception(f"Transcription failed: {result_item}")
+            else:
+                print(f'Error: {transcription_response.output.message}')
             
             time.sleep(1)
 
