@@ -7,25 +7,24 @@ except ImportError:
 
 
 class SelectWord:
-    def __init__(self, model: str="FunAudioLLM/Fun-ASR-Nano-2512", vad_model: str="fsmn-vad", device: str="auto", api_key: str=None):
-        print(f"[{show_elapsed_time()}] Initializing ASR {model}")
+    def __init__(self, model: str="FunAudioLLM/Fun-ASR-Nano-2512", infer_mode: str="local", vad_model: str="fsmn-vad", device: str="auto", api_key: str=None):
         self.api_key = api_key
         self.kwargs = {}
-        
-        if model.startswith("dashscope:"):
+
+        if infer_mode == "api":
+            # ── DashScope API ──
             self.infer_mode = "dashscope"
-            self.dashscope_model = model.replace("dashscope:", "")
-            print(f"[{show_elapsed_time()}] Using DashScope API: {self.dashscope_model}")
-        elif device == "api" or model == "dashscope":
-            self.infer_mode = "dashscope"
-            self.dashscope_model = "fun-asr"
-            print(f"[{show_elapsed_time()}] Using DashScope API (default model: fun-asr)")
-        elif model == "FunAudioLLM/Fun-ASR-Nano-2512":    
+            self.dashscope_model = model.replace("dashscope:", "") if model.startswith("dashscope:") else "fun-asr"
+            print(f"[{show_elapsed_time()}] ASR backend: DashScope API ({self.dashscope_model})")
+
+        elif model == "FunAudioLLM/Fun-ASR-Nano-2512":
+            # ── Local: FunASR-Nano (direct inference) ──
             self.infer_mode = "direct"
             if device == "auto":
                 import torch
                 device = "cuda:0" if torch.cuda.is_available() else "cpu"
             self.device = device
+            print(f"[{show_elapsed_time()}] ASR backend: FunASR-Nano (local, {self.device})")
             from funasr.models.fun_asr_nano.model import FunASRNano
             self.model, self.kwargs = FunASRNano.from_pretrained(
                 model=model,
@@ -34,12 +33,15 @@ class SelectWord:
                 device=self.device,
             )
             self.model.eval()
+
         else:
+            # ── Local: Generic FunASR model (AutoModel) ──
+            self.infer_mode = "funasr"
             if device == "auto":
                 import torch
                 device = "cuda:0" if torch.cuda.is_available() else "cpu"
             self.device = device
-            self.infer_mode = "funasr"
+            print(f"[{show_elapsed_time()}] ASR backend: FunASR AutoModel ({model}, {self.device})")
             self.model = AutoModel(
                 model=model,
                 vad_model=vad_model,
@@ -71,17 +73,11 @@ class SelectWord:
         import json
         import time
         
-        print(f"[{show_elapsed_time()}] API key status: {'provided' if self.api_key else 'not provided'}")
-        print(f"[{show_elapsed_time()}] Environment API key: {'found' if os.getenv('DASHSCOPE_API_KEY') else 'not found'}")
-        
+        # api_key already validated at init_model time
         if self.api_key:
             dashscope.api_key = self.api_key
-            print(f"[{show_elapsed_time()}] Using provided API key (length: {len(self.api_key)})")
-        elif os.getenv("DASHSCOPE_API_KEY"):
-            dashscope.api_key = os.getenv("DASHSCOPE_API_KEY")
-            print(f"[{show_elapsed_time()}] Using environment API key")
         else:
-            raise ValueError("DashScope API key not found. Please set DASHSCOPE_API_KEY environment variable or provide api_key parameter.")
+            dashscope.api_key = os.getenv("DASHSCOPE_API_KEY")
         
         dashscope.base_http_api_url = 'https://dashscope.aliyuncs.com/api/v1'
         

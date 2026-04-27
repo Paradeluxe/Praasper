@@ -99,44 +99,50 @@ class init_model:
 
     def __init__(
         self,
-        ASR: str=None,  # 可选，默认使用 Nano 模型
-        device: str= "auto",
+        ASR: str=None,
+        infer_mode: str="local",
+        device: str="auto",
         api_key: str=None
     ):
-        # 如果用户没有指定 ASR，默认使用 Nano
-        if ASR is None:
-            ASR = "FunAudioLLM/Fun-ASR-Nano-2512"
-        # 如果用户指定了 device="api" 但没有明确指定 ASR，使用 DashScope
-        elif device == "api" and ASR == "dashscope":
-            ASR = "dashscope:fun-asr"
-        
-        # 只有当 ASR 不是 dashscope 模式且不是默认模型时，才需要 tokenizer
-        if ASR != "FunAudioLLM/Fun-ASR-Nano-2512" and not ASR.startswith("dashscope:"):
-            self.tokenizer = init_tokenizer(ASR)
-
-        self.ASR = ASR
-        # self.infer_mode = infer_mode
-        # self.LLM = LLM
-        self.device = device
+        self.infer_mode = infer_mode
         self.api_key = api_key
 
+        if infer_mode == "api":
+            # ── API mode: DashScope, no local hardware needed ──
+            if not api_key and not os.getenv("DASHSCOPE_API_KEY"):
+                raise ValueError(
+                    "DashScope API key not found. "
+                    "Provide api_key= parameter or set DASHSCOPE_API_KEY environment variable."
+                )
+            self.ASR = "dashscope:fun-asr"
+            self.device = "cpu"  # unused, placeholder
 
-        print(f"[{show_elapsed_time()}] Trying device ({self.device})...")
-        # 检测硬件
-        if self.device == "auto":
-            if torch.cuda.is_available():
-                self.device = "cuda"
-                print(f"[{show_elapsed_time()}] CUDA detected, using GPU.")
-            else:
-                self.device = "cpu"
-                print(f"[{show_elapsed_time()}] CUDA not available, using CPU.")
         else:
-            print(f"[{show_elapsed_time()}] Using device: {self.device}")
+            # ── Local mode ──
+            if ASR is None:
+                ASR = "FunAudioLLM/Fun-ASR-Nano-2512"
+            self.ASR = ASR
 
+            # Hardware detection
+            print(f"[{show_elapsed_time()}] Checking hardware ({device})...")
+            if device == "auto":
+                if torch.cuda.is_available():
+                    self.device = "cuda"
+                    print(f"[{show_elapsed_time()}] CUDA detected, using GPU.")
+                else:
+                    self.device = "cpu"
+                    print(f"[{show_elapsed_time()}] CUDA not available, using CPU.")
+            else:
+                self.device = device
+                print(f"[{show_elapsed_time()}] Hardware: {self.device}")
+
+            # Tokenizer only needed for non-Nano FunASR models
+            if ASR != "FunAudioLLM/Fun-ASR-Nano-2512":
+                self.tokenizer = init_tokenizer(ASR)
 
         self.model = SelectWord(
             model=self.ASR,
-            # infer_mode=self.infer_mode,
+            infer_mode=self.infer_mode,
             device=self.device,
             api_key=self.api_key
         )
