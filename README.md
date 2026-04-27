@@ -6,13 +6,11 @@ https://pypi.org/project/praasper/)
 
 [**Setup**](#setup) | [**Usage**](#how-to-use) | [**Mechanism**](#mechanism)
 
-***Praasper*** is an Automatic Speech Recognition (ASR) framework designed to help researchers transcribe audio files into utterances — from **a single word** to **a complete sentence** — with a decent level of accuracy in both transcription and timestamps.
+***Praasper*** is a speech processing framework designed to help researchers transcribe audio files into word-level timestamps — from a single word to a complete sentence — with high accuracy in both transcription and timestamps.
 
 ![mechanism](promote/mechanism.png)
 
-In ***Praasper***, we adopt a straightforward pipeline to extract utterance-level information from audio files. The pipeline includes **VAD** (*Praditor*), **ASR** (*SenseVoiceSmall*), and **LLM** (*Qwen*).
-
-
+In ***Praasper***, the pipeline has three steps. First, **VAD** (*Praditor*) segments audio into chunks and extracts speech intervals with millisecond-level precision. Second, **ASR** (*Fun-ASR-Nano*) transcribes each chunk with word-level timestamps. Third, timestamps are aligned to VAD intervals and exported as a TextGrid file where each interval contains one word and its start/end time.
 
 # How to use
 
@@ -25,38 +23,31 @@ model = praasper.init_model()
 model.annote("data_folder")
 ```
 
-
-
 Here are the parameters you can pass to `init_model` and `annote`:
 
 | Param | Default | Description |
 | :---: | :---: | :--- |
-| `ASR` | iic/SenseVoiceSmall | Model ID for the ASR core. Check out [**FunASR's model list**](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo) for available models. |
-| `LLM` | Qwen/Qwen2.5-1.5B-Instruct | Model ID for the LLM core. Check out [**Qwen's model list**](https://huggingface.co/Qwen) for available models. |
+| `ASR` | FunAudioLLM/Fun-ASR-Nano-2512 | Model ID for the ASR core. Check out [**FunASR's model list**](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo) for available models. |
 | `input_path` | - | Path to the folder where audio files are stored. |
 | `seg_dur` | 10. | Segment large audio into pieces, in seconds. |
 | `min_pause` | 0.2 | Minimum pause duration between two utterances, in seconds. |
-| `min_speech` | 0.2 | Minimum duration for an utterance, in seconds. |
 | `language` | None | "zh" for Mandarin, "yue" for Cantonese, "en" for English, "ja" for Japanese, "ko" for Korean, and None for automatic language detection. |
 
 Here is a code example showing how to use these parameters:
+
 ```python
 import praasper
 
 model = praasper.init_model(
-    ASR="iic/SenseVoiceSmall",
-    LLM="Qwen/Qwen2.5-1.5B-Instruct"
+    ASR="FunAudioLLM/Fun-ASR-Nano-2512"
 )
 
 model.annote(
     input_path="data_folder",
     min_pause=.8,
-    min_speech=.2,
-    language=None,
     seg_dur=15.
 )
 ```
-
 
 ## Fine-tune *Praditor*
 
@@ -68,21 +59,17 @@ model.annote(
 
 ***Praditor*** will then save a `.txt` param file to the same folder as the input audio file, which ***Praasper*** will use to override the default params.
 
-## ASR/LLM model recommendation
+## ASR model recommendation
 
-For **ASR** core, `iic/SenseVoiceSmall` is the only recommendation at this moment.
-
-For **LLM** core, the recommended models include (from large to small ones): `Qwen/Qwen3-4B-Instruct-2507`, `Qwen/Qwen2.5-1.5B-Instruct` (default). The default is small but good enough for laptop users. You are also welcome to try other Qwen models.
-
-
+The default ASR model is `FunAudioLLM/Fun-ASR-Nano-2512`. It is a lightweight model that runs on laptop CPU and produces word-level timestamps. Other FunASR models can be used by passing the model name to the `ASR` parameter.
 
 # Mechanism
 
-***Praditor*** is applied to perform a **Voice Activity Detection (VAD)** algorithm to (1) segment large audio files into smaller pieces and (2) extract utterances. It can generate intervals with **millisecond-level precision**. It is originally a Speech Onset Detection (SOT) algorithm we developed for language researchers.
+***Praditor*** is applied to perform **Voice Activity Detection (VAD)** — it segments large audio files into smaller pieces and extracts speech intervals with **millisecond-level precision**. It was originally developed as a Speech Onset Detection (SOT) algorithm for language researchers.
 
-**SenseVoiceSmall** is used to transcribe the audio file, but it does not provide timestamps. It is a lightweight ASR model compatible with even laptops. It has better support for short-length audio files compared to *Whisper*.
+**Fun-ASR-Nano** transcribes each audio chunk and provides word-level timestamps. It is lightweight enough to run on a laptop CPU, and supports multiple languages including Mandarin, Cantonese, English, Japanese, and Korean.
 
-In addition, if users want to designate a specific language throughout transcription, an **LLM** (`Qwen/Qwen2.5-1.5B-Instruct`) is added to the framework to correct potential errors in the transcription.
+The VAD intervals and ASR timestamps are then aligned via overlap matching: each word from the ASR output is assigned to the VAD interval it overlaps with most. The result is exported as a TextGrid file where each interval contains one word with its start time, end time, and text.
 
 # Setup
 
@@ -93,10 +80,9 @@ pip install -U praasper
 ```
 > If you have a successful installation and don't care about GPU acceleration, you can stop right here.
 
-
 ## GPU Acceleration (Windows/Linux)
 
-Currently, ***Praasper*** utilizes `SenseVoiceSmall` from [**FunASR**](https://github.com/modelscope/funasr) as the ASR core.
+Currently, ***Praasper*** utilizes `Fun-ASR-Nano` from [**FunASR**](https://github.com/modelscope/funasr) as the ASR core.
 
 > `FunASR` automatically detects the best currently available device to use. But you still need to first install the GPU-support version of `torch` in order to enable CUDA acceleration.
 
@@ -104,8 +90,6 @@ Currently, ***Praasper*** utilizes `SenseVoiceSmall` from [**FunASR**](https://g
 - For **Windows/Linux** users, the priority order should be: `CUDA` -> `CPU`.
 
 If you have no experience in installing `CUDA`, follow the steps below:
-
-
 
 **First**, go to command line and check the latest CUDA version your system supports:
 
@@ -129,8 +113,8 @@ Here is an example for CUDA 12.9:
 pip install --reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu129
 ```
 
-
 ## (Advanced) uv installation
+
 `uv` is also highly recommended for a much **faster** installation. First, make sure `uv` is installed in your default environment:
 
 ```bash
@@ -147,7 +131,6 @@ You should see a new `.venv` folder appear in your project directory. (You may a
 
 Lastly, install `praasper` (by prefixing `pip` with `uv`):
 
-
 ```bash
 uv pip install -U praasper
 ```
@@ -157,7 +140,3 @@ For `CUDA` support, here is an example for downloading `torch` that fits CUDA 12
 ```bash
 uv pip install --reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu129
 ```
-
-# Dev Plan
-- Add support for more LLM models.
-- Separate LLM strategies for error correction and language correction.
