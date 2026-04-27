@@ -99,6 +99,8 @@ model.export_params("/path/to/custom_params.txt")
 
 The default ASR model is `FunAudioLLM/Fun-ASR-Nano-2512`. It is a lightweight model that runs on laptop CPU and produces word-level timestamps. Other FunASR models can be used by passing the model name to the `ASR` parameter.
 
+> **Note on online models:** When using DashScope-based models (via `device="api"`), audio files must be hosted at a public URL (HTTP/HTTPS/OSS). Local file paths are not supported for API mode. For local inference models like FunASR-Nano, local `.wav` files work as expected.
+
 # Mechanism
 
 ***Praditor*** is applied to perform **Voice Activity Detection (VAD)** — it segments large audio files into smaller pieces and extracts speech intervals with **millisecond-level precision**. It was originally developed as a Speech Onset Detection (SOT) algorithm for language researchers.
