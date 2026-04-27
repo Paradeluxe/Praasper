@@ -59,6 +59,42 @@ model.annote(
 
 ***Praditor*** will then save a `.txt` param file to the same folder as the input audio file, which ***Praasper*** will use to override the default params.
 
+Here is a code example showing how to override the default parameters for a specific audio file. The VAD parameters are passed as a dict with `onset` and `offset` sections:
+
+```python
+import praasper
+
+model = praasper.init_model(
+    ASR="FunAudioLLM/Fun-ASR-Nano-2512"
+)
+
+# Define custom VAD parameters
+custom_params = {
+    "onset":  {"amp": "1.05", "cutoff0": "60", "cutoff1": "10800", "numValid": "475", "eps_ratio": "0.05"},
+    "offset": {"amp": "1.05", "cutoff0": "60", "cutoff1": "10800", "numValid": "475", "eps_ratio": "0.05"},
+}
+
+model.annote(
+    input_path="data_folder",
+    params=custom_params,
+)
+```
+
+Alternatively, save the parameters to a `.txt` file and pass the file path instead:
+
+```python
+model.annote(
+    input_path="data_folder",
+    params="/path/to/custom_params.txt",
+)
+```
+
+In both cases, Praasper will use your custom VAD parameters instead of running the auto grid search. To export the current parameters to a `.txt` file for later reuse:
+
+```python
+model.export_params("/path/to/custom_params.txt")
+```
+
 ## ASR model recommendation
 
 The default ASR model is `FunAudioLLM/Fun-ASR-Nano-2512`. It is a lightweight model that runs on laptop CPU and produces word-level timestamps. Other FunASR models can be used by passing the model name to the `ASR` parameter.
