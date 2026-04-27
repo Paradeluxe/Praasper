@@ -31,7 +31,7 @@ Here are the parameters you can pass to `init_model` and `annote`:
 | `input_path` | - | Path to the folder where audio files are stored. |
 | `seg_dur` | 10. | Segment large audio into pieces, in seconds. |
 | `min_pause` | 0.2 | Minimum pause duration between two utterances, in seconds. |
-| `language` | None | "zh" for Mandarin, "yue" for Cantonese, "en" for English, "ja" for Japanese, "ko" for Korean, and None for automatic language detection. |
+
 
 Here is a code example showing how to use these parameters:
 

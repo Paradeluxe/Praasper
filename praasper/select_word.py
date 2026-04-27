@@ -50,20 +50,19 @@ class SelectWord:
             )
     
 
-    def transcribe(self, input_path, lang: str="zh"):
+    def transcribe(self, input_path):
         if self.infer_mode == "dashscope":
-            return self._dashscope_transcribe(input_path, lang)
+            return self._dashscope_transcribe(input_path)
         elif self.infer_mode == "direct":
             res = self.model.inference(data_in=[input_path], **self.kwargs)
         else:
             res = self.model.generate(
                 input=input_path,
-                language=lang, 
                 use_itn=False,
             )
         return res
 
-    def _dashscope_transcribe(self, input_path, lang: str="zh"):
+    def _dashscope_transcribe(self, input_path):
         import os
         from http import HTTPStatus
         import dashscope
@@ -94,7 +93,7 @@ class SelectWord:
         task_response = Transcription.async_call(
             model=self.dashscope_model,
             file_urls=[file_url],
-            language_hints=[lang] if lang else None,
+            language_hints=None,
         )
         
         if task_response.status_code != HTTPStatus.OK:
