@@ -114,7 +114,9 @@ class init_model:
                     "DashScope API key not found. "
                     "Provide api_key= parameter or set DASHSCOPE_API_KEY environment variable."
                 )
-            self.ASR = "dashscope:fun-asr"
+            if ASR is None:
+                ASR = "dashscope:fun-asr"
+            self.ASR = ASR
             self.device = "cpu"  # unused, placeholder
 
         else:
@@ -135,10 +137,6 @@ class init_model:
             else:
                 self.device = device
                 print(f"[{show_elapsed_time()}] Hardware: {self.device}")
-
-            # Tokenizer only needed for non-Nano FunASR models
-            if ASR != "FunAudioLLM/Fun-ASR-Nano-2512":
-                self.tokenizer = init_tokenizer(ASR)
 
         self.model = SelectWord(
             model=self.ASR,
