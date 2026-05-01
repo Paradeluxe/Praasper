@@ -89,8 +89,7 @@ def load_params_from_file(path):
 
 # ── Default params (exposed for users to copy and modify) ─────────────────────
 _default_params = {'onset': {'amp': '1.2', 'cutoff0': '0', 'cutoff1': '5400', 'numValid': '5000', 'eps_ratio': '0.03'},
-                   'offset': {'amp': '1.2', 'cutoff0': '0', 'cutoff1': '5400', 'numValid': '5000', 'eps_ratio': '0.03'}},
-                   'offset': {'amp': '1.05', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
+                   'offset': {'amp': '1.2', 'cutoff0': '0', 'cutoff1': '5400', 'numValid': '5000', 'eps_ratio': '0.03'}}
 
 
 class init_model:
@@ -152,7 +151,7 @@ class init_model:
     def annote(
         self,
         input_path: str,
-        seg_dur=10.,
+        seg_dur=15.,
         min_pause=0.2,
         skip_existing: bool=False,
         verbose: bool=False,
@@ -165,7 +164,7 @@ class init_model:
         ----------
         input_path : str
             Path to a .wav file or a directory containing .wav files.
-        seg_dur : float, default 10.0
+        seg_dur : float, default 15.0
             Maximum duration (seconds) per audio segment.
         min_pause : float, default 0.2
             Minimum pause (seconds) between speech segments.
