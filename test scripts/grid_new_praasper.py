@@ -29,9 +29,12 @@ import sys
 import json
 import time
 import shutil
+import csv
+import math
 import tempfile
 from pathlib import Path
 from itertools import product
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 # Defaults — override via CLI args: --audio-dir, --answers-dir, --results-dir, etc.
@@ -56,12 +59,12 @@ CSV_HEADER = [
 ]
 
 # ── Param grid ────────────────────────────────────────────────────────────────
-AMP_VALS      = [1.01, 1.02, 1.03, 1.05, 1.10, 1.15]           # 6
-CUTOFF0_VALS  = [0, 100, 200]                                  # 3
-CUTOFF1_VALS  = [3600, 5400, 7200, 10800, 12600]               # 5
-NUMVALID_VALS = [1000, 2000, 5000, 10000]                      # 4
-EPS_VALS      = [0.010, 0.015, 0.020, 0.025, 0.030, 0.035, 0.040, 0.045, 0.050]  # 9
-# Total: 6×3×5×4×9 = 3,240 combos/file
+AMP_VALS      = [1.01, 1.1, 1.2, 1.3, 1.4, 1.5, 1.7, 2.0]  # 8 — extended range
+CUTOFF0_VALS  = [0]                                          # 1 — locked
+CUTOFF1_VALS  = [5400]                                       # 1 — locked
+NUMVALID_VALS = [5000]                                       # 1 — locked
+EPS_VALS      = [0.02, 0.04, 0.06]                           # 3 — sweet spots
+# Total: 8×1×1×1×3 = 24 combos/file
 
 GRID = {
     "amp":        AMP_VALS,
@@ -301,6 +304,8 @@ def score_swer(gt_intervals, out_intervals):
 def compute_hit_eff(gt_intervals, out_intervals):
     """Compute Hit Rate and Effective Rate from raw interval lists.
     gt_intervals / out_intervals: [{start, end, text}, ...]
+    hit_rate = overlap / gt_total  (recall — how much ground truth is captured)
+    eff_rate = overlap / out_total (precision — how much VAD output is real speech)
     Returns (hit_rate, eff_rate) rounded to 4 decimals."""
     gt_ivs = [(iv["start"], iv["end"]) for iv in gt_intervals]
     out_ivs = [(iv["start"], iv["end"]) for iv in out_intervals]
@@ -313,8 +318,8 @@ def compute_hit_eff(gt_intervals, out_intervals):
     gt_total = sum(ge - gs for gs, ge in gt_ivs)
     out_total = sum(oe - os_ for os_, oe in out_ivs)
 
-    hit = overlap / out_total if out_total > 0 else 0.0
-    eff = overlap / gt_total if gt_total > 0 else 0.0
+    eff = overlap / out_total if out_total > 0 else 0.0
+    hit = overlap / gt_total if gt_total > 0 else 0.0
     return round(hit, 4), round(eff, 4)
 
 
@@ -524,11 +529,10 @@ def run_grid(audio_key, audio_path, gt_path, results_dir, limit=0, parallel=1, m
     t0 = time.time()
     newly_done = 0
     all_results = []  # keep in memory for final ranking
+    results_lock = __import__('threading').Lock()
 
-    for i, (a, c0, c1, nv, eps) in enumerate(combos):
-        if i in done_ids:
-            continue
-
+    def process_combo(combo_item):
+        i, (a, c0, c1, nv, eps) = combo_item
         r = run_combo(
             model=model,
             audio_path=audio_path,
@@ -537,20 +541,53 @@ def run_grid(audio_key, audio_path, gt_path, results_dir, limit=0, parallel=1, m
             combo_idx=i,
             amp=a, cutoff0=c0, cutoff1=c1, numValid=nv, eps_ratio=eps,
         )
-        all_results.append(r)
-        newly_done += 1
+        with results_lock:
+            all_results.append(r)
+            csv_row = {**r, "file_key": audio_key, "rep": rep_display}
+            append_csv_row(csv_row)
+        return r
 
-        # Append to master CSV immediately (checkpoint per combo)
-        csv_row = {**r, "file_key": audio_key, "rep": rep_display}
-        append_csv_row(csv_row)
+    if parallel > 1:
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        pending = [(i, c) for i, c in enumerate(combos) if i not in done_ids]
+        with ThreadPoolExecutor(max_workers=parallel) as executor:
+            futures = {executor.submit(process_combo, item): item for item in pending}
+            for future in as_completed(futures):
+                future.result()
+                newly_done += 1
+                elapsed = time.time() - t0
+                done_count = len(done_ids) + newly_done
+                rate = done_count / elapsed if elapsed > 0 else 0
+                eta = (n - done_count) / rate if rate > 0 else 0
+                print(f"  {done_count}/{n} ({100*done_count/n:.0f}%) — {rate:.1f} combo/s — "
+                      f"ETA {eta/60:.1f} min — parallel={parallel}", flush=True)
+    else:
+        for i, (a, c0, c1, nv, eps) in enumerate(combos):
+            if i in done_ids:
+                continue
 
-        if (i + 1) % 5 == 0 or (i + 1) == n:
-            elapsed = time.time() - t0
-            done_count = len(done_ids) + newly_done
-            rate    = done_count / elapsed if elapsed > 0 else 0
-            eta     = (n - done_count) / rate if rate > 0 else 0
-            print(f"  {done_count}/{n} ({100*done_count/n:.0f}%) — {rate:.1f} combo/s — "
-                  f"ETA {eta/60:.1f} min — last: {r['key']} sWER={r['swer']:.4f}", flush=True)
+            r = run_combo(
+                model=model,
+                audio_path=audio_path,
+                gt_path=gt_path,
+                output_dir=output_subdir,
+                combo_idx=i,
+                amp=a, cutoff0=c0, cutoff1=c1, numValid=nv, eps_ratio=eps,
+            )
+            all_results.append(r)
+            newly_done += 1
+
+            # Append to master CSV immediately (checkpoint per combo)
+            csv_row = {**r, "file_key": audio_key, "rep": rep_display}
+            append_csv_row(csv_row)
+
+            if (i + 1) % 5 == 0 or (i + 1) == n:
+                elapsed = time.time() - t0
+                done_count = len(done_ids) + newly_done
+                rate    = done_count / elapsed if elapsed > 0 else 0
+                eta     = (n - done_count) / rate if rate > 0 else 0
+                print(f"  {done_count}/{n} ({100*done_count/n:.0f}%) — {rate:.1f} combo/s — "
+                      f"ETA {eta/60:.1f} min — last: {r['key']} sWER={r['swer']:.4f}", flush=True)
 
     elapsed = time.time() - t0
     if newly_done == 0 and len(all_results) == 0:
@@ -614,6 +651,8 @@ if __name__ == "__main__":
                         help="Path to results output directory")
     parser.add_argument("--modelscope-cache", type=str, default=MODELSCOPE_CACHE,
                         help="Path to ModelScope cache directory")
+    parser.add_argument("--parallel", type=int, default=1,
+                        help="Number of parallel combo workers (default: 1)")
     args = parser.parse_args()
 
     # Apply CLI overrides to path variables
@@ -638,6 +677,21 @@ if __name__ == "__main__":
     os.environ["modelscope_cache"] = MODELSCOPE_CACHE
     os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
     sys.path.insert(0, str(PRAASPER_REPO))
+
+    # Monkey-patch FunASR audio loader: use soundfile instead of ffmpeg
+    import numpy as np
+    import soundfile as sf
+    def _load_audio_soundfile(file, sr=16000):
+        data, file_sr = sf.read(file, dtype='float32')
+        if len(data.shape) > 1:
+            data = data.mean(axis=1)  # mono
+        if file_sr != sr:
+            import librosa
+            data = librosa.resample(data, orig_sr=file_sr, target_sr=sr)
+        return data
+
+    from funasr.utils import load_utils
+    load_utils._load_audio_ffmpeg = _load_audio_soundfile
 
     from praasper import init_model
 
@@ -687,7 +741,7 @@ if __name__ == "__main__":
         t_file = time.time()
         print(f"[{i+1}/{len(files)}] Starting {key}...", flush=True)
         run_grid(key, wav_path, gt_path, RESULTS_DIR,
-                 limit=args.limit, parallel=1, model=model, rep=args.rep,
+                 limit=args.limit, parallel=args.parallel, model=model, rep=args.rep,
                  resume=args.resume_skip)
         print(f"[{i+1}/{len(files)}] {key} done in {time.time()-t_file:.0f}s\n", flush=True)
 

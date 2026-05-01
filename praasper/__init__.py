@@ -88,7 +88,8 @@ def load_params_from_file(path):
 
 
 # ── Default params (exposed for users to copy and modify) ─────────────────────
-_default_params = {'onset': {'amp': '1.05', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'},
+_default_params = {'onset': {'amp': '1.2', 'cutoff0': '0', 'cutoff1': '5400', 'numValid': '5000', 'eps_ratio': '0.03'},
+                   'offset': {'amp': '1.2', 'cutoff0': '0', 'cutoff1': '5400', 'numValid': '5000', 'eps_ratio': '0.03'}},
                    'offset': {'amp': '1.05', 'cutoff0': '60', 'cutoff1': '10800', 'numValid': '475', 'eps_ratio': '0.093'}}
 
 
@@ -210,7 +211,10 @@ class init_model:
             wav_path = os.path.join(input_path, fname + ".wav")
 
             dir_name = os.path.dirname(os.path.dirname(wav_path))
-            tmp_path = os.path.join(dir_name, "tmp")
+            # Thread-safe: unique tmp dir per input_path to avoid collisions
+            # when multiple annote() calls run concurrently (e.g., grid search).
+            _safe_name = __import__('hashlib').md5(input_path.encode()).hexdigest()[:8]
+            tmp_path = os.path.join(dir_name, f"tmp_{_safe_name}")
             # 获取输入文件夹的名称
             input_folder_name = os.path.basename(input_path)
             # 在output目录下创建与输入文件夹同名的子目录
@@ -480,12 +484,10 @@ class init_model:
         # res = {}
         result = []
 
-        # 使用示例
+        # Optimized grid search: only amp and eps_ratio are tunable
         param_grid = {
-            "cutoff0":   [200],
-            "cutoff1":   [5400],
-            "numValid":  [2000],
-            "eps_ratio": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05],
+            "amp":         [1.01, 1.1, 1.2, 1.3, 1.4, 1.5],
+            "eps_ratio":   [0.02, 0.03, 0.04, 0.05, 0.06],
         }
 
         def grid_search_optimal_params(params_replace):
