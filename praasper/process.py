@@ -35,7 +35,7 @@ def purify_text(text):
     return text
 
 
-def segment_audio(audio_obj, segment_duration=10, min_pause=0.2, params="folder", verbose=False, file_info=""):
+def segment_audio(audio_obj, segment_duration=15, min_pause=0.2, params="folder", verbose=False, file_info=""):
     wav_path = audio_obj.fpath
     if verbose:
         print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Start segmentation (<= {segment_duration}s)...")
