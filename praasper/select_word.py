@@ -26,8 +26,22 @@ class SelectWord:
             self.device = device
             print(f"[{show_elapsed_time()}] ASR backend: FunASR-Nano (local, {self.device})")
             from funasr.models.fun_asr_nano.model import FunASRNano
+            
+            # Check for local cache first
+            import os
+            local_paths = [
+                'D:/.cache/modelscope/models/FunAudioLLM/Fun-ASR-Nano-2512',  # Windows
+                '/home/maria/.cache/modelscope/hub/models/FunAudioLLM/Fun-ASR-Nano-2512',  # WSL
+            ]
+            model_path = model
+            for lp in local_paths:
+                if os.path.exists(os.path.join(lp, 'model.pt')):
+                    model_path = lp
+                    print(f"[{show_elapsed_time()}] Using cached model: {lp}")
+                    break
+            
             self.model, self.kwargs = FunASRNano.from_pretrained(
-                model=model,
+                model=model_path,
                 disable_pbar=True,
                 disable_tqdm=True,
                 device=self.device,

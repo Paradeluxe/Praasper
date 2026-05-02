@@ -251,6 +251,7 @@ class init_model:
                     wav_path=wav_path,
                     min_pause=min_pause,
                     file_info=file_info,
+                    seg_dur=seg_dur,
                 )
 
             final_tg = TextGrid()
@@ -419,9 +420,9 @@ class init_model:
         print(f"[{show_elapsed_time()}] Params exported to {path}")
 
 
-    def auto_vad(self, wav_path, min_pause=0.2, verbose=False, file_info=""):
+    def auto_vad(self, wav_path, min_pause=0.2, verbose=False, file_info="", seg_dur=10.):
         """
-        自动选取最优的VAD参数，根据随机选取的10秒音频。
+        自动选取最优的VAD参数，根据随机选取的 seg_dur 秒音频。
 
         """
 
@@ -437,12 +438,13 @@ class init_model:
         if verbose:
             print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Full audio duration: {audio_obj.duration_seconds:.3f}")
 
-        if audio_obj.duration_seconds > 10:
+        sample_dur = seg_dur
+        if audio_obj.duration_seconds > sample_dur:
             # 计算最大起始时间
-            max_start = audio_obj.duration_seconds - 10
+            max_start = audio_obj.duration_seconds - sample_dur
             # 随机生成起始时间
             start_time = random.uniform(0, max_start)
-            end_time = start_time + 10
+            end_time = start_time + sample_dur
         else:
             # 音频不足时间，选取整个音频
             start_time = 0
@@ -606,7 +608,7 @@ class init_model:
                               total=len(list(generate_param_grid(param_grid))),
                               desc=f"{file_info} Locate optimal params", leave=False))
 
-        max_result = max(result, key=lambda x: (x[0], x[1]))
+        max_result = max(result, key=lambda x: (x[0], -x[1]))  # higher overlap wins; ties broken by fewer intervals
         max_overlap, max_intervals, best_params = max_result
         # if verbose:
         print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD best overlap: {max_overlap}, numIntervals: {max_intervals}, params: {best_params['onset']}")
