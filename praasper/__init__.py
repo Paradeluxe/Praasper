@@ -519,6 +519,10 @@ class init_model:
 
 
 
+            mean_snr = 0.0
+            total_overlap = 0.0
+            num_intervals = 0
+
             if onsets or offsets:
                 if not onsets:
                     onsets = [0.0]
@@ -583,6 +587,10 @@ class init_model:
                 onsets = [x for x in onsets if x not in bad_onsets]
                 offsets = [x for x in offsets if x not in bad_offsets]
 
+                mean_snr = compute_boundary_snr(
+                    selected_audio.arr, selected_audio.frame_rate, onsets, offsets, window_ms=10
+                )
+
                 total_overlap = 0.0
                 for onset, offset in zip(onsets[1:-1], offsets[1:-1]):
                     for ts in standard_transcript_timestamps:
@@ -595,12 +603,13 @@ class init_model:
                         total_overlap += overlap_ratio
 
             # 复制变量
+            mean_snr_copy = copy.deepcopy(mean_snr)
             total_overlap_copy = copy.deepcopy(total_overlap)
             num_intervals_copy = copy.deepcopy(num_intervals)
             adjusted_params_copy = copy.deepcopy(adjusted_params)
 
             # 然后可以像原来一样使用复制后的变量
-            return [total_overlap_copy, num_intervals_copy, adjusted_params_copy]
+            return [mean_snr_copy, total_overlap_copy, num_intervals_copy, adjusted_params_copy]
             # result.append([num_intervals_copy, similarity, adjusted_params_copy])
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:  # 使用线程池并发处理
@@ -608,19 +617,12 @@ class init_model:
                               total=len(list(generate_param_grid(param_grid))),
                               desc=f"{file_info} Locate optimal params", leave=False))
 
-        # ── Rank by median #intval proximity ─────────────────────────────
-        # min #intval = too aggressive (cuts speech)
-        # max #intval = too fragmented (includes noise)
-        # median = balanced sweet spot
-        import statistics
-        all_intervals = [r[1] for r in result if r[1] > 0]
-        median_intval = statistics.median(all_intervals) if all_intervals else 1.0
+        # ── Rank by max mean_snr, then max total_overlap ──────────────────────────────────
+        # num_intervals is logged but not used in selection
+        best = max(result, key=lambda x: (x[0], x[1]))
+        max_snr, max_overlap, max_intervals, best_params = best
 
-        # Pick combo closest to median intval; ties broken by higher overlap
-        best = min(result, key=lambda x: (abs(x[1] - median_intval), -x[0]))
-        max_overlap, max_intervals, best_params = best
-
-        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD median #intval: {median_intval:.0f}, chosen: {max_intervals}, params: {best_params['onset']}")
+        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD chosen: SNR={max_snr:.2f} dB, overlap={max_overlap:.3f}, #intval={max_intervals}, params: {best_params['onset']}")
 
         self.params = best_params
 
