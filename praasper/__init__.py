@@ -608,10 +608,19 @@ class init_model:
                               total=len(list(generate_param_grid(param_grid))),
                               desc=f"{file_info} Locate optimal params", leave=False))
 
-        max_result = max(result, key=lambda x: (x[0], -x[1]))  # higher overlap wins; ties broken by fewer intervals
-        max_overlap, max_intervals, best_params = max_result
-        # if verbose:
-        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD best overlap: {max_overlap}, numIntervals: {max_intervals}, params: {best_params['onset']}")
+        # ── Rank by median #intval proximity ─────────────────────────────
+        # min #intval = too aggressive (cuts speech)
+        # max #intval = too fragmented (includes noise)
+        # median = balanced sweet spot
+        import statistics
+        all_intervals = [r[1] for r in result if r[1] > 0]
+        median_intval = statistics.median(all_intervals) if all_intervals else 1.0
+
+        # Pick combo closest to median intval; ties broken by higher overlap
+        best = min(result, key=lambda x: (abs(x[1] - median_intval), -x[0]))
+        max_overlap, max_intervals, best_params = best
+
+        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD median #intval: {median_intval:.0f}, chosen: {max_intervals}, params: {best_params['onset']}")
 
         self.params = best_params
 
