@@ -503,8 +503,8 @@ class init_model:
 
         # Optimized grid search: only amp and eps_ratio are tunable
         param_grid = {
-            "amp":         [1.01, 1.1, 1.2, 1.3, 1.4, 1.5],
-            "eps_ratio":   [0.02, 0.03, 0.04, 0.05, 0.06],
+            "amp":         [1.1],
+            "eps_ratio":   [0.02, 0.025, 0.03, 0.035, 0.04, 0.05],
         }
 
         def grid_search_optimal_params(params_replace):
