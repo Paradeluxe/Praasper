@@ -26,3 +26,7 @@ load_model_only.py
 .trae
 api_key*
 playground.py
+# Results CSV
+results_default_*.csv
+results_snr_*.csv
+results/results_*.csv

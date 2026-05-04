@@ -249,7 +249,7 @@ class init_model:
             if params is None:
                 self.auto_vad(
                     wav_path=wav_path,
-                    min_pause=0,
+                    min_pause=min_pause,
                     file_info=file_info,
                     seg_dur=seg_dur,
                 )
@@ -269,6 +269,10 @@ class init_model:
                 audio_clip = audio_obj[start:end]
                 clip_path = os.path.join(tmp_path, os.path.basename(wav_path).replace(".wav", f"_{start}_{end}.wav"))
                 audio_clip.save(clip_path)
+                # WSL D: drive flush: ensure file is visible to reader threads
+                with open(clip_path, 'r+b') as _f:
+                    _f.flush()
+                    os.fsync(_f.fileno())
 
                 audio_clip_result = self.model.transcribe(clip_path)
                 audio_clip_single_words = audio_clip_result[0][0]["ctc_timestamps"]
@@ -439,14 +443,26 @@ class init_model:
             print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Full audio duration: {audio_obj.duration_seconds:.3f}")
 
         sample_dur = seg_dur
+        NUM_CANDIDATES = 3
         if audio_obj.duration_seconds > sample_dur:
-            # 计算最大起始时间
             max_start = audio_obj.duration_seconds - sample_dur
-            # 随机生成起始时间
-            start_time = random.uniform(0, max_start)
+            # Pick NUM_CANDIDATES random segments, use the one with highest RMS energy
+            best_start = 0.0
+            best_energy = -1.0
+            for _ in range(NUM_CANDIDATES):
+                candidate_start = random.uniform(0, max_start)
+                candidate_end = candidate_start + sample_dur
+                candidate_audio = audio_obj[candidate_start*1000:candidate_end*1000]
+                arr = candidate_audio.arr
+                if hasattr(arr, 'numpy'):
+                    arr = arr.numpy()
+                energy = float(np.mean(arr ** 2))
+                if energy > best_energy:
+                    best_energy = energy
+                    best_start = candidate_start
+            start_time = best_start
             end_time = start_time + sample_dur
         else:
-            # 音频不足时间，选取整个音频
             start_time = 0
             end_time = audio_obj.duration_seconds
 
@@ -588,7 +604,9 @@ class init_model:
                 offsets = [x for x in offsets if x not in bad_offsets]
 
                 mean_snr = compute_boundary_snr(
-                    selected_audio.arr, selected_audio.frame_rate, onsets, offsets
+                    selected_audio.arr, selected_audio.frame_rate, onsets, offsets,
+                    lowcut=float(adjusted_params["onset"]["cutoff0"]),
+                    highcut=float(adjusted_params["onset"]["cutoff1"]),
                 )
 
                 total_overlap = 0.0
@@ -617,9 +635,12 @@ class init_model:
                               total=len(list(generate_param_grid(param_grid))),
                               desc=f"{file_info} Locate optimal params", leave=False))
 
-        # ── Rank by max mean_snr, then max total_overlap ──────────────────────────────────
-        # num_intervals is logged but not used in selection
-        best = max(result, key=lambda x: (x[0], x[1]))
+        # ── Rank by max mean_snr, then max total_overlap, then closest to mean #intval ─────
+        import statistics
+        all_intervals = [r[2] for r in result if r[2] > 0]
+        mean_intval = statistics.mean(all_intervals) if all_intervals else 1.0
+
+        best = max(result, key=lambda x: (x[0], x[1], -abs(x[2] - mean_intval)))
         max_snr, max_overlap, max_intervals, best_params = best
 
         print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD chosen: SNR={max_snr:.2f} dB, overlap={max_overlap:.3f}, #intval={max_intervals}, params: {best_params['onset']}")

@@ -36,9 +36,12 @@ def bandpass_filter(data, lowcut, highcut, fs, order=4):
     return filtered_data
     
 
-def compute_boundary_snr(audio_arr, sr, onsets, offsets, window_ms=50):
+def compute_boundary_snr(audio_arr, sr, onsets, offsets, window_ms=150, lowcut=300, highcut=5000):
     """
     Compute mean SNR (dB) across all onset/offset boundaries.
+    
+    Audio is bandpass filtered (lowcut-highcut Hz) before power computation
+    to focus on speech fundamental frequency band.
     
     For each onset at time t:
         noise  = audio[t - window_ms : t]
@@ -57,11 +60,14 @@ def compute_boundary_snr(audio_arr, sr, onsets, offsets, window_ms=50):
     if not onsets and not offsets:
         return 0.0
     
+    # Bandpass filter for speech fundamental frequency
+    filtered = bandpass_filter(audio_arr.astype(np.float64), lowcut, highcut, sr)
+    
     window_samples = int(window_ms / 1000.0 * sr)
     if window_samples <= 0:
         window_samples = 1
         
-    total_len = len(audio_arr)
+    total_len = len(filtered)
     snrs = []
     
     for t in onsets:
@@ -74,8 +80,8 @@ def compute_boundary_snr(audio_arr, sr, onsets, offsets, window_ms=50):
         if noise_end <= noise_start or speech_end <= speech_start:
             continue
             
-        noise_power = np.mean(audio_arr[noise_start:noise_end].astype(np.float64) ** 2)
-        speech_power = np.mean(audio_arr[speech_start:speech_end].astype(np.float64) ** 2)
+        noise_power = np.mean(filtered[noise_start:noise_end] ** 2)
+        speech_power = np.mean(filtered[speech_start:speech_end] ** 2)
         
         if noise_power <= 0:
             snrs.append(60.0)
@@ -84,27 +90,35 @@ def compute_boundary_snr(audio_arr, sr, onsets, offsets, window_ms=50):
         else:
             snrs.append(10.0 * np.log10(speech_power / noise_power))
     
-    for t in offsets:
-        center = int(t * sr)
-        speech_start = max(0, center - window_samples)
-        speech_end = center
-        noise_start = center
-        noise_end = min(total_len, center + window_samples)
-        
-        if speech_end <= speech_start or noise_end <= noise_start:
-            continue
-            
-        speech_power = np.mean(audio_arr[speech_start:speech_end].astype(np.float64) ** 2)
-        noise_power = np.mean(audio_arr[noise_start:noise_end].astype(np.float64) ** 2)
-        
-        if noise_power <= 0:
-            snrs.append(60.0)
-        elif speech_power <= 0:
-            snrs.append(0.0)
-        else:
-            snrs.append(10.0 * np.log10(speech_power / noise_power))
+    # Offset boundaries: speech before, noise after
+    # NOTE: Disabled — only onsets used for ranking
+    # for t in offsets:
+    #     center = int(t * sr)
+    #     speech_start = max(0, center - window_samples)
+    #     speech_end = center
+    #     noise_start = center
+    #     noise_end = min(total_len, center + window_samples)
+    #
+    #     if speech_end <= speech_start or noise_end <= noise_start:
+    #         continue
+    #
+    #     speech_power = np.mean(filtered[speech_start:speech_end] ** 2)
+    #     noise_power = np.mean(filtered[noise_start:noise_end] ** 2)
+    #
+    #     if noise_power <= 0:
+    #         snrs.append(60.0)
+    #     elif speech_power <= 0:
+    #         snrs.append(0.0)
+    #     else:
+    #         snrs.append(10.0 * np.log10(speech_power / noise_power))
     
-    return float(np.mean(snrs)) if snrs else 0.0
+    # Trim bottom 10% of onset SNRs, return mean of remaining 90%
+    if not snrs:
+        return 0.0
+    snrs_sorted = sorted(snrs)
+    trim_count = max(1, int(len(snrs_sorted) * 0.1))
+    trimmed = snrs_sorted[trim_count:]  # drop lowest 10%
+    return float(np.mean(trimmed))
 
 
 if __name__ == '__main__':
