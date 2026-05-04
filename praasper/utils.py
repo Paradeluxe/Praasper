@@ -36,7 +36,7 @@ def bandpass_filter(data, lowcut, highcut, fs, order=4):
     return filtered_data
     
 
-def compute_boundary_snr(audio_arr, sr, onsets, offsets, window_ms=10):
+def compute_boundary_snr(audio_arr, sr, onsets, offsets, window_ms=50):
     """
     Compute mean SNR (dB) across all onset/offset boundaries.
     

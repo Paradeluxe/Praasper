@@ -249,7 +249,7 @@ class init_model:
             if params is None:
                 self.auto_vad(
                     wav_path=wav_path,
-                    min_pause=min_pause,
+                    min_pause=0,
                     file_info=file_info,
                     seg_dur=seg_dur,
                 )
@@ -588,7 +588,7 @@ class init_model:
                 offsets = [x for x in offsets if x not in bad_offsets]
 
                 mean_snr = compute_boundary_snr(
-                    selected_audio.arr, selected_audio.frame_rate, onsets, offsets, window_ms=10
+                    selected_audio.arr, selected_audio.frame_rate, onsets, offsets
                 )
 
                 total_overlap = 0.0
