@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Run default Praasper (NO grid search) on 208 audio files.
-Pure defaults: amp=1.2, cutoff0=0, cutoff1=5400, numValid=5000, eps_ratio=0.03
+Pure defaults: amp=1.2, cutoff0=0, cutoff1=5400, numValid=2000, eps_ratio=0.03
 
 Usage:
     /mnt/e/praasper_venv_wsl/bin/python run_default_praasper.py
