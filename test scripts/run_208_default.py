@@ -2,8 +2,8 @@
 """Run Praasper default pipeline (auto_vad grid search) on all 208 audio files.
 Scores with pinyin-level sWER against ground truth TextGrids."""
 import os, sys, gc, glob
-sys.path.insert(0, '/mnt/d/hermes_playground/Praasper')
-sys.path.insert(0, '/home/maria/.hermes/hermes-agent/venv/lib/python3.12/site-packages/funasr/models/fun_asr_nano')
+sys.path.insert(0, '/mnt/e/praasper')
+# sys.path.insert(0, '/home/maria/.hermes/hermes-agent/venv/lib/python3.12/site-packages/funasr/models/fun_asr_nano')
 
 # Monkey-patch FunASR audio loader
 import soundfile as sf
@@ -24,10 +24,10 @@ import Levenshtein
 from collections import defaultdict
 from praasper import init_model
 
-AUDIO_DIR = '/mnt/d/audio_data'
-ANSWERS_DIR = '/mnt/d/audio_data/answers'
-OUTPUT_DIR = '/mnt/d/output/audio_data'
-RESULTS_CSV = '/mnt/d/hermes_playground/Praasper/results_208_default.csv'
+AUDIO_DIR = '/mnt/e/Corpus/ma/audio'
+ANSWERS_DIR = '/mnt/e/hermes_playground/hunter/answers'
+OUTPUT_DIR = '/mnt/e/Corpus/ma/output/audio'
+RESULTS_CSV = '/mnt/e/praasper/results_208_default.csv'
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
