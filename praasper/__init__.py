@@ -643,7 +643,8 @@ class init_model:
         best = max(result, key=lambda x: (x[0], x[1], -abs(x[2] - mean_intval)))
         max_snr, max_overlap, max_intervals, best_params = best
 
-        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD chosen: SNR={max_snr:.2f} dB, overlap={max_overlap:.3f}, #intval={max_intervals}, params: {best_params['onset']}")
+        if verbose:
+            print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD chosen: SNR={max_snr:.2f} dB, overlap={max_overlap:.3f}, #intval={max_intervals}, params: {best_params['onset']}")
 
         self.params = best_params
 
