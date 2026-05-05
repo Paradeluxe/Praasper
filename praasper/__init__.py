@@ -88,8 +88,8 @@ def load_params_from_file(path):
 
 
 # ── Default params (exposed for users to copy and modify) ─────────────────────
-_default_params = {'onset': {'amp': '1.2', 'cutoff0': '0', 'cutoff1': '5400', 'numValid': '5000', 'eps_ratio': '0.03'},
-                   'offset': {'amp': '1.2', 'cutoff0': '0', 'cutoff1': '5400', 'numValid': '5000', 'eps_ratio': '0.03'}}
+_default_params = {'onset': {'amp': '1.2', 'cutoff0': '0', 'cutoff1': '5400', 'numValid': '2000', 'eps_ratio': '0.03'},
+                   'offset': {'amp': '1.2', 'cutoff0': '0', 'cutoff1': '5400', 'numValid': '2000', 'eps_ratio': '0.03'}}
 
 
 class init_model:

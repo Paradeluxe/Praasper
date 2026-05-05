@@ -17,7 +17,7 @@ import os
 import unicodedata
 from tqdm import tqdm
 
-default_params = {'onset': {'amp': '1.2', 'cutoff0': '0', 'cutoff1': '5400', 'numValid': '5000', 'eps_ratio': '0.03'}, 'offset': {'amp': '1.2', 'cutoff0': '0', 'cutoff1': '5400', 'numValid': '5000', 'eps_ratio': '0.03'}}
+default_params = {'onset': {'amp': '1.2', 'cutoff0': '0', 'cutoff1': '5400', 'numValid': '2000', 'eps_ratio': '0.03'}, 'offset': {'amp': '1.2', 'cutoff0': '0', 'cutoff1': '5400', 'numValid': '2000', 'eps_ratio': '0.03'}}
 
 
 
