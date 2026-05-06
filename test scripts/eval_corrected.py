@@ -63,6 +63,20 @@ def to_pinyin_toned(text: str) -> list:
     return [p[0] for p in pinyin(list(text), style=Style.TONE3)]
 
 
+def clean_text(text: str) -> str:
+    """
+    Clean text by removing commas and other punctuation.
+    Keeps only Chinese characters, alphanumeric, and spaces.
+    """
+    import re
+    # Remove commas and common punctuation, keep Chinese chars, alphanumeric, spaces
+    # This regex keeps: \u4e00-\u9fff (CJK), a-zA-Z0-9, and whitespace
+    cleaned = re.sub(r'[^\u4e00-\u9fff\u3000-\u303f\uff00-\uffefa-zA-Z0-9\s]', '', text)
+    # Normalize whitespace (collapse multiple spaces)
+    cleaned = ' '.join(cleaned.split())
+    return cleaned.strip()
+
+
 def tg_to_intervals(tg_path: str):
     """Load TextGrid and return list of {start, end, text} for non-empty intervals."""
     tg = TextGrid.fromFile(tg_path)
@@ -70,7 +84,7 @@ def tg_to_intervals(tg_path: str):
     if not tier:
         return []
     return [
-        {"start": iv.minTime, "end": iv.maxTime, "text": iv.mark.strip()}
+        {"start": iv.minTime, "end": iv.maxTime, "text": clean_text(iv.mark.strip())}
         for iv in tier.intervals
         if iv.mark.strip()
     ]
@@ -284,7 +298,8 @@ def score_tswer(gt_ivs, out_ivs):
 
 def score_cer(gt_ivs, out_ivs):
     """
-    Character Error Rate (CER) calculation.
+    Character Error Rate (CER) calculation with temporal connected components.
+    Same logic as sWER/tWER but operates on characters instead of pinyin syllables.
     Returns (cer, errors, gt_chars).
     """
     if not gt_ivs:
@@ -293,19 +308,87 @@ def score_cer(gt_ivs, out_ivs):
         total_chars = sum(len(g["text"]) for g in gt_ivs)
         return (1.0, total_chars, total_chars)
 
-    # Concatenate all text from GT and output
-    gt_text = "".join(g["text"] for g in gt_ivs)
-    out_text = "".join(o["text"] for o in out_ivs)
+    # Split GT intervals into characters with temporal slices
+    gt_chars = []
+    for iv in gt_ivs:
+        chars = list(iv["text"])
+        dur = iv["end"] - iv["start"]
+        step = dur / len(chars) if len(chars) > 0 else 0
+        for k, c in enumerate(chars):
+            t0 = iv["start"] + k * step
+            t1 = t0 + step
+            gt_chars.append((t0, t1, c))
 
-    # Calculate Levenshtein distance at character level
-    gt_chars = list(gt_text)
-    out_chars = list(out_text)
-    
-    errors = lev_dist(gt_chars, out_chars)
-    total_gt_chars = len(gt_chars)
-    
-    cer = errors / total_gt_chars if total_gt_chars > 0 else 0.0
-    return cer, errors, total_gt_chars
+    # Split output intervals into characters with temporal slices
+    out_chars = []
+    for iv in out_ivs:
+        chars = list(iv["text"])
+        if not chars:
+            continue
+        dur = iv["end"] - iv["start"]
+        step = dur / len(chars) if len(chars) > 0 else 0
+        for k, c in enumerate(chars):
+            t0 = iv["start"] + k * step
+            t1 = t0 + step
+            out_chars.append((t0, t1, c))
+
+    n_gt = len(gt_chars)
+    n_out = len(out_chars)
+
+    # Build adjacency by temporal overlap
+    gt_adj = defaultdict(list)
+    out_adj = defaultdict(list)
+    for gi, (gs, ge, _) in enumerate(gt_chars):
+        for oi, (os_, oe_, _) in enumerate(out_chars):
+            if oe_ > gs and os_ < ge:
+                gt_adj[gi].append(oi)
+                out_adj[oi].append(gi)
+
+    # Find connected components via BFS
+    visited_gt = set()
+    visited_out = set()
+    components = []
+
+    for start_gi in range(n_gt):
+        if start_gi in visited_gt:
+            continue
+        queue = [start_gi]
+        c_gt = []
+        c_out = []
+        while queue:
+            gi = queue.pop(0)
+            if gi in visited_gt:
+                continue
+            visited_gt.add(gi)
+            c_gt.append(gi)
+            for oi in gt_adj[gi]:
+                if oi not in visited_out:
+                    visited_out.add(oi)
+                    c_out.append(oi)
+                    for ngi in out_adj[oi]:
+                        if ngi not in visited_gt:
+                            queue.append(ngi)
+        if c_gt or c_out:
+            components.append({"gt": c_gt, "out": c_out})
+
+    # Score each component
+    total_errors = 0
+    total_gt_chars = 0
+    for comp in components:
+        gt_texts = [gt_chars[i][2] for i in comp["gt"]]
+        out_texts = [out_chars[i][2] for i in comp["out"]]
+        ed = lev_dist(gt_texts, out_texts)
+        total_errors += ed
+        total_gt_chars += len(gt_texts)
+
+    # Uncovered GT characters
+    uncovered = n_gt - total_gt_chars
+    if uncovered > 0:
+        total_errors += uncovered
+        total_gt_chars += uncovered
+
+    cer = total_errors / total_gt_chars if total_gt_chars > 0 else 0.0
+    return cer, total_errors, total_gt_chars
 
 
 def evaluate_file(gt_path, out_path):
