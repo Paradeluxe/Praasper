@@ -7,6 +7,10 @@ Fixes over old eval:
   - Levenshtein distance per component
   - Uncovered GT syllables count as errors
 
+New metrics added:
+  - tWER = tone-aware syllable-level pinyin WER (preserves tone marks like ma1, ma2, etc.)
+  - CER = Character Error Rate (full character-level Levenshtein distance)
+
 Usage:
     python eval_corrected.py --output-dir /path/to/output --answers-dir /path/to/answers
 """
@@ -18,7 +22,7 @@ import csv
 from collections import defaultdict
 
 try:
-    from pypinyin import lazy_pinyin
+    from pypinyin import lazy_pinyin, pinyin, Style
 except ImportError:
     print("ERROR: pypinyin not installed. Run: pip install pypinyin")
     sys.exit(1)
@@ -50,8 +54,13 @@ except ImportError:
 
 
 def to_pinyin(text: str) -> list:
-    """Convert text to pinyin syllable list."""
+    """Convert text to pinyin syllable list (without tones)."""
     return lazy_pinyin(list(text))
+
+
+def to_pinyin_toned(text: str) -> list:
+    """Convert text to pinyin syllable list with tone marks."""
+    return [p[0] for p in pinyin(list(text), style=Style.TONE3)]
 
 
 def tg_to_intervals(tg_path: str):
@@ -179,6 +188,126 @@ def score_swer(gt_ivs, out_ivs):
     return swer, total_errors, total_gt_syls
 
 
+def score_tswer(gt_ivs, out_ivs):
+    """
+    Tone-aware syllable-level pinyin WER with temporal connected components.
+    Returns (tswer, errors, gt_syllables).
+    """
+    if not gt_ivs:
+        return (0.0, 0, 0)
+    if not out_ivs:
+        total_syls = sum(len(to_pinyin_toned(g["text"])) for g in gt_ivs)
+        return (1.0, total_syls, total_syls)
+
+    # Split GT into syllables with temporal slices (with tones)
+    gt_syls = []
+    for iv in gt_ivs:
+        py = to_pinyin_toned(iv["text"])
+        dur = iv["end"] - iv["start"]
+        step = dur / len(py) if len(py) > 0 else 0
+        for k, p in enumerate(py):
+            t0 = iv["start"] + k * step
+            t1 = t0 + step
+            gt_syls.append((t0, t1, p))
+
+    # Split output into syllables with temporal slices (with tones)
+    out_syls = []
+    for iv in out_ivs:
+        py = to_pinyin_toned(iv["text"])
+        if not py:
+            continue
+        dur = iv["end"] - iv["start"]
+        step = dur / len(py) if len(py) > 0 else 0
+        for k, p in enumerate(py):
+            t0 = iv["start"] + k * step
+            t1 = t0 + step
+            out_syls.append((t0, t1, p))
+
+    n_gt = len(gt_syls)
+    n_out = len(out_syls)
+
+    # Build adjacency by temporal overlap
+    gt_adj = defaultdict(list)
+    out_adj = defaultdict(list)
+    for gi, (gs, ge, _) in enumerate(gt_syls):
+        for oi, (os_, oe_, _) in enumerate(out_syls):
+            if oe_ > gs and os_ < ge:
+                gt_adj[gi].append(oi)
+                out_adj[oi].append(gi)
+
+    # Find connected components via BFS
+    visited_gt = set()
+    visited_out = set()
+    components = []
+
+    for start_gi in range(n_gt):
+        if start_gi in visited_gt:
+            continue
+        queue = [start_gi]
+        c_gt = []
+        c_out = []
+        while queue:
+            gi = queue.pop(0)
+            if gi in visited_gt:
+                continue
+            visited_gt.add(gi)
+            c_gt.append(gi)
+            for oi in gt_adj[gi]:
+                if oi not in visited_out:
+                    visited_out.add(oi)
+                    c_out.append(oi)
+                    for ngi in out_adj[oi]:
+                        if ngi not in visited_gt:
+                            queue.append(ngi)
+        if c_gt or c_out:
+            components.append({"gt": c_gt, "out": c_out})
+
+    # Score each component
+    total_errors = 0
+    total_gt_syls = 0
+    for comp in components:
+        gt_texts = [gt_syls[i][2] for i in comp["gt"]]
+        out_texts = [out_syls[i][2] for i in comp["out"]]
+        ed = lev_dist(gt_texts, out_texts)
+        total_errors += ed
+        total_gt_syls += len(gt_texts)
+
+    # Uncovered GT syllables
+    uncovered = n_gt - total_gt_syls
+    if uncovered > 0:
+        total_errors += uncovered
+        total_gt_syls += uncovered
+
+    twer = total_errors / total_gt_syls if total_gt_syls > 0 else 0.0
+    return twer, total_errors, total_gt_syls
+
+
+def score_cer(gt_ivs, out_ivs):
+    """
+    Character Error Rate (CER) calculation.
+    Returns (cer, errors, gt_chars).
+    """
+    if not gt_ivs:
+        return (0.0, 0, 0)
+    if not out_ivs:
+        total_chars = sum(len(g["text"]) for g in gt_ivs)
+        return (1.0, total_chars, total_chars)
+
+    # Concatenate all text from GT and output
+    gt_text = "".join(g["text"] for g in gt_ivs)
+    out_text = "".join(o["text"] for o in out_ivs)
+
+    # Calculate Levenshtein distance at character level
+    gt_chars = list(gt_text)
+    out_chars = list(out_text)
+    
+    errors = lev_dist(gt_chars, out_chars)
+    total_gt_chars = len(gt_chars)
+    
+    cer = errors / total_gt_chars if total_gt_chars > 0 else 0.0
+    return cer, errors, total_gt_chars
+
+
 def evaluate_file(gt_path, out_path):
     """Evaluate one file. Returns dict or None."""
     if not os.path.exists(gt_path):
@@ -191,6 +320,8 @@ def evaluate_file(gt_path, out_path):
 
     hit, eff = compute_hit_eff(gt_ivs, out_ivs)
     swer, errors, gt_syls = score_swer(gt_ivs, out_ivs)
+    twer, twer_errors, twer_gt_syls = score_tswer(gt_ivs, out_ivs)
+    cer, cer_errors, cer_gt_chars = score_cer(gt_ivs, out_ivs)
     n_intv = len(out_ivs)
 
     return {
@@ -199,6 +330,12 @@ def evaluate_file(gt_path, out_path):
         "swer": swer,
         "errors": errors,
         "gt_syls": gt_syls,
+        "twer": twer,
+        "twer_errors": twer_errors,
+        "twer_gt_syls": twer_gt_syls,
+        "cer": cer,
+        "cer_errors": cer_errors,
+        "cer_gt_chars": cer_gt_chars,
         "n_intv": n_intv,
     }
 
@@ -218,7 +355,7 @@ def main():
     if not args.summary_only:
         with open(args.csv, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            writer.writerow(["file_key", "hit_rate", "eff_rate", "sWER", "errors", "gt_syllables", "num_intervals"])
+            writer.writerow(["file_key", "hit_rate", "eff_rate", "sWER", "tWER", "CER", "sWER_errors", "tWER_errors", "CER_errors", "sWER_gt_syllables", "tWER_gt_syllables", "CER_gt_chars", "num_intervals"])
 
     results = []
     for i, fname in enumerate(out_files):
@@ -233,25 +370,31 @@ def main():
             print(f"  SKIP: gt={os.path.exists(gt_path)} out={os.path.exists(out_path)}")
             continue
 
-        print(f"  hit={res['hit']:.4f} eff={res['eff']:.4f} sWER={res['swer']:.4f} "
-              f"err={res['errors']}/{res['gt_syls']} #intval={res['n_intv']}")
+        print(f"  hit={res['hit']:.4f} eff={res['eff']:.4f} sWER={res['swer']:.4f} tWER={res['twer']:.4f} CER={res['cer']:.4f} "
+              f"sWER_err={res['errors']}/{res['gt_syls']} tWER_err={res['twer_errors']}/{res['twer_gt_syls']} CER_err={res['cer_errors']}/{res['cer_gt_chars']} #intval={res['n_intv']}")
 
         results.append(res)
         if not args.summary_only:
             with open(args.csv, "a", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
                 writer.writerow([fk, f"{res['hit']:.6f}", f"{res['eff']:.6f}",
-                                 f"{res['swer']:.6f}", res["errors"], res["gt_syls"], res["n_intv"]])
+                                 f"{res['swer']:.6f}", f"{res['twer']:.6f}", f"{res['cer']:.6f}",
+                                 res["errors"], res["twer_errors"], res["cer_errors"],
+                                 res["gt_syls"], res["twer_gt_syls"], res["cer_gt_chars"], res["n_intv"]])
 
     if results:
         n = len(results)
         avg_hit = sum(r["hit"] for r in results) / n
         avg_eff = sum(r["eff"] for r in results) / n
         avg_swer = sum(r["swer"] for r in results) / n
+        avg_twer = sum(r["twer"] for r in results) / n
+        avg_cer = sum(r["cer"] for r in results) / n
         print(f"\n=== SUMMARY ({n} files) ===")
         print(f"  hit = {avg_hit:.4f}")
         print(f"  eff = {avg_eff:.4f}")
         print(f"  sWER = {avg_swer:.4f}")
+        print(f"  tWER = {avg_twer:.4f}")
+        print(f"  CER = {avg_cer:.4f}")
         if not args.summary_only:
             print(f"\n  CSV saved to {args.csv}")
     else:
