@@ -1,12 +1,14 @@
 # Praasper
-[![PyPI Downloads](https://img.shields.io/pypi/dm/praasper.svg?label=PyPI%20downloads)](
-https://pypi.org/project/praasper/)
+
+[![PyPI Downloads](https://img.shields.io/pypi/dm/praasper.svg?label=PyPI%20downloads)](https://pypi.org/project/praasper/)
 ![Python](https://img.shields.io/badge/python->=3.10-blue.svg)
 ![GitHub License](https://img.shields.io/github/license/Paradeluxe/Praasper)
 
-[**Setup**](#setup) | [**Usage**](#how-to-use) | [**Mechanism**](#mechanism)
+**[Setup](#setup)** | **[Usage](#how-to-use)** | **[Mechanism](#mechanism)**
 
 ***Praasper*** is a speech processing framework designed to help researchers transcribe audio files into word-level timestamps — from a single word to a complete sentence — with high accuracy in both transcription and timestamps.
+
+<br />
 
 ![mechanism](promote/mechanism.png)
 
@@ -25,16 +27,15 @@ model.annote("data_folder")
 
 Here are the parameters you can pass to `init_model` and `annote`:
 
-| Param | Default | Description |
-| :---: | :---: | :--- |
-| `infer_mode` | `"local"` | ASR backend: `"local"` for on-device FunASR-Nano, `"api"` for DashScope cloud API. |
-| `device` | `"auto"` | Hardware for local inference: `"auto"`, `"cuda"`, or `"cpu"`. Ignored in API mode. |
-| `ASR` | FunAudioLLM/Fun-ASR-Nano-2512 | Advanced: override the default local ASR model. See [FunASR model zoo](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo). |
-| `api_key` | `None` | DashScope API key. Required when `infer_mode="api"`. Can also be set via `DASHSCOPE_API_KEY` env var. |
-| `input_path` | — | Path to the folder where audio files are stored. |
-| `seg_dur` | 15. | Segment large audio into pieces, in seconds. |
-| `min_pause` | 0.2 | Minimum pause duration between two utterances, in seconds. |
-
+|     Param    |            Default            | Description                                                                                                                                |
+| :----------: | :---------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------- |
+| `infer_mode` |           `"local"`           | ASR backend: `"local"` for on-device FunASR-Nano, `"api"` for DashScope cloud API.                                                         |
+|   `device`   |            `"auto"`           | Hardware for local inference: `"auto"`, `"cuda"`, or `"cpu"`. Ignored in API mode.                                                         |
+|     `ASR`    | FunAudioLLM/Fun-ASR-Nano-2512 | Advanced: override the default local ASR model. See [FunASR model zoo](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo). |
+|   `api_key`  |             `None`            | DashScope API key. Required when `infer_mode="api"`. Can also be set via `DASHSCOPE_API_KEY` env var.                                      |
+| `input_path` |               —               | Path to the folder where audio files are stored.                                                                                           |
+|   `seg_dur`  |              15.              | Segment large audio into pieces, in seconds.                                                                                               |
+|  `min_pause` |              0.2              | Minimum pause duration between two utterances, in seconds.                                                                                 |
 
 Here are code examples showing how to use these parameters:
 
@@ -104,10 +105,10 @@ model.export_params("/path/to/custom_params.txt")
 
 Praasper supports two ASR backends, chosen via the `infer_mode` parameter:
 
-| `infer_mode` | Backend | Best for |
-|:---|:---|:---|
-| `"local"` (default) | **FunASR-Nano** — lightweight, runs on laptop CPU/GPU | Offline work, no API costs, privacy |
-| `"api"` | **DashScope** (AliCloud) — cloud ASR with stronger accuracy | High-accuracy needs, server deployments |
+| `infer_mode`        | Backend                                                     | Best for                                |
+| :------------------ | :---------------------------------------------------------- | :-------------------------------------- |
+| `"local"` (default) | **FunASR-Nano** — lightweight, runs on laptop CPU/GPU       | Offline work, no API costs, privacy     |
+| `"api"`             | **DashScope** (AliCloud) — cloud ASR with stronger accuracy | High-accuracy needs, server deployments |
 
 ### Local mode (`infer_mode="local"`)
 
@@ -150,11 +151,12 @@ Advanced users can override the auto-calibration by supplying custom VAD paramet
 ```bash
 pip install -U praasper
 ```
+
 > If you have a successful installation and don't care about GPU acceleration, you can stop right here.
 
 ## GPU Acceleration (Windows/Linux)
 
-Currently, ***Praasper*** utilizes `Fun-ASR-Nano` from [**FunASR**](https://github.com/modelscope/funasr) as the default local ASR engine. Cloud ASR is also available via DashScope (`infer_mode="api"`).
+Currently, ***Praasper*** utilizes `Fun-ASR-Nano` from **[FunASR](https://github.com/modelscope/funasr)** as the default local ASR engine. Cloud ASR is also available via DashScope (`infer_mode="api"`).
 
 > `FunASR` automatically detects the best currently available device to use. But you still need to first install the GPU-support version of `torch` in order to enable CUDA acceleration.
 
@@ -175,9 +177,9 @@ Results should pop up like this (It means that this device supports CUDA up to v
 | NVIDIA-SMI 576.80                 Driver Version: 576.80         CUDA Version: 12.9     |
 ```
 
-**Next**, go to [**NVIDIA CUDA Toolkit**](https://developer.nvidia.com/cuda-toolkit) and download the latest version, or whichever version that fits your system/need.
+**Next**, go to **[NVIDIA CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit)** and download the latest version, or whichever version that fits your system/need.
 
-**Lastly**, install `torch` that fits your CUDA version. Find the correct `pip` command [**in this link**](https://pytorch.org/get-started/locally/).
+**Lastly**, install `torch` that fits your CUDA version. Find the correct `pip` command **[in this link](https://pytorch.org/get-started/locally/)**.
 
 Here is an example for CUDA 12.9:
 
@@ -212,3 +214,4 @@ For `CUDA` support, here is an example for downloading `torch` that fits CUDA 12
 ```bash
 uv pip install --reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu129
 ```
+
