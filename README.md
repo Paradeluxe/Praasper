@@ -10,7 +10,7 @@ https://pypi.org/project/praasper/)
 
 ![mechanism](promote/mechanism.png)
 
-In ***Praasper***, the pipeline has three steps. First, **VAD** (*Praditor*) segments audio into chunks and extracts speech intervals with millisecond-level precision. Second, **ASR** (*Fun-ASR-Nano*) transcribes each chunk with word-level timestamps. Third, timestamps are aligned to VAD intervals and exported as a TextGrid file where each interval contains one word and its start/end time.
+In ***Praasper***, the pipeline has four stages. **First**, long recordings are split at natural pauses via pause-aware chunking. **Second**, a two-stage **VAD** (*Praditor*) performs coarse DBSCAN clustering followed by fine sliding-window boundary detection — automatically calibrated per file via a grid search over `amp` and `eps_ratio`. **Third**, **ASR** (*Fun-ASR-Nano*) transcribes each VAD-bounded segment with word-level timestamps. **Fourth**, timestamps are aligned to VAD intervals by temporal overlap and exported as a Praat TextGrid file.
 
 # How to use
 
@@ -32,7 +32,7 @@ Here are the parameters you can pass to `init_model` and `annote`:
 | `ASR` | FunAudioLLM/Fun-ASR-Nano-2512 | Advanced: override the default local ASR model. See [FunASR model zoo](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo). |
 | `api_key` | `None` | DashScope API key. Required when `infer_mode="api"`. Can also be set via `DASHSCOPE_API_KEY` env var. |
 | `input_path` | — | Path to the folder where audio files are stored. |
-| `seg_dur` | 10. | Segment large audio into pieces, in seconds. |
+| `seg_dur` | 15. | Segment large audio into pieces, in seconds. |
 | `min_pause` | 0.2 | Minimum pause duration between two utterances, in seconds. |
 
 
@@ -60,15 +60,11 @@ model.annote(
 )
 ```
 
-## Fine-tune *Praditor*
+## Custom VAD Parameters
 
-***Praasper*** is embedded with a default set of parameters for ***Praditor***. But the default parameters may not always be optimal. In that case, you are recommended to use a custom set of parameters for ***Praditor***.
+By default, ***Praasper*** automatically calibrates VAD parameters for each recording via a grid search — no manual tuning is required. For advanced users who need custom parameters, a dict or `.txt` file can be passed directly.
 
-1. Use the latest version of [***Praditor* (v1.3.1)**](https://github.com/Paradeluxe/Praditor/releases). It supports VAD.
-2. Annotate the audio file. Fine-tune the parameters until the results fit your standard.
-3. Click `Save` under the `Current` mode (top-right corner).
-
-***Praditor*** will then save a `.txt` param file to the same folder as the input audio file, which ***Praasper*** will use to override the default params.
+Parameters use the internal ***Praditor*** format: a dict with `onset` and `offset` sections, each containing `amp`, `cutoff0`, `cutoff1`, `numValid`, and `eps_ratio`. Praasper keeps onset and offset identical internally.
 
 Here is a code example showing how to override the default parameters for a specific audio file. The VAD parameters are passed as a dict with `onset` and `offset` sections:
 
@@ -135,11 +131,17 @@ model = praasper.init_model(infer_mode="api", api_key="sk-...")
 
 # Mechanism
 
-***Praditor*** is applied to perform **Voice Activity Detection (VAD)** — it segments large audio files into smaller pieces and extracts speech intervals with **millisecond-level precision**. It was originally developed as a Speech Onset Detection (SOT) algorithm for language researchers.
+***Praasper*** processes audio in four stages:
 
-The default ASR engine is **Fun-ASR-Nano** (local mode), a lightweight model that runs on laptop CPU/GPU and supports multiple languages including Mandarin, Cantonese, English, Japanese, and Korean — all with word-level timestamps. For higher accuracy, Praasper can also use **DashScope** cloud ASR via `infer_mode="api"`.
+**1. Pause-aware chunking.** Long recordings are split into segments (default 15 s). Segment boundaries are placed at natural pauses: the algorithm scans backward from the chunk limit and locates the largest VAD-detected silence gap, placing the boundary at its midpoint. This preserves utterance integrity across segment boundaries.
 
-The VAD intervals and ASR timestamps are then aligned via overlap matching: each word from the ASR output is assigned to the VAD interval it overlaps with most. The result is exported as a TextGrid file where each interval contains one word with its start time, end time, and text.
+**2. Voice Activity Detection (VAD).** Praasper uses ***Praditor***, a DBSCAN-based two-stage detector. The first stage clusters two-dimensional amplitude-pair coordinates via DBSCAN to separate speech from silence, producing broad candidate segments. The second stage applies a sliding-window detector with locally estimated noise thresholds to place onset and offset boundaries at frame-level precision. By default, Praasper automatically calibrates VAD parameters for each recording: it samples a random segment, runs a grid search over `amp` (1.1–1.3) and `eps_ratio` (0.02–0.05), and selects the combination that maximizes onset boundary signal-to-noise ratio (SNR). No manual tuning is required.
+
+**3. Automatic Speech Recognition (ASR).** Each VAD-bounded segment is transcribed by **Fun-ASR-Nano** (local mode), a lightweight model producing word-level timestamps. For higher accuracy, **DashScope** cloud ASR is available via `infer_mode="api"`.
+
+**4. Overlap matching and export.** ASR word timestamps are assigned to VAD intervals by maximum temporal overlap. Words falling outside all intervals are assigned to the nearest interval by distance. Adjacent overlapping intervals are merged. Segment processing is parallelized across a thread pool (4 workers). The result is exported as a Praat-compatible TextGrid file.
+
+Advanced users can override the auto-calibration by supplying custom VAD parameters via a Python dict or `.txt` file (see [Custom VAD Parameters](#custom-vad-parameters)).
 
 # Setup
 
