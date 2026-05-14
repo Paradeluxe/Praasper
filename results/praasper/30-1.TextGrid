@@ -1,0 +1,1074 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 204.0292970521542
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "words"
+		xmin = 0.0
+		xmax = 204.0292970521542
+		intervals: size = 265
+			intervals [1]:
+				xmin = 0.0
+				xmax = 3.13204
+				text = ""
+			intervals [2]:
+				xmin = 3.13204
+				xmax = 3.89283
+				text = "平静"
+			intervals [3]:
+				xmin = 3.89283
+				xmax = 4.67626
+				text = ""
+			intervals [4]:
+				xmin = 4.67626
+				xmax = 5.40667
+				text = "周道"
+			intervals [5]:
+				xmin = 5.40667
+				xmax = 6.18079
+				text = ""
+			intervals [6]:
+				xmin = 6.18079
+				xmax = 6.84283
+				text = "冷淡"
+			intervals [7]:
+				xmin = 6.84283
+				xmax = 7.75283
+				text = ""
+			intervals [8]:
+				xmin = 7.75283
+				xmax = 8.40363
+				text = "干燥"
+			intervals [9]:
+				xmin = 8.40363
+				xmax = 9.41726
+				text = ""
+			intervals [10]:
+				xmin = 9.41726
+				xmax = 10.18243
+				text = "宝贵"
+			intervals [11]:
+				xmin = 10.18243
+				xmax = 10.86633
+				text = ""
+			intervals [12]:
+				xmin = 10.86633
+				xmax = 11.48136
+				text = "有用"
+			intervals [13]:
+				xmin = 11.48136
+				xmax = 12.49447
+				text = ""
+			intervals [14]:
+				xmin = 12.49447
+				xmax = 13.26229
+				text = "宽阔"
+			intervals [15]:
+				xmin = 13.26229
+				xmax = 14.025582312925172
+				text = ""
+			intervals [16]:
+				xmin = 14.025582312925172
+				xmax = 14.68285231292517
+				text = "富有"
+			intervals [17]:
+				xmin = 14.68285231292517
+				xmax = 15.497712312925172
+				text = ""
+			intervals [18]:
+				xmin = 15.497712312925172
+				xmax = 16.25090231292517
+				text = "发风"
+			intervals [19]:
+				xmin = 16.25090231292517
+				xmax = 17.042992312925172
+				text = ""
+			intervals [20]:
+				xmin = 17.042992312925172
+				xmax = 17.77861231292517
+				text = "迷人"
+			intervals [21]:
+				xmin = 17.77861231292517
+				xmax = 18.503382312925172
+				text = ""
+			intervals [22]:
+				xmin = 18.503382312925172
+				xmax = 19.29034231292517
+				text = "明显"
+			intervals [23]:
+				xmin = 19.29034231292517
+				xmax = 19.90088231292517
+				text = ""
+			intervals [24]:
+				xmin = 19.90088231292517
+				xmax = 20.66118231292517
+				text = "丑陋"
+			intervals [25]:
+				xmin = 20.66118231292517
+				xmax = 21.30399231292517
+				text = ""
+			intervals [26]:
+				xmin = 21.30399231292517
+				xmax = 22.06403231292517
+				text = "结出"
+			intervals [27]:
+				xmin = 22.06403231292517
+				xmax = 22.865032312925173
+				text = ""
+			intervals [28]:
+				xmin = 22.865032312925173
+				xmax = 23.502972312925174
+				text = "干净"
+			intervals [29]:
+				xmin = 23.502972312925174
+				xmax = 24.392542312925173
+				text = ""
+			intervals [30]:
+				xmin = 24.392542312925173
+				xmax = 25.189952312925172
+				text = "中心"
+			intervals [31]:
+				xmin = 25.189952312925172
+				xmax = 25.97623231292517
+				text = ""
+			intervals [32]:
+				xmin = 25.97623231292517
+				xmax = 26.76213231292517
+				text = "平坦"
+			intervals [33]:
+				xmin = 26.76213231292517
+				xmax = 27.521652086167805
+				text = ""
+			intervals [34]:
+				xmin = 27.521652086167805
+				xmax = 28.301342086167804
+				text = "优雅"
+			intervals [35]:
+				xmin = 28.301342086167804
+				xmax = 28.940972086167804
+				text = ""
+			intervals [36]:
+				xmin = 28.940972086167804
+				xmax = 29.622862086167803
+				text = "中立"
+			intervals [37]:
+				xmin = 29.622862086167803
+				xmax = 30.599592086167803
+				text = ""
+			intervals [38]:
+				xmin = 30.599592086167803
+				xmax = 31.303062086167806
+				text = "华丽"
+			intervals [39]:
+				xmin = 31.303062086167806
+				xmax = 32.051832086167806
+				text = ""
+			intervals [40]:
+				xmin = 32.051832086167806
+				xmax = 32.619522086167805
+				text = "愚蠢"
+			intervals [41]:
+				xmin = 32.619522086167805
+				xmax = 33.5045620861678
+				text = ""
+			intervals [42]:
+				xmin = 33.5045620861678
+				xmax = 34.3390020861678
+				text = "纯净"
+			intervals [43]:
+				xmin = 34.3390020861678
+				xmax = 34.984562086167806
+				text = ""
+			intervals [44]:
+				xmin = 34.984562086167806
+				xmax = 35.895372086167804
+				text = "亲切"
+			intervals [45]:
+				xmin = 35.895372086167804
+				xmax = 36.57077208616781
+				text = ""
+			intervals [46]:
+				xmin = 36.57077208616781
+				xmax = 37.271542086167806
+				text = "著明"
+			intervals [47]:
+				xmin = 37.271542086167806
+				xmax = 37.8718620861678
+				text = ""
+			intervals [48]:
+				xmin = 37.8718620861678
+				xmax = 38.6151220861678
+				text = "减短"
+			intervals [49]:
+				xmin = 38.6151220861678
+				xmax = 39.3460320861678
+				text = ""
+			intervals [50]:
+				xmin = 39.3460320861678
+				xmax = 40.034032086167805
+				text = "极度"
+			intervals [51]:
+				xmin = 40.034032086167805
+				xmax = 40.861463151927445
+				text = ""
+			intervals [52]:
+				xmin = 40.861463151927445
+				xmax = 41.57350315192744
+				text = "高级"
+			intervals [53]:
+				xmin = 41.57350315192744
+				xmax = 42.233593151927444
+				text = ""
+			intervals [54]:
+				xmin = 42.233593151927444
+				xmax = 42.94813315192744
+				text = "愚笨"
+			intervals [55]:
+				xmin = 42.94813315192744
+				xmax = 43.489013151927445
+				text = ""
+			intervals [56]:
+				xmin = 43.489013151927445
+				xmax = 44.11556315192744
+				text = "糟糕"
+			intervals [57]:
+				xmin = 44.11556315192744
+				xmax = 44.95293315192744
+				text = ""
+			intervals [58]:
+				xmin = 44.95293315192744
+				xmax = 45.58112315192744
+				text = "自动"
+			intervals [59]:
+				xmin = 45.58112315192744
+				xmax = 46.28740315192744
+				text = ""
+			intervals [60]:
+				xmin = 46.28740315192744
+				xmax = 47.00395315192744
+				text = "苗迢"
+			intervals [61]:
+				xmin = 47.00395315192744
+				xmax = 47.688333151927445
+				text = ""
+			intervals [62]:
+				xmin = 47.688333151927445
+				xmax = 48.50128315192744
+				text = "随便"
+			intervals [63]:
+				xmin = 48.50128315192744
+				xmax = 49.23522315192744
+				text = ""
+			intervals [64]:
+				xmin = 49.23522315192744
+				xmax = 49.969333151927444
+				text = "恐怖"
+			intervals [65]:
+				xmin = 49.969333151927444
+				xmax = 50.679313151927445
+				text = ""
+			intervals [66]:
+				xmin = 50.679313151927445
+				xmax = 51.39098315192744
+				text = "明智"
+			intervals [67]:
+				xmin = 51.39098315192744
+				xmax = 51.98434315192744
+				text = ""
+			intervals [68]:
+				xmin = 51.98434315192744
+				xmax = 52.25849315192744
+				text = "心"
+			intervals [69]:
+				xmin = 52.25849315192744
+				xmax = 52.54132315192744
+				text = ""
+			intervals [70]:
+				xmin = 52.54132315192744
+				xmax = 52.808673151927444
+				text = "凡"
+			intervals [71]:
+				xmin = 52.808673151927444
+				xmax = 53.54293315192744
+				text = ""
+			intervals [72]:
+				xmin = 53.54293315192744
+				xmax = 54.30624315192744
+				text = "辉煌"
+			intervals [73]:
+				xmin = 54.30624315192744
+				xmax = 55.04965823129252
+				text = ""
+			intervals [74]:
+				xmin = 55.04965823129252
+				xmax = 55.782518231292514
+				text = "日常"
+			intervals [75]:
+				xmin = 55.782518231292514
+				xmax = 56.49763823129251
+				text = ""
+			intervals [76]:
+				xmin = 56.49763823129251
+				xmax = 57.349278231292516
+				text = "贫穷"
+			intervals [77]:
+				xmin = 57.349278231292516
+				xmax = 58.067798231292514
+				text = ""
+			intervals [78]:
+				xmin = 58.067798231292514
+				xmax = 58.63335823129252
+				text = "文雅"
+			intervals [79]:
+				xmin = 58.63335823129252
+				xmax = 59.448618231292514
+				text = ""
+			intervals [80]:
+				xmin = 59.448618231292514
+				xmax = 60.18240823129251
+				text = "平均"
+			intervals [81]:
+				xmin = 60.18240823129251
+				xmax = 61.020118231292514
+				text = ""
+			intervals [82]:
+				xmin = 61.020118231292514
+				xmax = 61.66729823129251
+				text = "规律"
+			intervals [83]:
+				xmin = 61.66729823129251
+				xmax = 62.38380823129251
+				text = ""
+			intervals [84]:
+				xmin = 62.38380823129251
+				xmax = 63.04636823129252
+				text = "和蔼"
+			intervals [85]:
+				xmin = 63.04636823129252
+				xmax = 63.592808231292516
+				text = ""
+			intervals [86]:
+				xmin = 63.592808231292516
+				xmax = 64.36042823129252
+				text = "充足"
+			intervals [87]:
+				xmin = 64.36042823129252
+				xmax = 65.20178823129251
+				text = ""
+			intervals [88]:
+				xmin = 65.20178823129251
+				xmax = 65.96047823129251
+				text = "基础"
+			intervals [89]:
+				xmin = 65.96047823129251
+				xmax = 66.60042823129251
+				text = ""
+			intervals [90]:
+				xmin = 66.60042823129251
+				xmax = 67.17391823129252
+				text = "灵利"
+			intervals [91]:
+				xmin = 67.17391823129252
+				xmax = 68.04060823129251
+				text = ""
+			intervals [92]:
+				xmin = 68.04060823129251
+				xmax = 68.88085823129252
+				text = "惊夏"
+			intervals [93]:
+				xmin = 68.88085823129252
+				xmax = 69.49401258503401
+				text = ""
+			intervals [94]:
+				xmin = 69.49401258503401
+				xmax = 70.24923258503401
+				text = "神圣"
+			intervals [95]:
+				xmin = 70.24923258503401
+				xmax = 71.12406258503401
+				text = ""
+			intervals [96]:
+				xmin = 71.12406258503401
+				xmax = 71.77929258503401
+				text = "恶意"
+			intervals [97]:
+				xmin = 71.77929258503401
+				xmax = 72.40812258503401
+				text = ""
+			intervals [98]:
+				xmin = 72.40812258503401
+				xmax = 73.26469258503401
+				text = "实际"
+			intervals [99]:
+				xmin = 73.26469258503401
+				xmax = 73.888272585034
+				text = ""
+			intervals [100]:
+				xmin = 73.888272585034
+				xmax = 74.722172585034
+				text = "深厚"
+			intervals [101]:
+				xmin = 74.722172585034
+				xmax = 75.447732585034
+				text = ""
+			intervals [102]:
+				xmin = 75.447732585034
+				xmax = 76.053262585034
+				text = "无用"
+			intervals [103]:
+				xmin = 76.053262585034
+				xmax = 76.73335258503401
+				text = ""
+			intervals [104]:
+				xmin = 76.73335258503401
+				xmax = 77.42478258503401
+				text = "粗鲁"
+			intervals [105]:
+				xmin = 77.42478258503401
+				xmax = 78.114102585034
+				text = ""
+			intervals [106]:
+				xmin = 78.114102585034
+				xmax = 78.854922585034
+				text = "锋利"
+			intervals [107]:
+				xmin = 78.854922585034
+				xmax = 79.74664258503401
+				text = ""
+			intervals [108]:
+				xmin = 79.74664258503401
+				xmax = 80.577842585034
+				text = "被爱"
+			intervals [109]:
+				xmin = 80.577842585034
+				xmax = 81.28285258503401
+				text = ""
+			intervals [110]:
+				xmin = 81.28285258503401
+				xmax = 82.094582585034
+				text = "破旧"
+			intervals [111]:
+				xmin = 82.094582585034
+				xmax = 82.79926537414966
+				text = ""
+			intervals [112]:
+				xmin = 82.79926537414966
+				xmax = 83.67221537414966
+				text = "奇义"
+			intervals [113]:
+				xmin = 83.67221537414966
+				xmax = 84.56744537414966
+				text = ""
+			intervals [114]:
+				xmin = 84.56744537414966
+				xmax = 85.46209537414965
+				text = "错败"
+			intervals [115]:
+				xmin = 85.46209537414965
+				xmax = 86.14958537414965
+				text = ""
+			intervals [116]:
+				xmin = 86.14958537414965
+				xmax = 86.92529537414966
+				text = "内疚"
+			intervals [117]:
+				xmin = 86.92529537414966
+				xmax = 87.79599537414965
+				text = ""
+			intervals [118]:
+				xmin = 87.79599537414965
+				xmax = 88.57368537414966
+				text = "共同"
+			intervals [119]:
+				xmin = 88.57368537414966
+				xmax = 89.24636537414966
+				text = ""
+			intervals [120]:
+				xmin = 89.24636537414966
+				xmax = 90.06069537414966
+				text = "强壮"
+			intervals [121]:
+				xmin = 90.06069537414966
+				xmax = 90.88581537414966
+				text = ""
+			intervals [122]:
+				xmin = 90.88581537414966
+				xmax = 91.53581537414966
+				text = "完整"
+			intervals [123]:
+				xmin = 91.53581537414966
+				xmax = 92.39944537414965
+				text = ""
+			intervals [124]:
+				xmin = 92.39944537414965
+				xmax = 93.09527537414965
+				text = "浓密"
+			intervals [125]:
+				xmin = 93.09527537414965
+				xmax = 93.83112537414965
+				text = ""
+			intervals [126]:
+				xmin = 93.83112537414965
+				xmax = 94.46354537414966
+				text = "大量"
+			intervals [127]:
+				xmin = 94.46354537414966
+				xmax = 95.13862537414965
+				text = ""
+			intervals [128]:
+				xmin = 95.13862537414965
+				xmax = 95.88150537414965
+				text = "空白"
+			intervals [129]:
+				xmin = 95.88150537414965
+				xmax = 96.67719129251701
+				text = ""
+			intervals [130]:
+				xmin = 96.67719129251701
+				xmax = 97.48832129251701
+				text = "残酷"
+			intervals [131]:
+				xmin = 97.48832129251701
+				xmax = 98.23614129251702
+				text = ""
+			intervals [132]:
+				xmin = 98.23614129251702
+				xmax = 99.03082129251702
+				text = "忠实"
+			intervals [133]:
+				xmin = 99.03082129251702
+				xmax = 99.86267129251702
+				text = ""
+			intervals [134]:
+				xmin = 99.86267129251702
+				xmax = 100.51145129251701
+				text = "不变"
+			intervals [135]:
+				xmin = 100.51145129251701
+				xmax = 101.19453129251701
+				text = ""
+			intervals [136]:
+				xmin = 101.19453129251701
+				xmax = 102.13884129251701
+				text = "吸细"
+			intervals [137]:
+				xmin = 102.13884129251701
+				xmax = 102.93757129251702
+				text = ""
+			intervals [138]:
+				xmin = 102.93757129251702
+				xmax = 103.74723129251701
+				text = "恐惧"
+			intervals [139]:
+				xmin = 103.74723129251701
+				xmax = 104.45732129251701
+				text = ""
+			intervals [140]:
+				xmin = 104.45732129251701
+				xmax = 105.20825129251702
+				text = "温和"
+			intervals [141]:
+				xmin = 105.20825129251702
+				xmax = 105.97839129251702
+				text = ""
+			intervals [142]:
+				xmin = 105.97839129251702
+				xmax = 106.80875129251702
+				text = "错误"
+			intervals [143]:
+				xmin = 106.80875129251702
+				xmax = 107.48342129251702
+				text = ""
+			intervals [144]:
+				xmin = 107.48342129251702
+				xmax = 108.56585129251701
+				text = "失去"
+			intervals [145]:
+				xmin = 108.56585129251701
+				xmax = 109.10794129251701
+				text = ""
+			intervals [146]:
+				xmin = 109.10794129251701
+				xmax = 109.91390129251701
+				text = "绝妙"
+			intervals [147]:
+				xmin = 109.91390129251701
+				xmax = 110.56971272108845
+				text = ""
+			intervals [148]:
+				xmin = 110.56971272108845
+				xmax = 111.58622272108845
+				text = "仔细"
+			intervals [149]:
+				xmin = 111.58622272108845
+				xmax = 112.13903272108844
+				text = ""
+			intervals [150]:
+				xmin = 112.13903272108844
+				xmax = 112.79473272108845
+				text = "暴怒"
+			intervals [151]:
+				xmin = 112.79473272108845
+				xmax = 113.59994272108845
+				text = ""
+			intervals [152]:
+				xmin = 113.59994272108845
+				xmax = 114.42736272108844
+				text = "活泼"
+			intervals [153]:
+				xmin = 114.42736272108844
+				xmax = 115.07702272108844
+				text = ""
+			intervals [154]:
+				xmin = 115.07702272108844
+				xmax = 115.95144272108845
+				text = "敞开"
+			intervals [155]:
+				xmin = 115.95144272108845
+				xmax = 116.68253272108845
+				text = ""
+			intervals [156]:
+				xmin = 116.68253272108845
+				xmax = 117.57416272108844
+				text = "反常"
+			intervals [157]:
+				xmin = 117.57416272108844
+				xmax = 118.19851272108845
+				text = ""
+			intervals [158]:
+				xmin = 118.19851272108845
+				xmax = 118.92475272108845
+				text = "英俊"
+			intervals [159]:
+				xmin = 118.92475272108845
+				xmax = 119.63860272108845
+				text = ""
+			intervals [160]:
+				xmin = 119.63860272108845
+				xmax = 120.52416272108844
+				text = "收集"
+			intervals [161]:
+				xmin = 120.52416272108844
+				xmax = 121.25928272108845
+				text = ""
+			intervals [162]:
+				xmin = 121.25928272108845
+				xmax = 121.83479272108845
+				text = "暴力"
+			intervals [163]:
+				xmin = 121.83479272108845
+				xmax = 122.59801272108845
+				text = ""
+			intervals [164]:
+				xmin = 122.59801272108845
+				xmax = 123.32649272108844
+				text = "普通"
+			intervals [165]:
+				xmin = 123.32649272108844
+				xmax = 124.06804773242632
+				text = ""
+			intervals [166]:
+				xmin = 124.06804773242632
+				xmax = 124.83550773242632
+				text = "当地"
+			intervals [167]:
+				xmin = 124.83550773242632
+				xmax = 125.47881773242632
+				text = ""
+			intervals [168]:
+				xmin = 125.47881773242632
+				xmax = 126.16013773242632
+				text = "有关"
+			intervals [169]:
+				xmin = 126.16013773242632
+				xmax = 126.63047773242631
+				text = ""
+			intervals [170]:
+				xmin = 126.63047773242631
+				xmax = 127.51335773242631
+				text = "随意"
+			intervals [171]:
+				xmin = 127.51335773242631
+				xmax = 128.45215773242631
+				text = ""
+			intervals [172]:
+				xmin = 128.45215773242631
+				xmax = 129.26351773242632
+				text = "悲剧"
+			intervals [173]:
+				xmin = 129.26351773242632
+				xmax = 129.84060773242632
+				text = ""
+			intervals [174]:
+				xmin = 129.84060773242632
+				xmax = 130.56321773242632
+				text = "原形"
+			intervals [175]:
+				xmin = 130.56321773242632
+				xmax = 131.22929773242632
+				text = ""
+			intervals [176]:
+				xmin = 131.22929773242632
+				xmax = 131.9495277324263
+				text = "关心"
+			intervals [177]:
+				xmin = 131.9495277324263
+				xmax = 132.72543773242631
+				text = ""
+			intervals [178]:
+				xmin = 132.72543773242631
+				xmax = 133.47655773242633
+				text = "忠诚"
+			intervals [179]:
+				xmin = 133.47655773242633
+				xmax = 134.2366877324263
+				text = ""
+			intervals [180]:
+				xmin = 134.2366877324263
+				xmax = 135.02786773242633
+				text = "困惑"
+			intervals [181]:
+				xmin = 135.02786773242633
+				xmax = 135.69682773242633
+				text = ""
+			intervals [182]:
+				xmin = 135.69682773242633
+				xmax = 136.65514773242631
+				text = "虚弱"
+			intervals [183]:
+				xmin = 136.65514773242631
+				xmax = 137.30120326530613
+				text = ""
+			intervals [184]:
+				xmin = 137.30120326530613
+				xmax = 137.94544326530612
+				text = "无助"
+			intervals [185]:
+				xmin = 137.94544326530612
+				xmax = 138.65156326530615
+				text = ""
+			intervals [186]:
+				xmin = 138.65156326530615
+				xmax = 139.25811326530615
+				text = "公名"
+			intervals [187]:
+				xmin = 139.25811326530615
+				xmax = 139.95557326530613
+				text = ""
+			intervals [188]:
+				xmin = 139.95557326530613
+				xmax = 140.85512326530613
+				text = "超级"
+			intervals [189]:
+				xmin = 140.85512326530613
+				xmax = 141.68814326530614
+				text = ""
+			intervals [190]:
+				xmin = 141.68814326530614
+				xmax = 142.36288326530615
+				text = "年度"
+			intervals [191]:
+				xmin = 142.36288326530615
+				xmax = 143.11285326530614
+				text = ""
+			intervals [192]:
+				xmin = 143.11285326530614
+				xmax = 144.31904326530614
+				text = "不适"
+			intervals [193]:
+				xmin = 144.31904326530614
+				xmax = 144.76020326530613
+				text = ""
+			intervals [194]:
+				xmin = 144.76020326530613
+				xmax = 145.78641326530612
+				text = "潮湿"
+			intervals [195]:
+				xmin = 145.78641326530612
+				xmax = 146.56152326530614
+				text = ""
+			intervals [196]:
+				xmin = 146.56152326530614
+				xmax = 147.28111326530615
+				text = "痛苦"
+			intervals [197]:
+				xmin = 147.28111326530615
+				xmax = 148.05834326530615
+				text = ""
+			intervals [198]:
+				xmin = 148.05834326530615
+				xmax = 148.77199326530615
+				text = "可怜"
+			intervals [199]:
+				xmin = 148.77199326530615
+				xmax = 149.46140326530613
+				text = ""
+			intervals [200]:
+				xmin = 149.46140326530613
+				xmax = 150.21220326530613
+				text = "平方"
+			intervals [201]:
+				xmin = 150.21220326530613
+				xmax = 151.02225560090704
+				text = ""
+			intervals [202]:
+				xmin = 151.02225560090704
+				xmax = 151.70706560090704
+				text = "极好"
+			intervals [203]:
+				xmin = 151.70706560090704
+				xmax = 152.47901560090705
+				text = ""
+			intervals [204]:
+				xmin = 152.47901560090705
+				xmax = 153.10354560090704
+				text = "有望"
+			intervals [205]:
+				xmin = 153.10354560090704
+				xmax = 153.89529560090705
+				text = ""
+			intervals [206]:
+				xmin = 153.89529560090705
+				xmax = 154.78522560090704
+				text = "懒惰"
+			intervals [207]:
+				xmin = 154.78522560090704
+				xmax = 155.43259560090704
+				text = ""
+			intervals [208]:
+				xmin = 155.43259560090704
+				xmax = 156.22871560090704
+				text = "通常"
+			intervals [209]:
+				xmin = 156.22871560090704
+				xmax = 157.02567560090705
+				text = ""
+			intervals [210]:
+				xmin = 157.02567560090705
+				xmax = 157.75747560090704
+				text = "主要"
+			intervals [211]:
+				xmin = 157.75747560090704
+				xmax = 158.47962560090704
+				text = ""
+			intervals [212]:
+				xmin = 158.47962560090704
+				xmax = 159.20933560090705
+				text = "接近"
+			intervals [213]:
+				xmin = 159.20933560090705
+				xmax = 159.89336560090703
+				text = ""
+			intervals [214]:
+				xmin = 159.89336560090703
+				xmax = 160.92266560090704
+				text = "神奇"
+			intervals [215]:
+				xmin = 160.92266560090704
+				xmax = 161.33352560090705
+				text = ""
+			intervals [216]:
+				xmin = 161.33352560090705
+				xmax = 162.23291560090703
+				text = "羞耻"
+			intervals [217]:
+				xmin = 162.23291560090703
+				xmax = 162.76510099773242
+				text = ""
+			intervals [218]:
+				xmin = 162.76510099773242
+				xmax = 163.67855099773243
+				text = "私人"
+			intervals [219]:
+				xmin = 163.67855099773243
+				xmax = 166.85018099773242
+				text = ""
+			intervals [220]:
+				xmin = 166.85018099773242
+				xmax = 168.0722909977324
+				text = "宽阔"
+			intervals [221]:
+				xmin = 168.0722909977324
+				xmax = 168.71113099773243
+				text = ""
+			intervals [222]:
+				xmin = 168.71113099773243
+				xmax = 169.45501099773242
+				text = "丑陋"
+			intervals [223]:
+				xmin = 169.45501099773242
+				xmax = 170.30703099773243
+				text = ""
+			intervals [224]:
+				xmin = 170.30703099773243
+				xmax = 171.1287109977324
+				text = "竭出"
+			intervals [225]:
+				xmin = 171.1287109977324
+				xmax = 171.91249099773242
+				text = ""
+			intervals [226]:
+				xmin = 171.91249099773242
+				xmax = 172.6375709977324
+				text = "华丽"
+			intervals [227]:
+				xmin = 172.6375709977324
+				xmax = 173.6037209977324
+				text = ""
+			intervals [228]:
+				xmin = 173.6037209977324
+				xmax = 174.24567099773242
+				text = "愚蠢"
+			intervals [229]:
+				xmin = 174.24567099773242
+				xmax = 174.99719099773242
+				text = ""
+			intervals [230]:
+				xmin = 174.99719099773242
+				xmax = 175.7927409977324
+				text = "纯净"
+			intervals [231]:
+				xmin = 175.7927409977324
+				xmax = 176.6226497505669
+				text = ""
+			intervals [232]:
+				xmin = 176.6226497505669
+				xmax = 177.2731097505669
+				text = "极度"
+			intervals [233]:
+				xmin = 177.2731097505669
+				xmax = 178.19575975056688
+				text = ""
+			intervals [234]:
+				xmin = 178.19575975056688
+				xmax = 178.9429297505669
+				text = "高级"
+			intervals [235]:
+				xmin = 178.9429297505669
+				xmax = 179.7193397505669
+				text = ""
+			intervals [236]:
+				xmin = 179.7193397505669
+				xmax = 180.4445597505669
+				text = "糟糕"
+			intervals [237]:
+				xmin = 180.4445597505669
+				xmax = 181.14759975056688
+				text = ""
+			intervals [238]:
+				xmin = 181.14759975056688
+				xmax = 181.9358997505669
+				text = "心凡"
+			intervals [239]:
+				xmin = 181.9358997505669
+				xmax = 182.9018597505669
+				text = ""
+			intervals [240]:
+				xmin = 182.9018597505669
+				xmax = 183.7710197505669
+				text = "辉煌"
+			intervals [241]:
+				xmin = 183.7710197505669
+				xmax = 184.55473975056688
+				text = ""
+			intervals [242]:
+				xmin = 184.55473975056688
+				xmax = 185.2810697505669
+				text = "文雅"
+			intervals [243]:
+				xmin = 185.2810697505669
+				xmax = 186.0109997505669
+				text = ""
+			intervals [244]:
+				xmin = 186.0109997505669
+				xmax = 186.7862597505669
+				text = "基础"
+			intervals [245]:
+				xmin = 186.7862597505669
+				xmax = 187.57371975056688
+				text = ""
+			intervals [246]:
+				xmin = 187.57371975056688
+				xmax = 188.28074975056688
+				text = "灵利"
+			intervals [247]:
+				xmin = 188.28074975056688
+				xmax = 189.0200497505669
+				text = ""
+			intervals [248]:
+				xmin = 189.0200497505669
+				xmax = 189.8336497505669
+				text = "锋利"
+			intervals [249]:
+				xmin = 189.8336497505669
+				xmax = 190.62323455782314
+				text = ""
+			intervals [250]:
+				xmin = 190.62323455782314
+				xmax = 191.30595455782313
+				text = "被爱"
+			intervals [251]:
+				xmin = 191.30595455782313
+				xmax = 191.97012455782314
+				text = ""
+			intervals [252]:
+				xmin = 191.97012455782314
+				xmax = 192.80606455782313
+				text = "挫败"
+			intervals [253]:
+				xmin = 192.80606455782313
+				xmax = 193.46604455782312
+				text = ""
+			intervals [254]:
+				xmin = 193.46604455782312
+				xmax = 194.40454455782313
+				text = "空白"
+			intervals [255]:
+				xmin = 194.40454455782313
+				xmax = 195.07175455782314
+				text = ""
+			intervals [256]:
+				xmin = 195.07175455782314
+				xmax = 195.75735455782313
+				text = "年度"
+			intervals [257]:
+				xmin = 195.75735455782313
+				xmax = 196.55989455782313
+				text = ""
+			intervals [258]:
+				xmin = 196.55989455782313
+				xmax = 197.27393455782314
+				text = "不是"
+			intervals [259]:
+				xmin = 197.27393455782314
+				xmax = 197.94983455782312
+				text = ""
+			intervals [260]:
+				xmin = 197.94983455782312
+				xmax = 198.97246455782312
+				text = "神奇"
+			intervals [261]:
+				xmin = 198.97246455782312
+				xmax = 199.40658455782312
+				text = ""
+			intervals [262]:
+				xmin = 199.40658455782312
+				xmax = 200.36976455782312
+				text = "羞耻"
+			intervals [263]:
+				xmin = 200.36976455782312
+				xmax = 200.85890455782314
+				text = ""
+			intervals [264]:
+				xmin = 200.85890455782314
+				xmax = 201.67096455782314
+				text = "私人"
+			intervals [265]:
+				xmin = 201.67096455782314
+				xmax = 204.0292970521542
+				text = ""
