@@ -1,0 +1,26 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 209.9
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "words"
+		xmin = 0.0
+		xmax = 209.9
+		intervals: size = 3
+			intervals [1]:
+				xmin = 0.0
+				xmax = 209.121
+				text = "可以开始平静周到冷淡干燥宝贵有用宽阔富有发疯迷人明显丑陋杰出干净忠心平坦优雅中立华丽愚蠢纯净亲切著名简短极度高级纯笨糟糕自动苗条随便恐怖明智心烦辉煌日常贫穷文雅平均规律和蔼充足基础灵力灵力惊吓神圣恶意实际深厚无用粗鲁丰利被爱破旧奇异挫败挫败内疚共同强壮强壮完整浓密大量空白残酷忠实不便稀细恐惧温和错误失去绝妙仔细暴怒活泼敞开反常英俊收集暴力普通当地有关随意悲剧原形关心忠诚困惑虚弱无助公民超级年度不适潮湿痛苦可怜平方极好有望懒惰通常主要接近神奇羞耻私人私人愚笨愚笨愚笨敞开敞开敞开敞开敞开敞开"
+			intervals [2]:
+				xmin = 209.121
+				xmax = 209.64000000000001
+				text = ""
+			intervals [3]:
+				xmin = 209.64000000000001
+				xmax = 209.9
+				text = "敞开敍overlap"

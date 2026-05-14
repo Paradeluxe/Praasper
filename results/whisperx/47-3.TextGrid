@@ -1,0 +1,62 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 299.64
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "words"
+		xmin = 0.0
+		xmax = 299.64
+		intervals: size = 12
+			intervals [1]:
+				xmin = 0.0
+				xmax = 27.94
+				text = ""
+			intervals [2]:
+				xmin = 27.94
+				xmax = 29.98
+				text = "零万"
+			intervals [3]:
+				xmin = 29.98
+				xmax = 30.0
+				text = ""
+			intervals [4]:
+				xmin = 30.0
+				xmax = 94.32
+				text = "侧教似答队营圆讲红碎诗清节重路折严弩力传巨宁画旗浩礼木砍交仙正销插杆地脉力增折磨告弹辅经锐锐分礼橘密"
+			intervals [5]:
+				xmin = 94.32
+				xmax = 95.83999999999999
+				text = ""
+			intervals [6]:
+				xmin = 95.83999999999999
+				xmax = 133.56
+				text = "铁茶浓静雀彩饭哈一顿八雾败败天冷闻泥本母雨章歌华悲响中简食着食着"
+			intervals [7]:
+				xmin = 133.56
+				xmax = 133.68
+				text = ""
+			intervals [8]:
+				xmin = 133.68
+				xmax = 217.2
+				text = "派病祝福奖金自信温暖漂亮表扬表扬乐观笑容欢乐欢快美好礼物亲人欢喜美得崇高聪明优异满意愉快热爱机智英雄智慧信心诚恳成就伟大优秀壮丽旺盛勤奋正义勇敢拥抱"
+			intervals [9]:
+				xmin = 217.2
+				xmax = 219.32
+				text = ""
+			intervals [10]:
+				xmin = 219.32
+				xmax = 275.36
+				text = "庆祝坚强健壮厉害爱慕事务法律调节阐述搜寻军事神态考察编辑编辑机场冰箱光线干部商量接收人类历史表达地位技术"
+			intervals [11]:
+				xmin = 275.36
+				xmax = 279.74
+				text = ""
+			intervals [12]:
+				xmin = 279.74
+				xmax = 299.64
+				text = "行智行智红碎画旗辅经祝福欢乐拥抱辔吴请不吝点赞订阅转发打赏支持明镜与点点栏目"

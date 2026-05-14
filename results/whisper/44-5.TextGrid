@@ -1,0 +1,390 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 221.9
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "words"
+		xmin = 0.0
+		xmax = 221.9
+		intervals: size = 94
+			intervals [1]:
+				xmin = 0.0
+				xmax = 1.5800000000000005
+				text = ""
+			intervals [2]:
+				xmin = 1.5800000000000005
+				xmax = 3.9
+				text = "昆明气候温和,"
+			intervals [3]:
+				xmin = 3.9
+				xmax = 4.38
+				text = ""
+			intervals [4]:
+				xmin = 4.38
+				xmax = 5.52
+				text = "四季如春"
+			intervals [5]:
+				xmin = 5.52
+				xmax = 6.5200000000000005
+				text = ""
+			intervals [6]:
+				xmin = 6.5200000000000005
+				xmax = 9.7
+				text = "海上的空气十分纯净"
+			intervals [7]:
+				xmin = 9.7
+				xmax = 10.82
+				text = ""
+			intervals [8]:
+				xmin = 10.82
+				xmax = 14.54
+				text = "打扫干净的房间格外清爽"
+			intervals [9]:
+				xmin = 14.54
+				xmax = 15.54
+				text = ""
+			intervals [10]:
+				xmin = 15.54
+				xmax = 19.16
+				text = "浑浊的河水变得清澈干净"
+			intervals [11]:
+				xmin = 19.16
+				xmax = 20.16
+				text = ""
+			intervals [12]:
+				xmin = 20.16
+				xmax = 23.72
+				text = "大自然可以纯净人的心灵"
+			intervals [13]:
+				xmin = 23.72
+				xmax = 24.68
+				text = ""
+			intervals [14]:
+				xmin = 24.68
+				xmax = 28.12
+				text = "充足的睡眠使人精力充沛"
+			intervals [15]:
+				xmin = 28.12
+				xmax = 29.16
+				text = ""
+			intervals [16]:
+				xmin = 29.16
+				xmax = 33.3
+				text = "这只宠物狗既忠诚又可爱"
+			intervals [17]:
+				xmin = 33.3
+				xmax = 34.5
+				text = ""
+			intervals [18]:
+				xmin = 34.5
+				xmax = 38.32
+				text = "天鹅在湖面上自在地嬉戏"
+			intervals [19]:
+				xmin = 38.32
+				xmax = 39.36
+				text = ""
+			intervals [20]:
+				xmin = 39.36
+				xmax = 43.36
+				text = "灯火灰映使夜色更加迷人"
+			intervals [21]:
+				xmin = 43.36
+				xmax = 44.42
+				text = ""
+			intervals [22]:
+				xmin = 44.42
+				xmax = 48.2
+				text = "金碧辉煌的宫殿十分漂亮"
+			intervals [23]:
+				xmin = 48.2
+				xmax = 49.38
+				text = ""
+			intervals [24]:
+				xmin = 49.38
+				xmax = 52.96
+				text = "这家饭店服务相当周到"
+			intervals [25]:
+				xmin = 52.96
+				xmax = 53.8
+				text = ""
+			intervals [26]:
+				xmin = 53.8
+				xmax = 57.16
+				text = "它们两人有深厚的友谊"
+			intervals [27]:
+				xmin = 57.16
+				xmax = 58.36
+				text = ""
+			intervals [28]:
+				xmin = 58.36
+				xmax = 61.88
+				text = "它是一位英俊潇洒的青年"
+			intervals [29]:
+				xmin = 61.88
+				xmax = 63.28
+				text = ""
+			intervals [30]:
+				xmin = 63.28
+				xmax = 66.44
+				text = "那位超级名模的表现很棒"
+			intervals [31]:
+				xmin = 66.44
+				xmax = 67.53999999999999
+				text = ""
+			intervals [32]:
+				xmin = 67.53999999999999
+				xmax = 70.68
+				text = "王明拥有极好的教养"
+			intervals [33]:
+				xmin = 70.68
+				xmax = 72.63999999999999
+				text = ""
+			intervals [34]:
+				xmin = 72.63999999999999
+				xmax = 76.22
+				text = "可怜的小女孩被冻死了"
+			intervals [35]:
+				xmin = 76.22
+				xmax = 77.47999999999999
+				text = ""
+			intervals [36]:
+				xmin = 77.47999999999999
+				xmax = 80.98
+				text = "她因为失去朋友而痛哭"
+			intervals [37]:
+				xmin = 80.98
+				xmax = 82.24
+				text = ""
+			intervals [38]:
+				xmin = 82.24
+				xmax = 86.0
+				text = "病情加重使得她越发虚弱"
+			intervals [39]:
+				xmin = 86.0
+				xmax = 87.16
+				text = ""
+			intervals [40]:
+				xmin = 87.16
+				xmax = 90.78
+				text = "球员在球场上恶意犯规"
+			intervals [41]:
+				xmin = 90.78
+				xmax = 92.16
+				text = ""
+			intervals [42]:
+				xmin = 92.16
+				xmax = 95.64
+				text = "沉重的精神负担让她发疯"
+			intervals [43]:
+				xmin = 95.64
+				xmax = 97.0
+				text = ""
+			intervals [44]:
+				xmin = 97.0
+				xmax = 100.3
+				text = "病人痛苦地扭动着身体"
+			intervals [45]:
+				xmin = 100.3
+				xmax = 101.64
+				text = ""
+			intervals [46]:
+				xmin = 101.64
+				xmax = 104.76
+				text = "山区里的人十分贫穷"
+			intervals [47]:
+				xmin = 104.76
+				xmax = 105.94
+				text = ""
+			intervals [48]:
+				xmin = 105.94
+				xmax = 109.7
+				text = "作案人员的手法十分残酷"
+			intervals [49]:
+				xmin = 109.7
+				xmax = 111.08000000000001
+				text = ""
+			intervals [50]:
+				xmin = 111.08000000000001
+				xmax = 114.3
+				text = "她犯的错误是无法弥补的"
+			intervals [51]:
+				xmin = 114.3
+				xmax = 115.76
+				text = ""
+			intervals [52]:
+				xmin = 115.76
+				xmax = 119.04
+				text = "她的疏忽让悲剧重演"
+			intervals [53]:
+				xmin = 119.04
+				xmax = 120.3
+				text = ""
+			intervals [54]:
+				xmin = 120.3
+				xmax = 123.54
+				text = "她失去父母后变得孤僻"
+			intervals [55]:
+				xmin = 123.54
+				xmax = 125.16
+				text = ""
+			intervals [56]:
+				xmin = 125.16
+				xmax = 129.04
+				text = "低矮破旧的房屋昏暗潮湿"
+			intervals [57]:
+				xmin = 129.04
+				xmax = 130.5
+				text = ""
+			intervals [58]:
+				xmin = 130.5
+				xmax = 133.32
+				text = "懒惰的她什么都不干"
+			intervals [59]:
+				xmin = 133.32
+				xmax = 134.8
+				text = ""
+			intervals [60]:
+				xmin = 134.8
+				xmax = 138.28
+				text = "这家饭店的卫生糟糕透了"
+			intervals [61]:
+				xmin = 138.28
+				xmax = 139.8
+				text = ""
+			intervals [62]:
+				xmin = 139.8
+				xmax = 143.26
+				text = "她的悲剧让人潸然泪下"
+			intervals [63]:
+				xmin = 143.26
+				xmax = 145.20000000000002
+				text = ""
+			intervals [64]:
+				xmin = 145.20000000000002
+				xmax = 148.54
+				text = "科学技术不是万古不变的"
+			intervals [65]:
+				xmin = 148.54
+				xmax = 149.66
+				text = ""
+			intervals [66]:
+				xmin = 149.66
+				xmax = 152.94
+				text = "这次比赛的队伍实力平均"
+			intervals [67]:
+				xmin = 152.94
+				xmax = 154.48000000000002
+				text = ""
+			intervals [68]:
+				xmin = 154.48000000000002
+				xmax = 157.86
+				text = "任何国家的基础都是人民"
+			intervals [69]:
+				xmin = 157.86
+				xmax = 159.44
+				text = ""
+			intervals [70]:
+				xmin = 159.44
+				xmax = 162.92
+				text = "展馆面积多达一千平方米"
+			intervals [71]:
+				xmin = 162.92
+				xmax = 164.38
+				text = ""
+			intervals [72]:
+				xmin = 164.38
+				xmax = 167.54
+				text = "文章中心的概括要简略"
+			intervals [73]:
+				xmin = 167.54
+				xmax = 168.92000000000002
+				text = ""
+			intervals [74]:
+				xmin = 168.92000000000002
+				xmax = 172.06
+				text = "她收集了不少格言警句"
+			intervals [75]:
+				xmin = 172.06
+				xmax = 173.54000000000002
+				text = ""
+			intervals [76]:
+				xmin = 173.54000000000002
+				xmax = 176.66
+				text = "当地居民常去公园散步"
+			intervals [77]:
+				xmin = 176.66
+				xmax = 178.39999999999998
+				text = ""
+			intervals [78]:
+				xmin = 178.39999999999998
+				xmax = 181.78
+				text = "广场中间有一个圆形花坛"
+			intervals [79]:
+				xmin = 181.78
+				xmax = 183.2
+				text = ""
+			intervals [80]:
+				xmin = 183.2
+				xmax = 186.04
+				text = "锋利的兵器削铁如泥"
+			intervals [81]:
+				xmin = 186.04
+				xmax = 187.34
+				text = ""
+			intervals [82]:
+				xmin = 187.34
+				xmax = 190.1
+				text = "她随便选了个位置坐下"
+			intervals [83]:
+				xmin = 190.1
+				xmax = 191.28
+				text = ""
+			intervals [84]:
+				xmin = 191.28
+				xmax = 194.64
+				text = "电脑里储存着私人资料"
+			intervals [85]:
+				xmin = 194.64
+				xmax = 196.06
+				text = ""
+			intervals [86]:
+				xmin = 196.06
+				xmax = 199.26
+				text = "他们就共同问题交换看法"
+			intervals [87]:
+				xmin = 199.26
+				xmax = 200.64
+				text = ""
+			intervals [88]:
+				xmin = 200.64
+				xmax = 203.66
+				text = "他们性格上有明显的差异"
+			intervals [89]:
+				xmin = 203.66
+				xmax = 205.04
+				text = ""
+			intervals [90]:
+				xmin = 205.04
+				xmax = 208.16
+				text = "汽车在平坦的公路上飞驰"
+			intervals [91]:
+				xmin = 208.16
+				xmax = 209.54
+				text = ""
+			intervals [92]:
+				xmin = 209.54
+				xmax = 213.0
+				text = "一束奇异的光在东边闪现"
+			intervals [93]:
+				xmin = 213.0
+				xmax = 216.78
+				text = ""
+			intervals [94]:
+				xmin = 216.78
+				xmax = 221.9
+				text = "电脑里储存着私人资料这次远价就会obic字幕志愿者杨茜茜"

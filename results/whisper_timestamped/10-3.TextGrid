@@ -1,0 +1,54 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 203.82
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "words"
+		xmin = 0.0
+		xmax = 203.82
+		intervals: size = 10
+			intervals [1]:
+				xmin = 0.0
+				xmax = 28.560000000000002
+				text = ""
+			intervals [2]:
+				xmin = 28.560000000000002
+				xmax = 29.98
+				text = "零万"
+			intervals [3]:
+				xmin = 29.98
+				xmax = 30.0
+				text = ""
+			intervals [4]:
+				xmin = 30.0
+				xmax = 59.92
+				text = "零万"
+			intervals [5]:
+				xmin = 59.92
+				xmax = 60.0
+				text = ""
+			intervals [6]:
+				xmin = 60.0
+				xmax = 147.95999999999998
+				text = "菊蜜铁茶农镜雀菜饭哈一顿八物拜尖千冷文尼本母语章歌华悲响终结石灼派病祝福奖金自信温暖漂亮表扬乐观笑容欢乐欢快美好礼物亲人欢喜美德崇高聪明聪明优异满意愉快热爱机智英雄智慧信息信心诚恨诚恨诚恨成就伟大优秀壮丽旺盛旺盛旺盛勇勇勇敢拥抱庆祝坚强健壮厉害"
+			intervals [7]:
+				xmin = 147.95999999999998
+				xmax = 147.96
+				text = ""
+			intervals [8]:
+				xmin = 147.96
+				xmax = 178.04
+				text = "爱慕事物法律调节阐述搜寻军事神态考察编辑机场冰箱光线干部商量接收人类历史表达地位技术"
+			intervals [9]:
+				xmin = 178.04
+				xmax = 184.6
+				text = ""
+			intervals [10]:
+				xmin = 184.6
+				xmax = 203.82
+				text = "耗铃漂亮欢喜美德崇高聪明勇敢冰箱光线干部商量"

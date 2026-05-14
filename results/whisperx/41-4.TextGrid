@@ -1,0 +1,42 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 172.02
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "words"
+		xmin = 0.0
+		xmax = 172.02
+		intervals: size = 7
+			intervals [1]:
+				xmin = 0.0
+				xmax = 90.04
+				text = "政府初步差别蚂蚁游行检查观望铁路大人移民观测规范列车记者房屋新闻都市动物任务河流暗淡悲哀悲观阴沉别扭惆怅粗糙错误呆滞倒闭倒退丢失烦恼伤心腐朽干枯孤单糊涂怀疑荒谬惶恐恍惚枯萎枯燥苦闷苦难困境困倦疲乏疲倦衰老衰弱畏惧消沉消极新欢压"
+			intervals [2]:
+				xmin = 90.04
+				xmax = 91.86
+				text = ""
+			intervals [3]:
+				xmin = 91.86
+				xmax = 92.96000000000001
+				text = "压压"
+			intervals [4]:
+				xmin = 92.96000000000001
+				xmax = 93.5
+				text = ""
+			intervals [5]:
+				xmin = 93.5
+				xmax = 133.28
+				text = "阴影郁闷责怪杂种下贱贱货蠢猪野种去死人游人游骚骚鸟吃屎骚货贱贱人孬肿丑逼死人母狗畜生孤儿恶毒瘟神脑残残废贱"
+			intervals [6]:
+				xmin = 133.28
+				xmax = 133.7
+				text = ""
+			intervals [7]:
+				xmin = 133.7
+				xmax = 172.02
+				text = "费物变态肥猪无脑土鳖弱智想死废财舔狗虚伪智障浑蛋土狗蠢财蠢货疯狗疯狗傻逼滚蛋别扭怀疑心慌骚逼疯子"

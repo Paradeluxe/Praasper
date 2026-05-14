@@ -1,0 +1,302 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 229.44
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "words"
+		xmin = 0.0
+		xmax = 229.44
+		intervals: size = 72
+			intervals [1]:
+				xmin = 0.0
+				xmax = 28.580000000000002
+				text = ""
+			intervals [2]:
+				xmin = 28.580000000000002
+				xmax = 29.98
+				text = "政府"
+			intervals [3]:
+				xmin = 29.98
+				xmax = 30.0
+				text = ""
+			intervals [4]:
+				xmin = 30.0
+				xmax = 30.48
+				text = "新闻"
+			intervals [5]:
+				xmin = 30.48
+				xmax = 31.0
+				text = ""
+			intervals [6]:
+				xmin = 31.0
+				xmax = 32.26
+				text = "都市"
+			intervals [7]:
+				xmin = 32.26
+				xmax = 33.0
+				text = ""
+			intervals [8]:
+				xmin = 33.0
+				xmax = 34.14
+				text = "动物"
+			intervals [9]:
+				xmin = 34.14
+				xmax = 34.96
+				text = ""
+			intervals [10]:
+				xmin = 34.96
+				xmax = 36.04
+				text = "任务"
+			intervals [11]:
+				xmin = 36.04
+				xmax = 36.76
+				text = ""
+			intervals [12]:
+				xmin = 36.76
+				xmax = 37.74
+				text = "河流"
+			intervals [13]:
+				xmin = 37.74
+				xmax = 38.660000000000004
+				text = ""
+			intervals [14]:
+				xmin = 38.660000000000004
+				xmax = 39.66
+				text = "暗淡"
+			intervals [15]:
+				xmin = 39.66
+				xmax = 40.74
+				text = ""
+			intervals [16]:
+				xmin = 40.74
+				xmax = 41.74
+				text = "悲哀"
+			intervals [17]:
+				xmin = 41.74
+				xmax = 42.9
+				text = ""
+			intervals [18]:
+				xmin = 42.9
+				xmax = 43.94
+				text = "悲观"
+			intervals [19]:
+				xmin = 43.94
+				xmax = 44.94
+				text = ""
+			intervals [20]:
+				xmin = 44.94
+				xmax = 45.92
+				text = "阴沉"
+			intervals [21]:
+				xmin = 45.92
+				xmax = 46.78
+				text = ""
+			intervals [22]:
+				xmin = 46.78
+				xmax = 47.7
+				text = "别扭"
+			intervals [23]:
+				xmin = 47.7
+				xmax = 48.74
+				text = ""
+			intervals [24]:
+				xmin = 48.74
+				xmax = 49.68
+				text = "惆怅"
+			intervals [25]:
+				xmin = 49.68
+				xmax = 50.92
+				text = ""
+			intervals [26]:
+				xmin = 50.92
+				xmax = 51.86
+				text = "粗糙"
+			intervals [27]:
+				xmin = 51.86
+				xmax = 53.0
+				text = ""
+			intervals [28]:
+				xmin = 53.0
+				xmax = 53.96
+				text = "错误"
+			intervals [29]:
+				xmin = 53.96
+				xmax = 55.0
+				text = ""
+			intervals [30]:
+				xmin = 55.0
+				xmax = 56.22
+				text = "呆滞"
+			intervals [31]:
+				xmin = 56.22
+				xmax = 57.0
+				text = ""
+			intervals [32]:
+				xmin = 57.0
+				xmax = 74.62
+				text = "倒闭倒退丢失烦恼伤心腐朽干枯孤单糊涂"
+			intervals [33]:
+				xmin = 74.62
+				xmax = 75.16
+				text = ""
+			intervals [34]:
+				xmin = 75.16
+				xmax = 103.66
+				text = "怀疑荒谬惶恐恍惚枯萎枯燥苦闷苦难困境困倦疲乏疲倦衰老衰弱"
+			intervals [35]:
+				xmin = 103.66
+				xmax = 103.84
+				text = ""
+			intervals [36]:
+				xmin = 103.84
+				xmax = 111.24
+				text = "畏惧消沙消沙消极心慌"
+			intervals [37]:
+				xmin = 111.24
+				xmax = 112.64
+				text = ""
+			intervals [38]:
+				xmin = 112.64
+				xmax = 135.98
+				text = "压力阴影郁闷责怪雜种下贱贱货蠢猪野种去死去死人渣骚逼"
+			intervals [39]:
+				xmin = 135.98
+				xmax = 137.08
+				text = ""
+			intervals [40]:
+				xmin = 137.08
+				xmax = 138.28
+				text = "吃屎"
+			intervals [41]:
+				xmin = 138.28
+				xmax = 139.38000000000002
+				text = ""
+			intervals [42]:
+				xmin = 139.38000000000002
+				xmax = 151.72
+				text = "骚货贱人孬种骚蜡猫肿死人母猪畜生"
+			intervals [43]:
+				xmin = 151.72
+				xmax = 152.52
+				text = ""
+			intervals [44]:
+				xmin = 152.52
+				xmax = 156.88
+				text = "孤儿惡毒温神"
+			intervals [45]:
+				xmin = 156.88
+				xmax = 157.46
+				text = ""
+			intervals [46]:
+				xmin = 157.46
+				xmax = 158.74
+				text = "脑残"
+			intervals [47]:
+				xmin = 158.74
+				xmax = 159.44
+				text = ""
+			intervals [48]:
+				xmin = 159.44
+				xmax = 160.5
+				text = "残肺"
+			intervals [49]:
+				xmin = 160.5
+				xmax = 161.16000000000003
+				text = ""
+			intervals [50]:
+				xmin = 161.16000000000003
+				xmax = 162.18
+				text = "废物"
+			intervals [51]:
+				xmin = 162.18
+				xmax = 162.88000000000002
+				text = ""
+			intervals [52]:
+				xmin = 162.88000000000002
+				xmax = 171.72
+				text = "变态肥猪无脑土鳄土鳖弱智"
+			intervals [53]:
+				xmin = 171.72
+				xmax = 172.82
+				text = ""
+			intervals [54]:
+				xmin = 172.82
+				xmax = 179.28
+				text = "想死废柴舔狗虚伪"
+			intervals [55]:
+				xmin = 179.28
+				xmax = 179.82
+				text = ""
+			intervals [56]:
+				xmin = 179.82
+				xmax = 181.1
+				text = "智障"
+			intervals [57]:
+				xmin = 181.1
+				xmax = 181.82
+				text = ""
+			intervals [58]:
+				xmin = 181.82
+				xmax = 183.06
+				text = "混蛋"
+			intervals [59]:
+				xmin = 183.06
+				xmax = 183.82
+				text = ""
+			intervals [60]:
+				xmin = 183.82
+				xmax = 184.82
+				text = "土狗"
+			intervals [61]:
+				xmin = 184.82
+				xmax = 185.82
+				text = ""
+			intervals [62]:
+				xmin = 185.82
+				xmax = 186.78
+				text = "蠢财"
+			intervals [63]:
+				xmin = 186.78
+				xmax = 187.61999999999998
+				text = ""
+			intervals [64]:
+				xmin = 187.61999999999998
+				xmax = 188.52
+				text = "蠢货"
+			intervals [65]:
+				xmin = 188.52
+				xmax = 189.51999999999998
+				text = ""
+			intervals [66]:
+				xmin = 189.51999999999998
+				xmax = 195.62
+				text = "疯狗疯子傻逼滚蛋"
+			intervals [67]:
+				xmin = 195.62
+				xmax = 199.07999999999998
+				text = ""
+			intervals [68]:
+				xmin = 199.07999999999998
+				xmax = 221.5
+				text = "大人移民观测列车荒谬衰弱下贱去死骚货贱人死人母狗废财"
+			intervals [69]:
+				xmin = 221.5
+				xmax = 226.38
+				text = ""
+			intervals [70]:
+				xmin = 226.38
+				xmax = 227.52100000000002
+				text = "废财废财废财废财"
+			intervals [71]:
+				xmin = 227.52100000000002
+				xmax = 228.9
+				text = ""
+			intervals [72]:
+				xmin = 228.9
+				xmax = 229.44
+				text = "废财Clownli"

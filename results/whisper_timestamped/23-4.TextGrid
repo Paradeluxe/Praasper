@@ -1,0 +1,82 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 178.25
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "words"
+		xmin = 0.0
+		xmax = 178.25
+		intervals: size = 17
+			intervals [1]:
+				xmin = 0.0
+				xmax = 28.580000000000002
+				text = ""
+			intervals [2]:
+				xmin = 28.580000000000002
+				xmax = 29.98
+				text = "政府"
+			intervals [3]:
+				xmin = 29.98
+				xmax = 30.0
+				text = ""
+			intervals [4]:
+				xmin = 30.0
+				xmax = 40.68
+				text = "工夫任务合流暗淡悲哀悲慌陰扭"
+			intervals [5]:
+				xmin = 40.68
+				xmax = 42.74
+				text = ""
+			intervals [6]:
+				xmin = 42.74
+				xmax = 49.34
+				text = "惆怅粗糙錯誤呆滯"
+			intervals [7]:
+				xmin = 49.34
+				xmax = 50.88
+				text = ""
+			intervals [8]:
+				xmin = 50.88
+				xmax = 52.36
+				text = "倒退"
+			intervals [9]:
+				xmin = 52.36
+				xmax = 53.5
+				text = ""
+			intervals [10]:
+				xmin = 53.5
+				xmax = 160.86
+				text = "丢失烦恼伤心腐朽干枯孤单糊涂怀疑荒谬惶恐恍惚枯萎枯燥苦闷苦难困境困倦疲乏疲倦衰老衰弱畏惧消沉消极心慌压力阴影郁闷责怪杂种下贱贱货蠢猪野种去死人渣骚逼吃屎骚货贱人孬肿丑逼死人母狗畜生孤儿恶毒温神脑残残废废物变态肥猪无脑土鳖弱智想死废财舔狗虚伪智障混蛋土狗土狗蠢财蠢货疯狗疯子傻逼滚蛋"
+			intervals [11]:
+				xmin = 160.86
+				xmax = 163.57999999999998
+				text = ""
+			intervals [12]:
+				xmin = 163.57999999999998
+				xmax = 166.2
+				text = "恶恶恶"
+			intervals [13]:
+				xmin = 166.2
+				xmax = 166.76
+				text = ""
+			intervals [14]:
+				xmin = 166.76
+				xmax = 177.38
+				text = "死人母狗土鳖肥猪甜狗混蛋滚"
+			intervals [15]:
+				xmin = 177.38
+				xmax = 178.2
+				text = ""
+			intervals [16]:
+				xmin = 178.2
+				xmax = 178.22
+				text = "滚"
+			intervals [17]:
+				xmin = 178.22
+				xmax = 178.25
+				text = ""

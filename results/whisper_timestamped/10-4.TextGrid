@@ -1,0 +1,38 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 186.28
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "words"
+		xmin = 0.0
+		xmax = 186.28
+		intervals: size = 6
+			intervals [1]:
+				xmin = 0.0
+				xmax = 28.580000000000002
+				text = ""
+			intervals [2]:
+				xmin = 28.580000000000002
+				xmax = 29.98
+				text = "政府"
+			intervals [3]:
+				xmin = 29.98
+				xmax = 30.0
+				text = ""
+			intervals [4]:
+				xmin = 30.0
+				xmax = 161.84
+				text = "动物任务河流暗淡悲哀悲观阴沉别扭惆怅粗糙粗糙错误呆滞倒闭倒退丢失烦恼伤心腐朽干枯孤单糊涂怀疑荒谬惶恐恍惚枯萎枯燥苦闷苦难困境困倦疲乏疲倦衰老衰弱味惧消沉消极心慌压力阴影郁闷责怪杂种下贱贱货蠢猪野种去死人渣人渣骚逼吃屎骚货贱人闹肿丑逼死人母狗猝生孤儿恶毒瘟神脑残残肺肺物变态变态肥猪无脑土鳖弱智想死废财舔狗虚伪智障混蛋土狗蠢猪蠢财蠢货疯狗疯子傻逼滚蛋"
+			intervals [5]:
+				xmin = 161.84
+				xmax = 165.6
+				text = ""
+			intervals [6]:
+				xmin = 165.6
+				xmax = 186.28
+				text = "新闻粗糙消极畜生蠢财蠢货疯狗疯子傻逼滚蛋消极消极"

@@ -1,0 +1,958 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 220.48
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "words"
+		xmin = 0.0
+		xmax = 220.48
+		intervals: size = 236
+			intervals [1]:
+				xmin = 0.0
+				xmax = 0.9399999999999995
+				text = ""
+			intervals [2]:
+				xmin = 0.9399999999999995
+				xmax = 2.12
+				text = "那姬,"
+			intervals [3]:
+				xmin = 2.12
+				xmax = 2.94
+				text = ""
+			intervals [4]:
+				xmin = 2.94
+				xmax = 3.64
+				text = "现造,"
+			intervals [5]:
+				xmin = 3.64
+				xmax = 4.3
+				text = ""
+			intervals [6]:
+				xmin = 4.3
+				xmax = 5.08
+				text = "聊为,"
+			intervals [7]:
+				xmin = 5.08
+				xmax = 5.9
+				text = ""
+			intervals [8]:
+				xmin = 5.9
+				xmax = 6.56
+				text = "嘴息,"
+			intervals [9]:
+				xmin = 6.56
+				xmax = 7.48
+				text = ""
+			intervals [10]:
+				xmin = 7.48
+				xmax = 8.14
+				text = "聚红,"
+			intervals [11]:
+				xmin = 8.14
+				xmax = 8.94
+				text = ""
+			intervals [12]:
+				xmin = 8.94
+				xmax = 9.54
+				text = "问客,"
+			intervals [13]:
+				xmin = 9.54
+				xmax = 10.4
+				text = ""
+			intervals [14]:
+				xmin = 10.4
+				xmax = 10.96
+				text = "出故,"
+			intervals [15]:
+				xmin = 10.96
+				xmax = 11.88
+				text = ""
+			intervals [16]:
+				xmin = 11.88
+				xmax = 12.52
+				text = "冻尘,"
+			intervals [17]:
+				xmin = 12.52
+				xmax = 13.36
+				text = ""
+			intervals [18]:
+				xmin = 13.36
+				xmax = 13.9
+				text = "返早,"
+			intervals [19]:
+				xmin = 13.9
+				xmax = 14.86
+				text = ""
+			intervals [20]:
+				xmin = 14.86
+				xmax = 15.42
+				text = "阳在,"
+			intervals [21]:
+				xmin = 15.42
+				xmax = 16.34
+				text = ""
+			intervals [22]:
+				xmin = 16.34
+				xmax = 17.02
+				text = "夜屋,"
+			intervals [23]:
+				xmin = 17.02
+				xmax = 17.82
+				text = ""
+			intervals [24]:
+				xmin = 17.82
+				xmax = 18.46
+				text = "举则,"
+			intervals [25]:
+				xmin = 18.46
+				xmax = 19.32
+				text = ""
+			intervals [26]:
+				xmin = 19.32
+				xmax = 19.94
+				text = "各开,"
+			intervals [27]:
+				xmin = 19.94
+				xmax = 20.92
+				text = ""
+			intervals [28]:
+				xmin = 20.92
+				xmax = 21.48
+				text = "复都,"
+			intervals [29]:
+				xmin = 21.48
+				xmax = 22.5
+				text = ""
+			intervals [30]:
+				xmin = 22.5
+				xmax = 23.16
+				text = "容淡,"
+			intervals [31]:
+				xmin = 23.16
+				xmax = 23.96
+				text = ""
+			intervals [32]:
+				xmin = 23.96
+				xmax = 24.58
+				text = "回纸,"
+			intervals [33]:
+				xmin = 24.58
+				xmax = 25.46
+				text = ""
+			intervals [34]:
+				xmin = 25.46
+				xmax = 26.2
+				text = "头拳,"
+			intervals [35]:
+				xmin = 26.2
+				xmax = 27.08
+				text = ""
+			intervals [36]:
+				xmin = 27.08
+				xmax = 27.68
+				text = "雀家,"
+			intervals [37]:
+				xmin = 27.68
+				xmax = 28.68
+				text = ""
+			intervals [38]:
+				xmin = 28.68
+				xmax = 29.32
+				text = "光金,"
+			intervals [39]:
+				xmin = 29.32
+				xmax = 30.0
+				text = ""
+			intervals [40]:
+				xmin = 30.0
+				xmax = 30.9
+				text = "构条,"
+			intervals [41]:
+				xmin = 30.9
+				xmax = 31.8
+				text = ""
+			intervals [42]:
+				xmin = 31.8
+				xmax = 32.5
+				text = "发眠,"
+			intervals [43]:
+				xmin = 32.5
+				xmax = 33.3
+				text = ""
+			intervals [44]:
+				xmin = 33.3
+				xmax = 34.0
+				text = "歌态,"
+			intervals [45]:
+				xmin = 34.0
+				xmax = 34.76
+				text = ""
+			intervals [46]:
+				xmin = 34.76
+				xmax = 35.4
+				text = "整影,"
+			intervals [47]:
+				xmin = 35.4
+				xmax = 36.36
+				text = ""
+			intervals [48]:
+				xmin = 36.36
+				xmax = 37.02
+				text = "本诀,"
+			intervals [49]:
+				xmin = 37.02
+				xmax = 37.98
+				text = ""
+			intervals [50]:
+				xmin = 37.98
+				xmax = 38.54
+				text = "文马,"
+			intervals [51]:
+				xmin = 38.54
+				xmax = 39.52
+				text = ""
+			intervals [52]:
+				xmin = 39.52
+				xmax = 40.04
+				text = "近哪,"
+			intervals [53]:
+				xmin = 40.04
+				xmax = 41.04
+				text = ""
+			intervals [54]:
+				xmin = 41.04
+				xmax = 41.64
+				text = "适留,"
+			intervals [55]:
+				xmin = 41.64
+				xmax = 42.58
+				text = ""
+			intervals [56]:
+				xmin = 42.58
+				xmax = 43.14
+				text = "介在,"
+			intervals [57]:
+				xmin = 43.14
+				xmax = 44.06
+				text = ""
+			intervals [58]:
+				xmin = 44.06
+				xmax = 44.82
+				text = "娘诗,"
+			intervals [59]:
+				xmin = 44.82
+				xmax = 45.58
+				text = ""
+			intervals [60]:
+				xmin = 45.58
+				xmax = 46.26
+				text = "成根,"
+			intervals [61]:
+				xmin = 46.26
+				xmax = 47.28
+				text = ""
+			intervals [62]:
+				xmin = 47.28
+				xmax = 47.84
+				text = "适给,"
+			intervals [63]:
+				xmin = 47.84
+				xmax = 48.84
+				text = ""
+			intervals [64]:
+				xmin = 48.84
+				xmax = 50.36
+				text = "清经,"
+			intervals [65]:
+				xmin = 50.36
+				xmax = 51.3
+				text = ""
+			intervals [66]:
+				xmin = 51.3
+				xmax = 51.94
+				text = "折磨,"
+			intervals [67]:
+				xmin = 51.94
+				xmax = 52.74
+				text = ""
+			intervals [68]:
+				xmin = 52.74
+				xmax = 53.44
+				text = "深推,"
+			intervals [69]:
+				xmin = 53.44
+				xmax = 54.32
+				text = ""
+			intervals [70]:
+				xmin = 54.32
+				xmax = 55.08
+				text = "吉庞,"
+			intervals [71]:
+				xmin = 55.08
+				xmax = 55.88
+				text = ""
+			intervals [72]:
+				xmin = 55.88
+				xmax = 56.46
+				text = "满友,"
+			intervals [73]:
+				xmin = 56.46
+				xmax = 57.46
+				text = ""
+			intervals [74]:
+				xmin = 57.46
+				xmax = 58.1
+				text = "海哨,"
+			intervals [75]:
+				xmin = 58.1
+				xmax = 58.88
+				text = ""
+			intervals [76]:
+				xmin = 58.88
+				xmax = 59.5
+				text = "登放,"
+			intervals [77]:
+				xmin = 59.5
+				xmax = 60.0
+				text = ""
+			intervals [78]:
+				xmin = 60.0
+				xmax = 61.14
+				text = "浙序,"
+			intervals [79]:
+				xmin = 61.14
+				xmax = 61.92
+				text = ""
+			intervals [80]:
+				xmin = 61.92
+				xmax = 62.64
+				text = "聚层,"
+			intervals [81]:
+				xmin = 62.64
+				xmax = 63.54
+				text = ""
+			intervals [82]:
+				xmin = 63.54
+				xmax = 64.18
+				text = "行突,"
+			intervals [83]:
+				xmin = 64.18
+				xmax = 65.22
+				text = ""
+			intervals [84]:
+				xmin = 65.22
+				xmax = 66.02
+				text = "清潜,"
+			intervals [85]:
+				xmin = 66.02
+				xmax = 66.84
+				text = ""
+			intervals [86]:
+				xmin = 66.84
+				xmax = 67.44
+				text = "柱米,"
+			intervals [87]:
+				xmin = 67.44
+				xmax = 68.24
+				text = ""
+			intervals [88]:
+				xmin = 68.24
+				xmax = 68.96
+				text = "芒粮,"
+			intervals [89]:
+				xmin = 68.96
+				xmax = 69.92
+				text = ""
+			intervals [90]:
+				xmin = 69.92
+				xmax = 70.66
+				text = "细坏,"
+			intervals [91]:
+				xmin = 70.66
+				xmax = 71.52
+				text = ""
+			intervals [92]:
+				xmin = 71.52
+				xmax = 72.26
+				text = "适笑,"
+			intervals [93]:
+				xmin = 72.26
+				xmax = 73.2
+				text = ""
+			intervals [94]:
+				xmin = 73.2
+				xmax = 73.96
+				text = "背堤,"
+			intervals [95]:
+				xmin = 73.96
+				xmax = 74.78
+				text = ""
+			intervals [96]:
+				xmin = 74.78
+				xmax = 75.44
+				text = "游结,"
+			intervals [97]:
+				xmin = 75.44
+				xmax = 76.44
+				text = ""
+			intervals [98]:
+				xmin = 76.44
+				xmax = 77.24
+				text = "想孩,"
+			intervals [99]:
+				xmin = 77.24
+				xmax = 77.98
+				text = ""
+			intervals [100]:
+				xmin = 77.98
+				xmax = 78.7
+				text = "显天,"
+			intervals [101]:
+				xmin = 78.7
+				xmax = 79.66
+				text = ""
+			intervals [102]:
+				xmin = 79.66
+				xmax = 80.4
+				text = "忽怨,"
+			intervals [103]:
+				xmin = 80.4
+				xmax = 81.26
+				text = ""
+			intervals [104]:
+				xmin = 81.26
+				xmax = 81.92
+				text = "虚婉,"
+			intervals [105]:
+				xmin = 81.92
+				xmax = 82.74
+				text = ""
+			intervals [106]:
+				xmin = 82.74
+				xmax = 83.34
+				text = "火步,"
+			intervals [107]:
+				xmin = 83.34
+				xmax = 84.32
+				text = ""
+			intervals [108]:
+				xmin = 84.32
+				xmax = 85.1
+				text = "彩冲,"
+			intervals [109]:
+				xmin = 85.1
+				xmax = 85.98
+				text = ""
+			intervals [110]:
+				xmin = 85.98
+				xmax = 86.72
+				text = "樱团,"
+			intervals [111]:
+				xmin = 86.72
+				xmax = 87.52
+				text = ""
+			intervals [112]:
+				xmin = 87.52
+				xmax = 88.16
+				text = "品宫,"
+			intervals [113]:
+				xmin = 88.16
+				xmax = 89.1
+				text = ""
+			intervals [114]:
+				xmin = 89.1
+				xmax = 91.26
+				text = "农南,未跳,"
+			intervals [115]:
+				xmin = 91.26
+				xmax = 92.14
+				text = ""
+			intervals [116]:
+				xmin = 92.14
+				xmax = 92.84
+				text = "床刃,"
+			intervals [117]:
+				xmin = 92.84
+				xmax = 93.68
+				text = ""
+			intervals [118]:
+				xmin = 93.68
+				xmax = 94.32
+				text = "床刃,钢基,"
+			intervals [119]:
+				xmin = 94.32
+				xmax = 95.26
+				text = ""
+			intervals [120]:
+				xmin = 95.26
+				xmax = 96.08
+				text = "品铁,"
+			intervals [121]:
+				xmin = 96.08
+				xmax = 96.94
+				text = ""
+			intervals [122]:
+				xmin = 96.94
+				xmax = 97.76
+				text = "喜帖,"
+			intervals [123]:
+				xmin = 97.76
+				xmax = 98.66
+				text = ""
+			intervals [124]:
+				xmin = 98.66
+				xmax = 99.32
+				text = "彭仲,"
+			intervals [125]:
+				xmin = 99.32
+				xmax = 100.22
+				text = ""
+			intervals [126]:
+				xmin = 100.22
+				xmax = 100.84
+				text = "余生,"
+			intervals [127]:
+				xmin = 100.84
+				xmax = 101.88
+				text = ""
+			intervals [128]:
+				xmin = 101.88
+				xmax = 102.44
+				text = "压打,"
+			intervals [129]:
+				xmin = 102.44
+				xmax = 103.4
+				text = ""
+			intervals [130]:
+				xmin = 103.4
+				xmax = 104.02
+				text = "铸片,"
+			intervals [131]:
+				xmin = 104.02
+				xmax = 105.1
+				text = ""
+			intervals [132]:
+				xmin = 105.1
+				xmax = 105.84
+				text = "护炎,"
+			intervals [133]:
+				xmin = 105.84
+				xmax = 106.62
+				text = ""
+			intervals [134]:
+				xmin = 106.62
+				xmax = 107.34
+				text = "集砖,"
+			intervals [135]:
+				xmin = 107.34
+				xmax = 108.18
+				text = ""
+			intervals [136]:
+				xmin = 108.18
+				xmax = 108.84
+				text = "对蜜,"
+			intervals [137]:
+				xmin = 108.84
+				xmax = 109.68
+				text = ""
+			intervals [138]:
+				xmin = 109.68
+				xmax = 110.44
+				text = "倒书,"
+			intervals [139]:
+				xmin = 110.44
+				xmax = 111.3
+				text = ""
+			intervals [140]:
+				xmin = 111.3
+				xmax = 111.94
+				text = "走溜,"
+			intervals [141]:
+				xmin = 111.94
+				xmax = 112.74
+				text = ""
+			intervals [142]:
+				xmin = 112.74
+				xmax = 113.36
+				text = "雨脉,"
+			intervals [143]:
+				xmin = 113.36
+				xmax = 114.26
+				text = ""
+			intervals [144]:
+				xmin = 114.26
+				xmax = 114.88
+				text = "看白,"
+			intervals [145]:
+				xmin = 114.88
+				xmax = 115.84
+				text = ""
+			intervals [146]:
+				xmin = 115.84
+				xmax = 116.54
+				text = "赶紧,"
+			intervals [147]:
+				xmin = 116.54
+				xmax = 117.62
+				text = ""
+			intervals [148]:
+				xmin = 117.62
+				xmax = 118.3
+				text = "气黑,"
+			intervals [149]:
+				xmin = 118.3
+				xmax = 119.2
+				text = ""
+			intervals [150]:
+				xmin = 119.2
+				xmax = 121.62
+				text = "垃圾,看白,赶紧,气黑,垃圾,看白,赶紧,气黑,垃圾,看白,赶紧,气黑,垃圾,看白,赶紧,气黑,垃圾,看白,赶紧,气黑,垃圾,看白,赶紧,气黑,�从躯,从躯,"
+			intervals [151]:
+				xmin = 121.62
+				xmax = 122.68
+				text = ""
+			intervals [152]:
+				xmin = 122.68
+				xmax = 123.3
+				text = "护呼,"
+			intervals [153]:
+				xmin = 123.3
+				xmax = 123.6
+				text = ""
+			intervals [154]:
+				xmin = 123.6
+				xmax = 123.72
+				text = "忽,"
+			intervals [155]:
+				xmin = 123.72
+				xmax = 124.42
+				text = ""
+			intervals [156]:
+				xmin = 124.42
+				xmax = 125.28
+				text = "激刚,"
+			intervals [157]:
+				xmin = 125.28
+				xmax = 126.24
+				text = ""
+			intervals [158]:
+				xmin = 126.24
+				xmax = 126.88
+				text = "母眼,"
+			intervals [159]:
+				xmin = 126.88
+				xmax = 127.86
+				text = ""
+			intervals [160]:
+				xmin = 127.86
+				xmax = 128.46
+				text = "横条,"
+			intervals [161]:
+				xmin = 128.46
+				xmax = 129.5
+				text = ""
+			intervals [162]:
+				xmin = 129.5
+				xmax = 130.2
+				text = "船渡,"
+			intervals [163]:
+				xmin = 130.2
+				xmax = 131.06
+				text = ""
+			intervals [164]:
+				xmin = 131.06
+				xmax = 131.78
+				text = "忠室,"
+			intervals [165]:
+				xmin = 131.78
+				xmax = 132.62
+				text = ""
+			intervals [166]:
+				xmin = 132.62
+				xmax = 133.28
+				text = "琴口,"
+			intervals [167]:
+				xmin = 133.28
+				xmax = 134.24
+				text = ""
+			intervals [168]:
+				xmin = 134.24
+				xmax = 134.94
+				text = "油墙,"
+			intervals [169]:
+				xmin = 134.94
+				xmax = 135.76
+				text = ""
+			intervals [170]:
+				xmin = 135.76
+				xmax = 136.52
+				text = "琴簪,"
+			intervals [171]:
+				xmin = 136.52
+				xmax = 137.3
+				text = ""
+			intervals [172]:
+				xmin = 137.3
+				xmax = 137.94
+				text = "地律,"
+			intervals [173]:
+				xmin = 137.94
+				xmax = 138.9
+				text = ""
+			intervals [174]:
+				xmin = 138.9
+				xmax = 139.48
+				text = "发特,"
+			intervals [175]:
+				xmin = 139.48
+				xmax = 140.4
+				text = ""
+			intervals [176]:
+				xmin = 140.4
+				xmax = 141.02
+				text = "触听,"
+			intervals [177]:
+				xmin = 141.02
+				xmax = 141.92
+				text = ""
+			intervals [178]:
+				xmin = 141.92
+				xmax = 142.54
+				text = "慢制,"
+			intervals [179]:
+				xmin = 142.54
+				xmax = 143.5
+				text = ""
+			intervals [180]:
+				xmin = 143.5
+				xmax = 144.08
+				text = "改靶,"
+			intervals [181]:
+				xmin = 144.08
+				xmax = 145.04
+				text = ""
+			intervals [182]:
+				xmin = 145.04
+				xmax = 145.6
+				text = "龟集,"
+			intervals [183]:
+				xmin = 145.6
+				xmax = 146.62
+				text = ""
+			intervals [184]:
+				xmin = 146.62
+				xmax = 147.3
+				text = "张矿,"
+			intervals [185]:
+				xmin = 147.3
+				xmax = 148.24
+				text = ""
+			intervals [186]:
+				xmin = 148.24
+				xmax = 148.8
+				text = "阿座,"
+			intervals [187]:
+				xmin = 148.8
+				xmax = 149.16
+				text = ""
+			intervals [188]:
+				xmin = 149.16
+				xmax = 149.161
+				text = "纳,乃座,"
+			intervals [189]:
+				xmin = 149.161
+				xmax = 149.22
+				text = ""
+			intervals [190]:
+				xmin = 149.22
+				xmax = 150.42
+				text = "短,碧,短,短,短,短,短,短,短,短,短,短,短,短,短,短,短,短,短,短,短,短,短,短,短,短,短,短,脑吃,"
+			intervals [191]:
+				xmin = 150.42
+				xmax = 151.4
+				text = ""
+			intervals [192]:
+				xmin = 151.4
+				xmax = 152.08
+				text = "转教,"
+			intervals [193]:
+				xmin = 152.08
+				xmax = 153.0
+				text = ""
+			intervals [194]:
+				xmin = 153.0
+				xmax = 153.62
+				text = "背别,"
+			intervals [195]:
+				xmin = 153.62
+				xmax = 154.5
+				text = ""
+			intervals [196]:
+				xmin = 154.5
+				xmax = 155.18
+				text = "后阵,"
+			intervals [197]:
+				xmin = 155.18
+				xmax = 156.14
+				text = ""
+			intervals [198]:
+				xmin = 156.14
+				xmax = 156.74
+				text = "素解,"
+			intervals [199]:
+				xmin = 156.74
+				xmax = 157.74
+				text = ""
+			intervals [200]:
+				xmin = 157.74
+				xmax = 158.32
+				text = "妈送,"
+			intervals [201]:
+				xmin = 158.32
+				xmax = 159.28
+				text = ""
+			intervals [202]:
+				xmin = 159.28
+				xmax = 159.96
+				text = "心找,"
+			intervals [203]:
+				xmin = 159.96
+				xmax = 160.96
+				text = ""
+			intervals [204]:
+				xmin = 160.96
+				xmax = 161.6
+				text = "药印,"
+			intervals [205]:
+				xmin = 161.6
+				xmax = 162.52
+				text = ""
+			intervals [206]:
+				xmin = 162.52
+				xmax = 163.22
+				text = "画斧,"
+			intervals [207]:
+				xmin = 163.22
+				xmax = 164.16
+				text = ""
+			intervals [208]:
+				xmin = 164.16
+				xmax = 164.86
+				text = "江醉,"
+			intervals [209]:
+				xmin = 164.86
+				xmax = 165.62
+				text = ""
+			intervals [210]:
+				xmin = 165.62
+				xmax = 166.22
+				text = "毒量,"
+			intervals [211]:
+				xmin = 166.22
+				xmax = 167.22
+				text = ""
+			intervals [212]:
+				xmin = 167.22
+				xmax = 167.8
+				text = "丹地,"
+			intervals [213]:
+				xmin = 167.8
+				xmax = 168.54
+				text = ""
+			intervals [214]:
+				xmin = 168.54
+				xmax = 169.66
+				text = "快先,"
+			intervals [215]:
+				xmin = 169.66
+				xmax = 170.6
+				text = ""
+			intervals [216]:
+				xmin = 170.6
+				xmax = 171.24
+				text = "抗手,"
+			intervals [217]:
+				xmin = 171.24
+				xmax = 172.2
+				text = ""
+			intervals [218]:
+				xmin = 172.2
+				xmax = 172.88
+				text = "石门,"
+			intervals [219]:
+				xmin = 172.88
+				xmax = 173.72
+				text = ""
+			intervals [220]:
+				xmin = 173.72
+				xmax = 174.3
+				text = "巴病,"
+			intervals [221]:
+				xmin = 174.3
+				xmax = 175.24
+				text = ""
+			intervals [222]:
+				xmin = 175.24
+				xmax = 175.98
+				text = "怎麽,"
+			intervals [223]:
+				xmin = 175.98
+				xmax = 176.66
+				text = ""
+			intervals [224]:
+				xmin = 176.66
+				xmax = 177.14
+				text = "副佐"
+			intervals [225]:
+				xmin = 177.14
+				xmax = 207.82
+				text = ""
+			intervals [226]:
+				xmin = 207.82
+				xmax = 210.2
+				text = "可以开始慢制,"
+			intervals [227]:
+				xmin = 210.2
+				xmax = 211.2
+				text = ""
+			intervals [228]:
+				xmin = 211.2
+				xmax = 211.86
+				text = "准教,"
+			intervals [229]:
+				xmin = 211.86
+				xmax = 212.76
+				text = ""
+			intervals [230]:
+				xmin = 212.76
+				xmax = 213.6
+				text = "江醉,"
+			intervals [231]:
+				xmin = 213.6
+				xmax = 215.68
+				text = ""
+			intervals [232]:
+				xmin = 215.68
+				xmax = 217.04
+				text = "柱米,"
+			intervals [233]:
+				xmin = 217.04
+				xmax = 218.4
+				text = ""
+			intervals [234]:
+				xmin = 218.4
+				xmax = 219.04
+				text = "拉记,"
+			intervals [235]:
+				xmin = 219.04
+				xmax = 219.78
+				text = ""
+			intervals [236]:
+				xmin = 219.78
+				xmax = 220.48
+				text = "呼制"

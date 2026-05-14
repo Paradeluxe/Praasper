@@ -1,0 +1,126 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 244.94
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "words"
+		xmin = 0.0
+		xmax = 244.94
+		intervals: size = 28
+			intervals [1]:
+				xmin = 0.0
+				xmax = 28.580000000000002
+				text = ""
+			intervals [2]:
+				xmin = 28.580000000000002
+				xmax = 29.981
+				text = "平静"
+			intervals [3]:
+				xmin = 29.981
+				xmax = 30.0
+				text = ""
+			intervals [4]:
+				xmin = 30.0
+				xmax = 30.62
+				text = "忠心"
+			intervals [5]:
+				xmin = 30.62
+				xmax = 31.59
+				text = ""
+			intervals [6]:
+				xmin = 31.59
+				xmax = 32.72
+				text = "平静"
+			intervals [7]:
+				xmin = 32.72
+				xmax = 33.629999999999995
+				text = ""
+			intervals [8]:
+				xmin = 33.629999999999995
+				xmax = 34.64
+				text = "優雅"
+			intervals [9]:
+				xmin = 34.64
+				xmax = 35.73
+				text = ""
+			intervals [10]:
+				xmin = 35.73
+				xmax = 36.66
+				text = "忠立"
+			intervals [11]:
+				xmin = 36.66
+				xmax = 37.849999999999994
+				text = ""
+			intervals [12]:
+				xmin = 37.849999999999994
+				xmax = 38.8
+				text = "华丽"
+			intervals [13]:
+				xmin = 38.8
+				xmax = 40.0
+				text = ""
+			intervals [14]:
+				xmin = 40.0
+				xmax = 40.86
+				text = "愚蠢"
+			intervals [15]:
+				xmin = 40.86
+				xmax = 42.0
+				text = ""
+			intervals [16]:
+				xmin = 42.0
+				xmax = 43.0
+				text = "纯净"
+			intervals [17]:
+				xmin = 43.0
+				xmax = 44.0
+				text = ""
+			intervals [18]:
+				xmin = 44.0
+				xmax = 45.34
+				text = "亲切"
+			intervals [19]:
+				xmin = 45.34
+				xmax = 46.0
+				text = ""
+			intervals [20]:
+				xmin = 46.0
+				xmax = 47.32
+				text = "著名"
+			intervals [21]:
+				xmin = 47.32
+				xmax = 48.0
+				text = ""
+			intervals [22]:
+				xmin = 48.0
+				xmax = 139.62
+				text = "简短极度高级愚笨糟糕自动苗条随便恐怖明智心烦辉煌日常贫穷文雅平均规律和蔼充足基础灵力驚吓神圣惡意实际深厚无用粗鲁锋利被爱破旧奇异挫败内疚共同强壮完整浓密大量空白残酷忠实不便嬉悉"
+			intervals [23]:
+				xmin = 139.62
+				xmax = 140.32
+				text = ""
+			intervals [24]:
+				xmin = 140.32
+				xmax = 226.96
+				text = "恐懼温和错错失去绝妙仔细暴怒活泼敞开反常英俊收集暴力普通当地有关随意悲剧原形关心忠诚困惑虚弱无助功名超级黏度不适潮湿痛苦可怜平方极好有望懒惰通常主要接近神奇羞耻羞耻私人"
+			intervals [25]:
+				xmin = 226.96
+				xmax = 231.34
+				text = ""
+			intervals [26]:
+				xmin = 231.34
+				xmax = 243.52
+				text = "迷人忌妒苗条挫败痛苦我不适不适不适不适不适"
+			intervals [27]:
+				xmin = 243.52
+				xmax = 244.45999999999998
+				text = ""
+			intervals [28]:
+				xmin = 244.45999999999998
+				xmax = 244.94
+				text = "不适哦"

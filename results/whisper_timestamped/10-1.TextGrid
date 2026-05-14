@@ -1,0 +1,850 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 188.06
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "words"
+		xmin = 0.0
+		xmax = 188.06
+		intervals: size = 209
+			intervals [1]:
+				xmin = 0.0
+				xmax = 0.58
+				text = "好,"
+			intervals [2]:
+				xmin = 0.58
+				xmax = 0.68
+				text = ""
+			intervals [3]:
+				xmin = 0.68
+				xmax = 0.76
+				text = "可以。"
+			intervals [4]:
+				xmin = 0.76
+				xmax = 30.14
+				text = ""
+			intervals [5]:
+				xmin = 30.14
+				xmax = 31.44
+				text = "愚蠢、"
+			intervals [6]:
+				xmin = 31.44
+				xmax = 31.86
+				text = ""
+			intervals [7]:
+				xmin = 31.86
+				xmax = 32.76
+				text = "纯净、"
+			intervals [8]:
+				xmin = 32.76
+				xmax = 33.28
+				text = ""
+			intervals [9]:
+				xmin = 33.28
+				xmax = 34.38
+				text = "亲切、"
+			intervals [10]:
+				xmin = 34.38
+				xmax = 35.08
+				text = ""
+			intervals [11]:
+				xmin = 35.08
+				xmax = 35.7
+				text = "著名、"
+			intervals [12]:
+				xmin = 35.7
+				xmax = 36.4
+				text = ""
+			intervals [13]:
+				xmin = 36.4
+				xmax = 37.06
+				text = "简短、"
+			intervals [14]:
+				xmin = 37.06
+				xmax = 37.74
+				text = ""
+			intervals [15]:
+				xmin = 37.74
+				xmax = 38.24
+				text = "嫉妒、"
+			intervals [16]:
+				xmin = 38.24
+				xmax = 39.34
+				text = ""
+			intervals [17]:
+				xmin = 39.34
+				xmax = 40.04
+				text = "高级、"
+			intervals [18]:
+				xmin = 40.04
+				xmax = 40.88
+				text = ""
+			intervals [19]:
+				xmin = 40.88
+				xmax = 41.38
+				text = "愚笨、"
+			intervals [20]:
+				xmin = 41.38
+				xmax = 42.06
+				text = ""
+			intervals [21]:
+				xmin = 42.06
+				xmax = 42.7
+				text = "糟糕、"
+			intervals [22]:
+				xmin = 42.7
+				xmax = 43.36
+				text = ""
+			intervals [23]:
+				xmin = 43.36
+				xmax = 44.04
+				text = "自动、"
+			intervals [24]:
+				xmin = 44.04
+				xmax = 44.88
+				text = ""
+			intervals [25]:
+				xmin = 44.88
+				xmax = 45.42
+				text = "苗条、"
+			intervals [26]:
+				xmin = 45.42
+				xmax = 46.12
+				text = ""
+			intervals [27]:
+				xmin = 46.12
+				xmax = 46.66
+				text = "随便、"
+			intervals [28]:
+				xmin = 46.66
+				xmax = 47.26
+				text = ""
+			intervals [29]:
+				xmin = 47.26
+				xmax = 47.92
+				text = "恐怖、"
+			intervals [30]:
+				xmin = 47.92
+				xmax = 48.86
+				text = ""
+			intervals [31]:
+				xmin = 48.86
+				xmax = 49.46
+				text = "明智、"
+			intervals [32]:
+				xmin = 49.46
+				xmax = 50.4
+				text = ""
+			intervals [33]:
+				xmin = 50.4
+				xmax = 51.12
+				text = "心烦、"
+			intervals [34]:
+				xmin = 51.12
+				xmax = 51.86
+				text = ""
+			intervals [35]:
+				xmin = 51.86
+				xmax = 52.62
+				text = "辉煌、"
+			intervals [36]:
+				xmin = 52.62
+				xmax = 53.12
+				text = ""
+			intervals [37]:
+				xmin = 53.12
+				xmax = 53.96
+				text = "日常、"
+			intervals [38]:
+				xmin = 53.96
+				xmax = 54.88
+				text = ""
+			intervals [39]:
+				xmin = 54.88
+				xmax = 55.7
+				text = "贫穷、"
+			intervals [40]:
+				xmin = 55.7
+				xmax = 55.98
+				text = ""
+			intervals [41]:
+				xmin = 55.98
+				xmax = 56.94
+				text = "贫穷、"
+			intervals [42]:
+				xmin = 56.94
+				xmax = 57.42
+				text = ""
+			intervals [43]:
+				xmin = 57.42
+				xmax = 58.14
+				text = "文雅、"
+			intervals [44]:
+				xmin = 58.14
+				xmax = 58.64
+				text = ""
+			intervals [45]:
+				xmin = 58.64
+				xmax = 60.78
+				text = "平均、规律、"
+			intervals [46]:
+				xmin = 60.78
+				xmax = 61.58
+				text = ""
+			intervals [47]:
+				xmin = 61.58
+				xmax = 62.08
+				text = "和蔼、"
+			intervals [48]:
+				xmin = 62.08
+				xmax = 62.6
+				text = ""
+			intervals [49]:
+				xmin = 62.6
+				xmax = 63.36
+				text = "充足、"
+			intervals [50]:
+				xmin = 63.36
+				xmax = 64.2
+				text = ""
+			intervals [51]:
+				xmin = 64.2
+				xmax = 64.82
+				text = "基础、"
+			intervals [52]:
+				xmin = 64.82
+				xmax = 65.66
+				text = ""
+			intervals [53]:
+				xmin = 65.66
+				xmax = 66.2
+				text = "凌厉、"
+			intervals [54]:
+				xmin = 66.2
+				xmax = 66.9
+				text = ""
+			intervals [55]:
+				xmin = 66.9
+				xmax = 67.48
+				text = "惊吓、"
+			intervals [56]:
+				xmin = 67.48
+				xmax = 68.14
+				text = ""
+			intervals [57]:
+				xmin = 68.14
+				xmax = 68.76
+				text = "神圣、"
+			intervals [58]:
+				xmin = 68.76
+				xmax = 69.56
+				text = ""
+			intervals [59]:
+				xmin = 69.56
+				xmax = 70.08
+				text = "恶意、"
+			intervals [60]:
+				xmin = 70.08
+				xmax = 70.9
+				text = ""
+			intervals [61]:
+				xmin = 70.9
+				xmax = 71.52
+				text = "实际、"
+			intervals [62]:
+				xmin = 71.52
+				xmax = 72.38
+				text = ""
+			intervals [63]:
+				xmin = 72.38
+				xmax = 73.0
+				text = "深厚、"
+			intervals [64]:
+				xmin = 73.0
+				xmax = 73.48
+				text = ""
+			intervals [65]:
+				xmin = 73.48
+				xmax = 74.18
+				text = "无用、"
+			intervals [66]:
+				xmin = 74.18
+				xmax = 74.86
+				text = ""
+			intervals [67]:
+				xmin = 74.86
+				xmax = 75.42
+				text = "粗鲁、"
+			intervals [68]:
+				xmin = 75.42
+				xmax = 76.26
+				text = ""
+			intervals [69]:
+				xmin = 76.26
+				xmax = 76.72
+				text = "锋利、"
+			intervals [70]:
+				xmin = 76.72
+				xmax = 77.58
+				text = ""
+			intervals [71]:
+				xmin = 77.58
+				xmax = 78.06
+				text = "被爱、"
+			intervals [72]:
+				xmin = 78.06
+				xmax = 78.86
+				text = ""
+			intervals [73]:
+				xmin = 78.86
+				xmax = 79.48
+				text = "破旧、"
+			intervals [74]:
+				xmin = 79.48
+				xmax = 80.34
+				text = ""
+			intervals [75]:
+				xmin = 80.34
+				xmax = 80.94
+				text = "奇异、"
+			intervals [76]:
+				xmin = 80.94
+				xmax = 82.02
+				text = ""
+			intervals [77]:
+				xmin = 82.02
+				xmax = 82.6
+				text = "挫败、"
+			intervals [78]:
+				xmin = 82.6
+				xmax = 83.92
+				text = ""
+			intervals [79]:
+				xmin = 83.92
+				xmax = 84.5
+				text = "内疚、"
+			intervals [80]:
+				xmin = 84.5
+				xmax = 85.04
+				text = ""
+			intervals [81]:
+				xmin = 85.04
+				xmax = 85.58
+				text = "共同、"
+			intervals [82]:
+				xmin = 85.58
+				xmax = 86.3
+				text = ""
+			intervals [83]:
+				xmin = 86.3
+				xmax = 88.18
+				text = "强壮、完整、"
+			intervals [84]:
+				xmin = 88.18
+				xmax = 88.46
+				text = ""
+			intervals [85]:
+				xmin = 88.46
+				xmax = 89.42
+				text = "浓密、"
+			intervals [86]:
+				xmin = 89.42
+				xmax = 89.96
+				text = ""
+			intervals [87]:
+				xmin = 89.96
+				xmax = 90.76
+				text = "大量、"
+			intervals [88]:
+				xmin = 90.76
+				xmax = 91.6
+				text = ""
+			intervals [89]:
+				xmin = 91.6
+				xmax = 92.56
+				text = "空白、"
+			intervals [90]:
+				xmin = 92.56
+				xmax = 93.5
+				text = ""
+			intervals [91]:
+				xmin = 93.5
+				xmax = 94.22
+				text = "残酷、"
+			intervals [92]:
+				xmin = 94.22
+				xmax = 95.2
+				text = ""
+			intervals [93]:
+				xmin = 95.2
+				xmax = 95.84
+				text = "忠实、"
+			intervals [94]:
+				xmin = 95.84
+				xmax = 96.68
+				text = ""
+			intervals [95]:
+				xmin = 96.68
+				xmax = 97.26
+				text = "不便、"
+			intervals [96]:
+				xmin = 97.26
+				xmax = 98.06
+				text = ""
+			intervals [97]:
+				xmin = 98.06
+				xmax = 98.66
+				text = "稀细、"
+			intervals [98]:
+				xmin = 98.66
+				xmax = 99.4
+				text = ""
+			intervals [99]:
+				xmin = 99.4
+				xmax = 100.22
+				text = "恐惧、"
+			intervals [100]:
+				xmin = 100.22
+				xmax = 101.08
+				text = ""
+			intervals [101]:
+				xmin = 101.08
+				xmax = 101.74
+				text = "温和、"
+			intervals [102]:
+				xmin = 101.74
+				xmax = 102.5
+				text = ""
+			intervals [103]:
+				xmin = 102.5
+				xmax = 103.14
+				text = "错误、"
+			intervals [104]:
+				xmin = 103.14
+				xmax = 104.12
+				text = ""
+			intervals [105]:
+				xmin = 104.12
+				xmax = 104.78
+				text = "失去、"
+			intervals [106]:
+				xmin = 104.78
+				xmax = 105.72
+				text = ""
+			intervals [107]:
+				xmin = 105.72
+				xmax = 106.3
+				text = "绝妙、"
+			intervals [108]:
+				xmin = 106.3
+				xmax = 107.24
+				text = ""
+			intervals [109]:
+				xmin = 107.24
+				xmax = 107.82
+				text = "仔细、"
+			intervals [110]:
+				xmin = 107.82
+				xmax = 108.62
+				text = ""
+			intervals [111]:
+				xmin = 108.62
+				xmax = 109.22
+				text = "暴怒、"
+			intervals [112]:
+				xmin = 109.22
+				xmax = 109.82
+				text = ""
+			intervals [113]:
+				xmin = 109.82
+				xmax = 110.46
+				text = "活泼、"
+			intervals [114]:
+				xmin = 110.46
+				xmax = 111.04
+				text = ""
+			intervals [115]:
+				xmin = 111.04
+				xmax = 113.06
+				text = "敞开、反常、"
+			intervals [116]:
+				xmin = 113.06
+				xmax = 113.52
+				text = ""
+			intervals [117]:
+				xmin = 113.52
+				xmax = 114.46
+				text = "英俊、"
+			intervals [118]:
+				xmin = 114.46
+				xmax = 115.0
+				text = ""
+			intervals [119]:
+				xmin = 115.0
+				xmax = 115.92
+				text = "收集、"
+			intervals [120]:
+				xmin = 115.92
+				xmax = 116.66
+				text = ""
+			intervals [121]:
+				xmin = 116.66
+				xmax = 117.22
+				text = "暴力、"
+			intervals [122]:
+				xmin = 117.22
+				xmax = 117.84
+				text = ""
+			intervals [123]:
+				xmin = 117.84
+				xmax = 118.42
+				text = "普通、"
+			intervals [124]:
+				xmin = 118.42
+				xmax = 119.18
+				text = ""
+			intervals [125]:
+				xmin = 119.18
+				xmax = 119.72
+				text = "当地、"
+			intervals [126]:
+				xmin = 119.72
+				xmax = 120.5
+				text = ""
+			intervals [127]:
+				xmin = 120.5
+				xmax = 121.02
+				text = "有关、"
+			intervals [128]:
+				xmin = 121.02
+				xmax = 121.46
+				text = ""
+			intervals [129]:
+				xmin = 121.46
+				xmax = 122.12
+				text = "随意、"
+			intervals [130]:
+				xmin = 122.12
+				xmax = 123.24
+				text = ""
+			intervals [131]:
+				xmin = 123.24
+				xmax = 123.88
+				text = "悲剧、"
+			intervals [132]:
+				xmin = 123.88
+				xmax = 124.72
+				text = ""
+			intervals [133]:
+				xmin = 124.72
+				xmax = 125.4
+				text = "原型、"
+			intervals [134]:
+				xmin = 125.4
+				xmax = 126.12
+				text = ""
+			intervals [135]:
+				xmin = 126.12
+				xmax = 126.76
+				text = "关心、"
+			intervals [136]:
+				xmin = 126.76
+				xmax = 127.3
+				text = ""
+			intervals [137]:
+				xmin = 127.3
+				xmax = 128.0
+				text = "忠诚、"
+			intervals [138]:
+				xmin = 128.0
+				xmax = 128.7
+				text = ""
+			intervals [139]:
+				xmin = 128.7
+				xmax = 129.3
+				text = "困惑、"
+			intervals [140]:
+				xmin = 129.3
+				xmax = 130.08
+				text = ""
+			intervals [141]:
+				xmin = 130.08
+				xmax = 130.82
+				text = "虚弱、"
+			intervals [142]:
+				xmin = 130.82
+				xmax = 131.32
+				text = ""
+			intervals [143]:
+				xmin = 131.32
+				xmax = 131.96
+				text = "无助、"
+			intervals [144]:
+				xmin = 131.96
+				xmax = 132.62
+				text = ""
+			intervals [145]:
+				xmin = 132.62
+				xmax = 133.18
+				text = "功名、"
+			intervals [146]:
+				xmin = 133.18
+				xmax = 133.8
+				text = ""
+			intervals [147]:
+				xmin = 133.8
+				xmax = 134.54
+				text = "超级、"
+			intervals [148]:
+				xmin = 134.54
+				xmax = 135.48
+				text = ""
+			intervals [149]:
+				xmin = 135.48
+				xmax = 136.0
+				text = "年度、"
+			intervals [150]:
+				xmin = 136.0
+				xmax = 136.58
+				text = ""
+			intervals [151]:
+				xmin = 136.58
+				xmax = 137.06
+				text = "不适、"
+			intervals [152]:
+				xmin = 137.06
+				xmax = 137.96
+				text = ""
+			intervals [153]:
+				xmin = 137.96
+				xmax = 138.74
+				text = "潮湿、"
+			intervals [154]:
+				xmin = 138.74
+				xmax = 139.7
+				text = ""
+			intervals [155]:
+				xmin = 139.7
+				xmax = 140.58
+				text = "痛苦、"
+			intervals [156]:
+				xmin = 140.58
+				xmax = 141.1
+				text = ""
+			intervals [157]:
+				xmin = 141.1
+				xmax = 141.64
+				text = "可怜、"
+			intervals [158]:
+				xmin = 141.64
+				xmax = 141.66
+				text = ""
+			intervals [159]:
+				xmin = 141.66
+				xmax = 142.68
+				text = "平方、"
+			intervals [160]:
+				xmin = 142.68
+				xmax = 142.94
+				text = ""
+			intervals [161]:
+				xmin = 142.94
+				xmax = 143.74
+				text = "极好、"
+			intervals [162]:
+				xmin = 143.74
+				xmax = 144.16
+				text = ""
+			intervals [163]:
+				xmin = 144.16
+				xmax = 144.8
+				text = "有望、"
+			intervals [164]:
+				xmin = 144.8
+				xmax = 145.36
+				text = ""
+			intervals [165]:
+				xmin = 145.36
+				xmax = 145.96
+				text = "懒惰、"
+			intervals [166]:
+				xmin = 145.96
+				xmax = 146.4
+				text = ""
+			intervals [167]:
+				xmin = 146.4
+				xmax = 147.14
+				text = "通常、"
+			intervals [168]:
+				xmin = 147.14
+				xmax = 147.6
+				text = ""
+			intervals [169]:
+				xmin = 147.6
+				xmax = 148.16
+				text = "主要、"
+			intervals [170]:
+				xmin = 148.16
+				xmax = 148.88
+				text = ""
+			intervals [171]:
+				xmin = 148.88
+				xmax = 149.44
+				text = "接近、"
+			intervals [172]:
+				xmin = 149.44
+				xmax = 150.08
+				text = ""
+			intervals [173]:
+				xmin = 150.08
+				xmax = 150.76
+				text = "神奇、"
+			intervals [174]:
+				xmin = 150.76
+				xmax = 151.32
+				text = ""
+			intervals [175]:
+				xmin = 151.32
+				xmax = 152.0
+				text = "羞耻、"
+			intervals [176]:
+				xmin = 152.0
+				xmax = 152.58
+				text = ""
+			intervals [177]:
+				xmin = 152.58
+				xmax = 153.22
+				text = "私人、"
+			intervals [178]:
+				xmin = 153.22
+				xmax = 153.26
+				text = ""
+			intervals [179]:
+				xmin = 153.26
+				xmax = 157.32
+				text = "忠心、"
+			intervals [180]:
+				xmin = 157.32
+				xmax = 158.22
+				text = ""
+			intervals [181]:
+				xmin = 158.22
+				xmax = 159.16
+				text = "平坦、"
+			intervals [182]:
+				xmin = 159.16
+				xmax = 160.02
+				text = ""
+			intervals [183]:
+				xmin = 160.02
+				xmax = 160.56
+				text = "优雅、"
+			intervals [184]:
+				xmin = 160.56
+				xmax = 161.7
+				text = ""
+			intervals [185]:
+				xmin = 161.7
+				xmax = 162.28
+				text = "中立、"
+			intervals [186]:
+				xmin = 162.28
+				xmax = 163.26
+				text = ""
+			intervals [187]:
+				xmin = 163.26
+				xmax = 164.1
+				text = "华丽、"
+			intervals [188]:
+				xmin = 164.1
+				xmax = 165.4
+				text = ""
+			intervals [189]:
+				xmin = 165.4
+				xmax = 166.52
+				text = "可怜、"
+			intervals [190]:
+				xmin = 166.52
+				xmax = 167.06
+				text = ""
+			intervals [191]:
+				xmin = 167.06
+				xmax = 168.12
+				text = "平方、"
+			intervals [192]:
+				xmin = 168.12
+				xmax = 168.82
+				text = ""
+			intervals [193]:
+				xmin = 168.82
+				xmax = 169.64
+				text = "极好、"
+			intervals [194]:
+				xmin = 169.64
+				xmax = 170.46
+				text = ""
+			intervals [195]:
+				xmin = 170.46
+				xmax = 171.2
+				text = "有望、"
+			intervals [196]:
+				xmin = 171.2
+				xmax = 171.66
+				text = ""
+			intervals [197]:
+				xmin = 171.66
+				xmax = 172.76
+				text = "懒惰、"
+			intervals [198]:
+				xmin = 172.76
+				xmax = 173.04
+				text = ""
+			intervals [199]:
+				xmin = 173.04
+				xmax = 175.9
+				text = "懒惰、悲剧、"
+			intervals [200]:
+				xmin = 175.9
+				xmax = 176.5
+				text = ""
+			intervals [201]:
+				xmin = 176.5
+				xmax = 177.64
+				text = "殘酷、"
+			intervals [202]:
+				xmin = 177.64
+				xmax = 178.14
+				text = ""
+			intervals [203]:
+				xmin = 178.14
+				xmax = 179.42
+				text = "贫穷、"
+			intervals [204]:
+				xmin = 179.42
+				xmax = 181.34
+				text = ""
+			intervals [205]:
+				xmin = 181.34
+				xmax = 182.4
+				text = "恢复、"
+			intervals [206]:
+				xmin = 182.4
+				xmax = 182.98
+				text = ""
+			intervals [207]:
+				xmin = 182.98
+				xmax = 186.7
+				text = "惹怒、恥惂、���悟、济度、"
+			intervals [208]:
+				xmin = 186.7
+				xmax = 187.06
+				text = ""
+			intervals [209]:
+				xmin = 187.06
+				xmax = 188.06
+				text = "enthalpysirswhocomebackandforth,好"

@@ -1,0 +1,46 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0.0
+xmax = 201.6
+tiers? <exists>
+size = 1
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "words"
+		xmin = 0.0
+		xmax = 201.6
+		intervals: size = 8
+			intervals [1]:
+				xmin = 0.0
+				xmax = 28.580000000000002
+				text = ""
+			intervals [2]:
+				xmin = 28.580000000000002
+				xmax = 29.981
+				text = "平静"
+			intervals [3]:
+				xmin = 29.981
+				xmax = 30.0
+				text = ""
+			intervals [4]:
+				xmin = 30.0
+				xmax = 163.52
+				text = "华丽愚蠢纯净亲切著名简短极度高级愚笨糟糕自动苗条随便恐怖明智心烦辉煌日常贫穷文雅平均规律和蔼充足基础灵力惊吓神圣恶意实际深厚无用粗鲁锋利被爱破旧奇异挫败内疚共同强壮强壮完整浓密大量空白残酷忠实不便嬉戏恐惧温和错误失去绝妙仔细暴怒活泼敞开反常英俊英俊收集暴力普通当地有关随意悲剧原型关心关心忠诚困惑虚弱无助公民超级年度不适潮湿痛苦可怜平方很高極好有望懒惰通常主要接近神奇羞耻私人"
+			intervals [5]:
+				xmin = 163.52
+				xmax = 166.1
+				text = ""
+			intervals [6]:
+				xmin = 166.1
+				xmax = 172.52
+				text = "宽阔丑陋杰出华丽"
+			intervals [7]:
+				xmin = 172.52
+				xmax = 173.1
+				text = ""
+			intervals [8]:
+				xmin = 173.1
+				xmax = 201.6
+				text = "愚蠢纯净极度高级糟糕心烦辉煌文雅基础灵力锋利被爱挫败空白黏度不适神奇羞耻私人"
