@@ -142,7 +142,7 @@ class init_model:
                     print(f"[{show_elapsed_time()}] CUDA detected, using GPU.")
                 else:
                     self.device = "cpu"
-                    print(f"[{show_elapsed_time()}] CUDA not available, using CPU. If you want to use CUDA acceleration, see https://github.com/ParadeLuxe/Praasper#gpu-acceleration-windowslinux")
+                    print(f"[{show_elapsed_time()}] CUDA not available, using CPU. (If you want to use CUDA acceleration, see https://github.com/ParadeLuxe/Praasper#gpu-acceleration-windowslinux)")
             else:
                 self.device = device
                 print(f"[{show_elapsed_time()}] Hardware: {self.device}")
