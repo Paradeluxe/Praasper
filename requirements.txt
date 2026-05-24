@@ -1,6 +1,7 @@
 numpy
 scipy
 torch
+torchaudio
 jellyfish
 tqdm
 textgrid
@@ -8,5 +9,3 @@ funasr
 scikit-learn
 librosa
 soundfile
-pypinyin
-python-Levenshtein
