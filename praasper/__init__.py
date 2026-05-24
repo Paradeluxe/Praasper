@@ -102,10 +102,19 @@ class init_model:
         ASR: str=None,
         infer_mode: str="local",
         device: str="auto",
-        api_key: str=None
+        api_key: str=None,
+        cache_dir: str=None
     ):
         self.infer_mode = infer_mode
         self.api_key = api_key
+        self.cache_dir = cache_dir
+
+        # ── 如果指定了 cache_dir，设置模型缓存目录 ──
+        if cache_dir:
+            os.environ['MODELSCOPE_CACHE'] = cache_dir
+            os.environ['HF_HOME'] = cache_dir
+            os.environ['TRANSFORMERS_CACHE'] = cache_dir
+            os.makedirs(cache_dir, exist_ok=True)
 
         if infer_mode == "api":
             # ── API mode: DashScope, no local hardware needed ──
@@ -142,7 +151,8 @@ class init_model:
             model=self.ASR,
             infer_mode=self.infer_mode,
             device=self.device,
-            api_key=self.api_key
+            api_key=self.api_key,
+            cache_dir=self.cache_dir
         )
 
         self.params = _default_params.copy()

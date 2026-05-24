@@ -7,7 +7,7 @@ except ImportError:
 
 
 class SelectWord:
-    def __init__(self, model: str="FunAudioLLM/Fun-ASR-Nano-2512", infer_mode: str="local", vad_model: str="fsmn-vad", device: str="auto", api_key: str=None):
+    def __init__(self, model: str="FunAudioLLM/Fun-ASR-Nano-2512", infer_mode: str="local", vad_model: str="fsmn-vad", device: str="auto", api_key: str=None, cache_dir: str=None):
         self.api_key = api_key
         self.kwargs = {}
 
@@ -29,10 +29,14 @@ class SelectWord:
             
             # Check for local cache first
             import os
-            local_paths = [
+            local_paths = []
+            if cache_dir:
+                local_paths.append(os.path.join(cache_dir, 'models/FunAudioLLM/Fun-ASR-Nano-2512'))
+                local_paths.append(os.path.join(cache_dir, 'hub/models/FunAudioLLM/Fun-ASR-Nano-2512'))
+            local_paths.extend([
                 'D:/.cache/modelscope/models/FunAudioLLM/Fun-ASR-Nano-2512',  # Windows
                 '/home/maria/.cache/modelscope/hub/models/FunAudioLLM/Fun-ASR-Nano-2512',  # WSL
-            ]
+            ])
             model_path = model
             for lp in local_paths:
                 if os.path.exists(os.path.join(lp, 'model.pt')):
