@@ -1,7 +1,8 @@
 # Praasper
 
-[![PyPI Downloads](https://img.shields.io/pypi/dm/praasper.svg?label=PyPI%20downloads)](https://pypi.org/project/praasper/)
-![Python](https://img.shields.io/badge/python->=3.10-blue.svg)
+[![PyPI version](https://img.shields.io/pypi/v/praasper.svg)](https://pypi.org/project/praasper/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/praasper.svg?label=downloads)](https://pypi.org/project/praasper/)
+![Python](https://img.shields.io/pypi/pyversions/praasper.svg)
 ![GitHub License](https://img.shields.io/github/license/Paradeluxe/Praasper)
 
 **[Setup](#setup)** | **[Usage](#how-to-use)** | **[Mechanism](#mechanism)**
@@ -31,9 +32,12 @@ Here are the parameters you can pass to `init_model` and `annote`:
 |   `device`   |            `"auto"`           | Hardware for local inference: `"auto"`, `"cuda"`, or `"cpu"`. Ignored in API mode.                                                         |
 |     `ASR`    | FunAudioLLM/Fun-ASR-Nano-2512 | Advanced: override the default local ASR model. See [FunASR model zoo](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo). |
 |   `api_key`  |             `None`            | DashScope API key. Required when `infer_mode="api"`. Can also be set via `DASHSCOPE_API_KEY` env var.                                      |
+| `cache_dir`  |             `None`            | Directory for caching ASR models. When set, `HF_HOME` / `MODELSCOPE_CACHE` / `TRANSFORMERS_CACHE` are redirected here.                      |
 | `input_path` |               —               | Path to the folder where audio files are stored.                                                                                           |
 |   `seg_dur`  |              15.              | Segment large audio into pieces, in seconds.                                                                                               |
 |  `min_pause` |              0.2              | Minimum pause duration between two utterances, in seconds.                                                                                 |
+| `skip_existing` |          `False`           | Skip files that already have an output `.TextGrid`.                                                                                        |
+|   `verbose`  |            `False`            | Print verbose progress messages during processing.                                                                                         |
 
 Here are code examples showing how to use these parameters:
 
@@ -182,7 +186,7 @@ Results should pop up like this (It means that this device supports CUDA up to v
 Here is an example for CUDA 12.9:
 
 ```bash
-pip install --reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu129
+pip install --force-reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu129
 ```
 
 ## (Advanced) uv installation
@@ -210,6 +214,6 @@ uv pip install -U praasper
 For `CUDA` support, here is an example for downloading `torch` that fits CUDA 12.9:
 
 ```bash
-uv pip install --reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu129
+uv pip install --force-reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu129
 ```
 
