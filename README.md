@@ -2,7 +2,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/praasper.svg)](https://pypi.org/project/praasper/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/praasper.svg?label=downloads)](https://pypi.org/project/praasper/)
-![Python](https://img.shields.io/pypi/pyversions/praasper.svg)
+![Python](https://img.shields.io/badge/python-3.10_|_3.11_|_3.12-blue.svg)
 ![GitHub License](https://img.shields.io/github/license/Paradeluxe/Praasper)
 
 **[Setup](#setup)** | **[Usage](#how-to-use)** | **[Mechanism](#mechanism)**
