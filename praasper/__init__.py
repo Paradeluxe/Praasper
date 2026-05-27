@@ -511,7 +511,7 @@ class init_model:
         # res = {}
         result = []
 
-        # Optimized grid search: only amp and eps_ratio are tunable
+        # Two-stage grid search: (1) amp × eps_ratio, (2) numValid refinement
         param_grid = {
             "amp":         [1.1, 1.2, 1.3],
             "eps_ratio":   [0.02, 0.025, 0.03, 0.035, 0.04, 0.05],
@@ -652,13 +652,35 @@ class init_model:
             return [mean_snr_copy, total_overlap_copy, num_intervals_copy, adjusted_params_copy]
             # result.append([num_intervals_copy, similarity, adjusted_params_copy])
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:  # 使用线程池并发处理
-            result = list(tqdm(executor.map(grid_search_optimal_params, generate_param_grid(param_grid)),
-                              total=len(list(generate_param_grid(param_grid))),
-                              desc=f"{file_info} Locate optimal params", leave=False))
+        # ── Stage 1: Coarse grid (amp × eps_ratio) ──────────────────────────
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+            stage1_results = list(tqdm(
+                executor.map(grid_search_optimal_params, generate_param_grid(param_grid)),
+                total=len(list(generate_param_grid(param_grid))),
+                desc=f"{file_info} Stage 1/2 coarse", leave=False))
+
+        import statistics
+        all_intervals_1 = [r[2] for r in stage1_results if r[2] > 0]
+        mean_intval_1 = statistics.mean(all_intervals_1) if all_intervals_1 else 1.0
+        best1 = max(stage1_results, key=lambda x: (x[0], x[1], -abs(x[2] - mean_intval_1)))
+        best_amp = float(best1[3]['onset']['amp'])
+        best_eps = float(best1[3]['onset']['eps_ratio'])
+
+        # ── Stage 2: Fix best amp/eps, vary numValid (DBSCAN min points) ──
+        fine_grid = {
+            "amp":       [best_amp],
+            "eps_ratio": [best_eps],
+            "numValid":  [500, 1000, 2000, 5000],
+        }
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+            stage2_results = list(tqdm(
+                executor.map(grid_search_optimal_params, generate_param_grid(fine_grid)),
+                total=len(list(generate_param_grid(fine_grid))),
+                desc=f"{file_info} Stage 2/2 numValid", leave=False))
+
+        result = stage1_results + stage2_results
 
         # ── Rank by max mean_snr, then max total_overlap, then closest to mean #intval ─────
-        import statistics
         all_intervals = [r[2] for r in result if r[2] > 0]
         mean_intval = statistics.mean(all_intervals) if all_intervals else 1.0
 

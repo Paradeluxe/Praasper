@@ -87,7 +87,7 @@ def compute_boundary_snr(audio_arr, sr, onsets, offsets, window_ms=150, lowcut=3
         speech_power = np.mean(filtered[speech_start:speech_end] ** 2)
         
         if noise_power <= 0:
-            snrs.append(60.0)
+            snrs.append(float('inf'))
         elif speech_power <= 0:
             snrs.append(0.0)
         else:
@@ -115,12 +115,17 @@ def compute_boundary_snr(audio_arr, sr, onsets, offsets, window_ms=150, lowcut=3
     #     else:
     #         snrs.append(10.0 * np.log10(speech_power / noise_power))
     
-    # Trim bottom 10% of onset SNRs, return mean of remaining 90%
+    # Trim bottom and top 10%, return mean of middle 80%
     if not snrs:
         return 0.0
     snrs_sorted = sorted(snrs)
-    trim_count = max(1, int(len(snrs_sorted) * 0.1))
-    trimmed = snrs_sorted[trim_count:]  # drop lowest 10%
+    trim_n = max(1, int(len(snrs_sorted) * 0.1))
+    start = trim_n
+    end = len(snrs_sorted) - trim_n
+    if end <= start:
+        trimmed = snrs_sorted[trim_n:]  # not enough data, fallback to bottom-only
+    else:
+        trimmed = snrs_sorted[start:end]
     return float(np.mean(trimmed))
 
 
