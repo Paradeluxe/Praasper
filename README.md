@@ -11,7 +11,7 @@
 
 ![mechanism](promote/mechanism.png)
 
-In ***Praasper***, the pipeline has four stages. **First**, long recordings are split at natural pauses via pause-aware chunking. **Second**, a two-stage **VAD** (*Praditor*) performs coarse DBSCAN clustering followed by fine sliding-window boundary detection — automatically calibrated per file via a grid search over `amp` and `eps_ratio`. **Third**, **ASR** (*Fun-ASR-Nano*) transcribes each VAD-bounded segment with word-level timestamps. **Fourth**, timestamps are aligned to VAD intervals by temporal overlap and exported as a Praat TextGrid file.
+In ***Praasper***, the pipeline has four stages. **First**, long recordings are split at natural pauses via pause-aware chunking. **Second**, a two-stage **VAD** (*Praditor*) performs coarse DBSCAN clustering followed by fine sliding-window boundary detection — automatically calibrated per file via a two-stage grid search (amp × eps_ratio → numValid refinement). **Third**, **ASR** (*Fun-ASR-Nano*) transcribes each VAD-bounded segment with word-level timestamps. **Fourth**, timestamps are aligned to VAD intervals by temporal overlap and exported as a Praat TextGrid file.
 
 # How to use
 
@@ -33,11 +33,13 @@ Here are the parameters you can pass to `init_model` and `annote`:
 |     `ASR`    | FunAudioLLM/Fun-ASR-Nano-2512 | Advanced: override the default local ASR model. See [FunASR model zoo](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo). |
 |   `api_key`  |             `None`            | DashScope API key. Required when `infer_mode="api"`. Can also be set via `DASHSCOPE_API_KEY` env var.                                      |
 | `cache_dir`  |             `None`            | Directory for caching ASR models. When set, `HF_HOME` / `MODELSCOPE_CACHE` / `TRANSFORMERS_CACHE` are redirected here.                      |
+|   `effort`   |          `\"normal\"`          | Grid search level: `\"normal\"` (22 combos) or `\"high\"` (100 combos). `\"high\"` adds `cutoff0` sweep and 0.05-step `amp`.                    |
 | `input_path` |               —               | Path to the folder where audio files are stored.                                                                                           |
 |   `seg_dur`  |              15.              | Segment large audio into pieces, in seconds.                                                                                               |
 |  `min_pause` |              0.2              | Minimum pause duration between two utterances, in seconds.                                                                                 |
 | `skip_existing` |          `False`           | Skip files that already have an output `.TextGrid`.                                                                                        |
 |   `verbose`  |            `False`            | Print verbose progress messages during processing.                                                                                         |
+|   `effort`   |          `\"normal\"`          | Grid search effort passed to `annote()`: overrides `init_model` effort for a single run. `\"normal\"` or `\"high\"`.                           |
 
 Here are code examples showing how to use these parameters:
 
@@ -55,6 +57,9 @@ model = praasper.init_model(infer_mode="api", api_key="sk-...")
 
 # Custom local ASR model (advanced)
 model = praasper.init_model(ASR="iic/speech_paraformer-large-vad-punc_asr_nat-zh-cn-16k-common-vocab8404-pytorch")
+
+# High-effort grid search (100 combos, more thorough VAD calibration)
+model = praasper.init_model(effort="high")
 
 model.annote(
     input_path="data_folder",
@@ -138,7 +143,7 @@ model = praasper.init_model(infer_mode="api", api_key="sk-...")
 
 **1. Pause-aware chunking.** Long recordings are split into segments (default 15 s) at natural pauses detected by the VAD, placing boundaries at silence-gap midpoints. If no gap is found, the threshold relaxes until a boundary can be placed. This preserves utterance integrity across chunks.
 
-**2. Voice Activity Detection (VAD).** Praasper uses ***Praditor***, a DBSCAN-based two-stage detector. The first stage clusters the amplitude envelope to separate speech from silence into broad candidate segments. The second stage applies a sliding-window detector with locally estimated noise thresholds to place onset and offset boundaries at millisecond precision. By default, Praasper auto-calibrates per recording: a grid search over `amp` (1.1–1.3) and `eps_ratio` (0.02–0.05) selects the configuration that maximizes onset boundary signal-to-noise ratio (SNR). Manual tuning is available but not required.
+**2. Voice Activity Detection (VAD).** Praasper uses ***Praditor***, a DBSCAN-based two-stage detector. The first stage clusters the amplitude envelope to separate speech from silence into broad candidate segments. The second stage applies a sliding-window detector with locally estimated noise thresholds to place onset and offset boundaries at millisecond precision. By default, Praasper auto-calibrates per recording: a two-stage grid search selects the best parameters: Stage 1 sweeps `amp` (1.1–1.3) × `eps_ratio` (0.02–0.05) to maximise onset boundary SNR, then Stage 2 refines `numValid` (DBSCAN min points) around the winner. With `effort=\"high\"`, the grid expands to 8 `amp` values (0.05 step) and a `cutoff0` sweep [0, 200 Hz], totalling 100 combos. Manual tuning is available but not required.
 
 **3. Automatic Speech Recognition (ASR).** Each VAD-bounded segment is transcribed by **Fun-ASR-Nano**, a lightweight model producing word-level timestamps (Mandarin, English, Japanese, and Chinese dialects). For higher accuracy, DashScope cloud ASR is available via `infer_mode="api"`.
 
