@@ -36,7 +36,7 @@ def bandpass_filter(data, lowcut, highcut, fs, order=4):
     return filtered_data
     
 
-def compute_boundary_snr(audio_arr, sr, onsets, offsets, window_ms=150, lowcut=300, highcut=5000):
+def compute_boundary_snr(audio_arr, sr, onsets, offsets, window_ms=150, lowcut=300, highcut=5000, pre_filtered=None):
     """
     Compute mean SNR (dB) across all onset/offset boundaries.
     
@@ -61,7 +61,10 @@ def compute_boundary_snr(audio_arr, sr, onsets, offsets, window_ms=150, lowcut=3
         return 0.0
     
     # Bandpass filter for speech fundamental frequency
-    filtered = bandpass_filter(audio_arr.astype(np.float64), lowcut, highcut, sr)
+    if pre_filtered is not None:
+        filtered = pre_filtered
+    else:
+        filtered = bandpass_filter(audio_arr.astype(np.float64), lowcut, highcut, sr)
     
     window_samples = int(window_ms / 1000.0 * sr)
     if window_samples <= 0:

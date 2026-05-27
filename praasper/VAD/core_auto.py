@@ -14,10 +14,10 @@ except ImportError:
 # os.environ["PATH"] += os.pathsep + resource_path(f".\\ffmpeg\\{plat}")
 # print(resource_path(f".\\ffmpeg\\{plat}"))
 
-def autoPraditorWithTimeRange(params, audio_obj, which_set, stime=0, etime=-1,verbose=False):
+def autoPraditorWithTimeRange(params, audio_obj, which_set, stime=0, etime=-1, verbose=False, pre_filtered=None):
     params = copy.deepcopy(params)
     if etime == -1:
-        ans_tps = autoPraditor(params, audio_obj, which_set, verbose=False)
+        ans_tps = autoPraditor(params, audio_obj, which_set, verbose=False, pre_filtered=pre_filtered)
 
     else:
         ans_tps = autoPraditor(params, audio_obj[stime*1000:etime*1000], which_set, verbose=False)
@@ -27,7 +27,7 @@ def autoPraditorWithTimeRange(params, audio_obj, which_set, stime=0, etime=-1,ve
     return ans_tps
 
 
-def autoPraditor(params, audio_obj, which_set, verbose=False):
+def autoPraditor(params, audio_obj, which_set, verbose=False, pre_filtered=None):
     # 导入数据，并且遵循一定之格式
     for xset in params:
         for item in params[xset]:
@@ -53,12 +53,15 @@ def autoPraditor(params, audio_obj, which_set, verbose=False):
 
     _audio_samplerate = audio_obj.frame_rate
 
-    _audio_arr_filtered = bandpass_filter(
-        np.array(audio_obj.get_array_of_samples()),
-        lowcut=params["cutoff0"],
-        highcut=params["cutoff1"],
-        fs=_audio_obj.frame_rate
-    )
+    if pre_filtered is not None:
+        _audio_arr_filtered = pre_filtered.copy()
+    else:
+        _audio_arr_filtered = bandpass_filter(
+            np.array(audio_obj.get_array_of_samples()),
+            lowcut=params["cutoff0"],
+            highcut=params["cutoff1"],
+            fs=_audio_obj.frame_rate
+        )
 
     # Audio已经准备好
     # 接下来就是第一步：DBSCAN聚类找噪声片段

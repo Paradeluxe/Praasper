@@ -517,6 +517,8 @@ class init_model:
             "eps_ratio":   [0.02, 0.025, 0.03, 0.035, 0.04, 0.05],
         }
 
+        _filter_cache = {}  # bandpass reuse across combos
+
         def grid_search_optimal_params(params_replace):
         # for params_replace in generate_param_grid(param_grid):
             # res_key = (params_replace["amp"], params_replace["cutoff0"])
@@ -528,12 +530,21 @@ class init_model:
             # print(params_replace)
             adjusted_params["offset"] = adjusted_params["onset"]
 
+            # ── Bandpass once, reuse for onset/offset VAD + SNR ──
+            c0 = float(adjusted_params["onset"]["cutoff0"])
+            c1 = float(adjusted_params["onset"]["cutoff1"])
+            key = (c0, c1)
+            if key not in _filter_cache:
+                _audio_raw = np.array(selected_audio.get_array_of_samples())
+                _filter_cache[key] = bandpass_filter(_audio_raw, c0, c1, selected_audio.frame_rate)
+            _pre_filtered = _filter_cache[key]
+
             # print(adjusted_params)
             # print(f"[{show_elapsed_time()}] Testing {adjusted_params['onset']}")
             # exit()
 
-            onsets = autoPraditorWithTimeRange(adjusted_params, selected_audio, "onset", verbose=False)
-            offsets = autoPraditorWithTimeRange(adjusted_params, selected_audio, "offset", verbose=False)
+            onsets = autoPraditorWithTimeRange(adjusted_params, selected_audio, "onset", verbose=False, pre_filtered=_pre_filtered)
+            offsets = autoPraditorWithTimeRange(adjusted_params, selected_audio, "offset", verbose=False, pre_filtered=_pre_filtered)
 
             onsets = sorted(onsets)
             offsets = sorted(offsets)
@@ -617,6 +628,7 @@ class init_model:
                     selected_audio.arr, selected_audio.frame_rate, onsets, offsets,
                     lowcut=float(adjusted_params["onset"]["cutoff0"]),
                     highcut=float(adjusted_params["onset"]["cutoff1"]),
+                    pre_filtered=_pre_filtered,
                 )
 
                 total_overlap = 0.0
