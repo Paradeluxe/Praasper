@@ -2,17 +2,18 @@ import time
 from scipy.signal import butter, filtfilt
 import numpy as np
 
-# 记录程序开始执行的时间
-START_TIME = time.time()
+# 记录程序开始执行的时间（使用 monotonic perf_counter，避免系统时间跳变影响）
+START_TIME = time.perf_counter()
 
 
 def show_elapsed_time():
     """显示从程序开始执行到现在的时间差"""
-    elapsed = time.time() - START_TIME
-    minutes = int(elapsed // 60)
-    seconds = elapsed % 60
-    milliseconds = int((elapsed % 1) * 1000)
-    return f"{minutes:02d}:{int(seconds):02d}:{milliseconds:03d}"
+    elapsed = time.perf_counter() - START_TIME
+    hours = int(elapsed // 3600)
+    minutes = int((elapsed % 3600) // 60)
+    seconds = int(elapsed % 60)
+    milliseconds = int(round((elapsed % 1) * 1000))
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}.{milliseconds:03d}"
 
 
 

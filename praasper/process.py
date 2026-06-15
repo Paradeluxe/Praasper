@@ -198,13 +198,15 @@ def get_vad(wav_path, min_pause=0.2, params="folder", if_save=False, verbose=Fal
     offsets = sorted(offsets)
 
 
-    if verbose:   
-        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD onsets: {onsets}")
-        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD offsets: {offsets}")
-        
     tg = TextGrid()
     interval_tier = IntervalTier(name="interval", minTime=0., maxTime=audio_obj.duration_seconds)
     tg.append(interval_tier)
+
+    # store verbose info for the caller to print (avoids concurrent prints from worker threads)
+    tg._log = []
+    if verbose:
+        tg._log.append(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD onsets: {onsets}")
+        tg._log.append(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD offsets: {offsets}")
 
     if onsets or offsets:
         if not onsets:
@@ -277,13 +279,17 @@ def get_vad(wav_path, min_pause=0.2, params="folder", if_save=False, verbose=Fal
     tg.append(interval_tier)
     tg.write(wav_path.replace(".wav", "_vad.TextGrid"))  # 将TextGrid对象写入文件
 
+    # preserve _log before overwriting tg
+    saved_log = getattr(tg, '_log', [])
+
     tg = TextGrid()
     tg.read(wav_path.replace(".wav", "_vad.TextGrid"))
+    tg._log = saved_log
 
     if not if_save:
         os.remove(wav_path.replace(".wav", "_vad.TextGrid"))
     else:
-        print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD results saved")
+        tg._log.append(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD results saved")
     
     
     return tg

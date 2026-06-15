@@ -238,7 +238,7 @@ class init_model:
 
             # 检查结果文件是否已存在，如果存在且skip_existing为True则跳过处理
             if skip_existing and os.path.exists(final_path):
-                print(f"{file_info} Result exists, skipped", end="\r")
+                print(f"{file_info} Result exists, skipped")
                 continue
 
             try:
@@ -275,6 +275,10 @@ class init_model:
 
             segments = segment_audio(audio_obj, segment_duration=seg_dur, params=self.params, min_pause=min_pause, file_info=file_info)
 
+            # shared log collector for verbose output from worker threads
+            vad_logs = []
+            _log_lock = __import__('threading').Lock()
+
             def process_segments(segment):
             # for start, end in segments:
                 start, end = segment
@@ -296,6 +300,8 @@ class init_model:
 
                 # try:
                 vad_tg = get_vad(clip_path, params=self.params, min_pause=min_pause, verbose=verbose)
+                with _log_lock:
+                    vad_logs.extend(getattr(vad_tg, '_log', []))
                 # except Exception as e:
                 #     print(f"[{show_elapsed_time()}] ({os.path.basename(clip_path)}) VAD Error: {e}")
                 #     return [None, None, None]
@@ -381,6 +387,11 @@ class init_model:
             with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:  # 使用线程池并发处理
                 result = list(tqdm(executor.map(process_segments, segments), total=len(segments), desc=f"{file_info} Processing segments", leave=False))
 
+            # print collected verbose logs from main thread
+            if verbose and vad_logs:
+                for line in vad_logs:
+                    print(line)
+
             #############################
             # 因为在建立textgrid的时候使用了strict=False的mode，有可能存在某个tier是重复的
             # 需要检查并调整
@@ -455,18 +466,36 @@ class init_model:
         tmp_path = os.path.join(dir_name, "tmp")
 
         audio_obj = ReadSound(wav_path)
+        wav_name = os.path.basename(wav_path)
         if verbose:
-            print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Full audio duration: {audio_obj.duration_seconds:.3f}")
+            print(f"[{show_elapsed_time()}] ({wav_name}) Full audio duration: {audio_obj.duration_seconds:.3f}")
 
         sample_dur = seg_dur
-        NUM_CANDIDATES = 3
+        MIN_PART_RATIO = 0.3   # each part is sample_dur * (1 + ratio) to leave wiggle room
+        NUM_PARTS_TARGET = 3   # aim for beginning / middle / end coverage
+
         if audio_obj.duration_seconds > sample_dur:
             max_start = audio_obj.duration_seconds - sample_dur
-            # Pick NUM_CANDIDATES random segments, use the one with highest RMS energy
+            min_part_len = sample_dur * (1 + MIN_PART_RATIO)
+
+            # split audio into parts; each part must be long enough to host a sample_dur segment
+            max_parts = max(1, int(audio_obj.duration_seconds // min_part_len))
+            n_parts = min(NUM_PARTS_TARGET, max_parts)
+            part_len = audio_obj.duration_seconds / n_parts
+
+            # pick one random candidate per part, then choose the one with highest energy
             best_start = 0.0
             best_energy = -1.0
-            for _ in range(NUM_CANDIDATES):
-                candidate_start = random.uniform(0, max_start)
+            for b in range(n_parts):
+                part_start = b * part_len
+                part_end = (b + 1) * part_len
+
+                cand_min = part_start
+                cand_max = min(part_end, max_start + sample_dur) - sample_dur
+                if cand_max < cand_min:
+                    continue
+
+                candidate_start = random.uniform(cand_min, cand_max)
                 candidate_end = candidate_start + sample_dur
                 candidate_audio = audio_obj[candidate_start*1000:candidate_end*1000]
                 arr = candidate_audio.arr
@@ -485,7 +514,7 @@ class init_model:
         # 截取选定的音频段
         selected_audio = audio_obj[start_time*1000:end_time*1000]
         if verbose:
-            print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) Selected audio: {start_time:.3f} - {end_time:.3f}")
+            print(f"[{show_elapsed_time()}] ({wav_name}) Selected audio: {start_time:.3f} - {end_time:.3f}")
 
         # 确保临时目录存在
         os.makedirs(tmp_path, exist_ok=True)
@@ -568,8 +597,10 @@ class init_model:
 
 
             if verbose:
-                print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD onsets: {onsets}")
-                print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD offsets: {offsets}")
+                # collect verbose info so the main thread can print it (avoids concurrent prints from workers)
+                verbose_info = (onsets, offsets)
+            else:
+                verbose_info = None
 
 
 
@@ -666,15 +697,21 @@ class init_model:
             adjusted_params_copy = copy.deepcopy(adjusted_params)
 
             # 然后可以像原来一样使用复制后的变量
-            return [mean_snr_copy, total_overlap_copy, num_intervals_copy, adjusted_params_copy]
-            # result.append([num_intervals_copy, similarity, adjusted_params_copy])
+            return [mean_snr_copy, total_overlap_copy, num_intervals_copy, adjusted_params_copy, verbose_info]
 
         # ── Stage 1: Coarse grid (amp × eps_ratio) ──────────────────────────
+        stage1_combos = list(generate_param_grid(param_grid))
+        stage1_results = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-            stage1_results = list(tqdm(
-                executor.map(grid_search_optimal_params, generate_param_grid(param_grid)),
-                total=len(list(generate_param_grid(param_grid))),
-                desc=f"{file_info} Stage 1/2 coarse", leave=False))
+            futures = {executor.submit(grid_search_optimal_params, combo): combo for combo in stage1_combos}
+            for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures),
+                               desc=f"{file_info} Stage 1/2 coarse", leave=False):
+                result = future.result()
+                if verbose and result[4] is not None:
+                    _onsets, _offsets = result[4]
+                    print(f"[{show_elapsed_time()}] ({wav_name}) VAD onsets: {_onsets}")
+                    print(f"[{show_elapsed_time()}] ({wav_name}) VAD offsets: {_offsets}")
+                stage1_results.append(result)
 
         import statistics
         all_intervals_1 = [r[2] for r in stage1_results if r[2] > 0]
@@ -690,10 +727,17 @@ class init_model:
             "numValid":  [500, 1000, 2000, 5000],
         }
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-            stage2_results = list(tqdm(
-                executor.map(grid_search_optimal_params, generate_param_grid(fine_grid)),
-                total=len(list(generate_param_grid(fine_grid))),
-                desc=f"{file_info} Stage 2/2 numValid", leave=False))
+            stage2_combos = list(generate_param_grid(fine_grid))
+            stage2_results = []
+            futures = {executor.submit(grid_search_optimal_params, combo): combo for combo in stage2_combos}
+            for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures),
+                               desc=f"{file_info} Stage 2/2 numValid", leave=False):
+                result = future.result()
+                if verbose and result[4] is not None:
+                    _onsets, _offsets = result[4]
+                    print(f"[{show_elapsed_time()}] ({wav_name}) VAD onsets: {_onsets}")
+                    print(f"[{show_elapsed_time()}] ({wav_name}) VAD offsets: {_offsets}")
+                stage2_results.append(result)
 
         result = stage1_results + stage2_results
 
@@ -702,10 +746,10 @@ class init_model:
         mean_intval = statistics.mean(all_intervals) if all_intervals else 1.0
 
         best = max(result, key=lambda x: (x[0], x[1], -abs(x[2] - mean_intval)))
-        max_snr, max_overlap, max_intervals, best_params = best
+        max_snr, max_overlap, max_intervals, best_params, _ = best
 
         if verbose:
-            print(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD chosen: SNR={max_snr:.2f} dB, overlap={max_overlap:.3f}, #intval={max_intervals}, params: {best_params['onset']}")
+            print(f"[{show_elapsed_time()}] ({wav_name}) VAD chosen: SNR={max_snr:.2f} dB, overlap={max_overlap:.3f}, #intval={max_intervals}, params: {best_params['onset']}")
 
         self.params = best_params
 

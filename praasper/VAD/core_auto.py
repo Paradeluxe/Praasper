@@ -96,6 +96,10 @@ def autoPraditor(params, audio_obj, which_set, verbose=False, pre_filtered=None)
 
 
 
+    # 音频太短，无法进行有效分析
+    if len(_audio_arr_ds) < 2:
+        return []
+
     _eps = params["eps_ratio"] * float(np.max(np.sort(_audio_arr_ds)[:int(.8 * len(_audio_arr_ds))]))  # 找到合适的radius，防止异常值
 
 
