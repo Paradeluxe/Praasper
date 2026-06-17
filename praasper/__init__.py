@@ -297,6 +297,11 @@ class init_model:
                 audio_clip_single_words = audio_clip_result[0][0]["ctc_timestamps"]
                 # print(audio_clip_single_words)
 
+                # Force GC to release soundfile handles held by FunASR before
+                # librosa opens the same file in get_vad (avoids Windows
+                # file-sharing "System error" / FileNotFoundError).
+                gc.collect()
+
 
                 # try:
                 vad_tg = get_vad(clip_path, params=self.params, min_pause=min_pause, verbose=verbose)

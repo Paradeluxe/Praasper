@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='praasper',
-    version='0.7.0',
+    version='0.7.1',
     description='VAD-Enhanced ASR Framework for Researchers',
     long_description=open('README.md', encoding='utf-8').read(),
     long_description_content_type='text/markdown',
@@ -13,7 +13,7 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
-        'torch',
+        'torch!=2.8.0',
         'torchaudio',
         'jellyfish',
         'tqdm',
