@@ -13,7 +13,7 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
-        'torch!=2.8.0',
+        'torch',
         'torchaudio',
         'jellyfish',
         'tqdm',
