@@ -33,7 +33,7 @@ Here are the parameters you can pass to `init_model` and `annote`:
 |     `ASR`    | FunAudioLLM/Fun-ASR-Nano-2512 | Advanced: override the default local ASR model. See [FunASR model zoo](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo). |
 |   `api_key`  |             `None`            | DashScope API key. Required when `infer_mode="api"`. Can also be set via `DASHSCOPE_API_KEY` env var.                                      |
 | `cache_dir`  |             `None`            | Directory for caching ASR models. When set, `HF_HOME` / `MODELSCOPE_CACHE` / `TRANSFORMERS_CACHE` are redirected here.                      |
-|   `grid_search_effort`   |          `"normal"`          | Grid search level: `"low"` (3 combos), `"normal"` (22 combos), or `"high"` (100 combos). `"high"` adds `cutoff0` sweep and finer `amp` steps. Can be set on `init_model` and overridden per-run via `annote()`. |
+|   `effort`   |          `"normal"`          | Grid search level: `"low"` (3 combos), `"normal"` (22 combos), or `"high"` (100 combos). `"high"` adds `cutoff0` sweep and finer `amp` steps. Can be set on `init_model` and overridden per-run via `annote()`. |
 | `input_path` |               —               | Path to the folder where audio files are stored.                                                                                           |
 |   `seg_dur`  |              15.              | Segment large audio into pieces, in seconds.                                                                                               |
 |  `min_pause` |              0.2              | Minimum pause duration between two utterances, in seconds.                                                                                 |
@@ -57,8 +57,11 @@ model = praasper.init_model(infer_mode="api", api_key="sk-...")
 # Custom local ASR model (advanced)
 model = praasper.init_model(ASR="iic/speech_paraformer-large-vad-punc_asr_nat-zh-cn-16k-common-vocab8404-pytorch")
 
-# High-effort grid search (100 combos, more thorough VAD calibration)
-model = praasper.init_model(grid_search_effort="high")
+# Low-effort grid search (3 combos, fastest)
+model = praasper.init_model(effort="low")
+
+# High-effort grid search (100 combos, most thorough VAD calibration)
+model = praasper.init_model(effort="high")
 
 model.annote(
     input_path="data_folder",
@@ -142,7 +145,7 @@ model = praasper.init_model(infer_mode="api", api_key="sk-...")
 
 **1. Pause-aware chunking.** Long recordings are split into segments (default 15 s) at natural pauses detected by the VAD, placing boundaries at silence-gap midpoints. If no gap is found, the threshold relaxes until a boundary can be placed. This preserves utterance integrity across chunks.
 
-**2. Voice Activity Detection (VAD).** Praasper uses ***Praditor***, a DBSCAN-based detector. The first stage clusters the amplitude envelope to separate speech from silence into broad candidate segments. The second stage applies a sliding-window detector with locally estimated noise thresholds to place onset and offset boundaries at millisecond precision. By default, Praasper auto-calibrates per recording via `grid_search_effort`:
+**2. Voice Activity Detection (VAD).** Praasper uses ***Praditor***, a DBSCAN-based detector. The first stage clusters the amplitude envelope to separate speech from silence into broad candidate segments. The second stage applies a sliding-window detector with locally estimated noise thresholds to place onset and offset boundaries at millisecond precision. By default, Praasper auto-calibrates per recording via `effort`:
 
 | Effort    | Stage 1                              | Stage 2                | Total combos |
 |-----------|--------------------------------------|------------------------|:------------:|

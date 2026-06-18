@@ -104,12 +104,12 @@ class init_model:
         device: str="auto",
         api_key: str=None,
         cache_dir: str=None,
-        grid_search_effort: str="normal",
+        effort: str="normal",
     ):
         self.infer_mode = infer_mode
         self.api_key = api_key
         self.cache_dir = cache_dir
-        self.grid_search_effort = grid_search_effort
+        self.effort = effort
 
         # ── 如果指定了 cache_dir，设置模型缓存目录 ──
         if cache_dir:
@@ -168,7 +168,7 @@ class init_model:
         skip_existing: bool=False,
         verbose: bool=False,
         params=None,
-        grid_search_effort=None,
+        effort=None,
     ):
         """
         Annotate audio file(s) with word-level timestamps.
@@ -262,13 +262,13 @@ class init_model:
 
             # auto search best params — only run when params was not provided
             if params is None:
-                _grid_search_effort = grid_search_effort if grid_search_effort is not None else self.grid_search_effort
+                _effort = effort if effort is not None else self.effort
                 self.auto_vad(
                     wav_path=wav_path,
                     min_pause=min_pause,
                     file_info=file_info,
                     seg_dur=seg_dur,
-                    grid_search_effort=_grid_search_effort,
+                    effort=_effort,
                 )
 
             final_tg = TextGrid()
@@ -457,11 +457,11 @@ class init_model:
         print(f"[{show_elapsed_time()}] Params exported to {path}")
 
 
-    def auto_vad(self, wav_path, min_pause=0.2, verbose=False, file_info="", seg_dur=10., grid_search_effort="normal"):
+    def auto_vad(self, wav_path, min_pause=0.2, verbose=False, file_info="", seg_dur=10., effort="normal"):
         """
         自动选取最优的VAD参数，根据随机选取的 seg_dur 秒音频。
 
-        grid_search_effort: "normal" (22 combos) or "high" (100 combos)
+        effort: "low" (3 combos), "normal" (22 combos), or "high" (100 combos)
         """
 
 
@@ -554,19 +554,19 @@ class init_model:
         result = []
 
         # ── Effort-based grid selection ─────────────────────────────────────
-        if grid_search_effort == "low":
+        if effort == "low":
             param_grid = {
                 "amp":       [1.2],
                 "eps_ratio": [0.02, 0.03, 0.04],
             }
             do_stage2 = False
-        elif grid_search_effort == "normal":
+        elif effort == "normal":
             param_grid = {
                 "amp":       [1.1, 1.2, 1.3],
                 "eps_ratio": [0.02, 0.025, 0.03, 0.035, 0.04, 0.05],
             }
             do_stage2 = True
-        elif grid_search_effort == "high":
+        elif effort == "high":
             param_grid = {
                 "amp":       [1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.4, 1.5],
                 "eps_ratio": [0.02, 0.025, 0.03, 0.035, 0.04, 0.05],
@@ -574,7 +574,7 @@ class init_model:
             }
             do_stage2 = True
         else:
-            raise ValueError(f"Unknown grid_search_effort level: {grid_search_effort!r}")
+            raise ValueError(f"Unknown effort level: {effort!r}")
 
         _filter_cache = {}  # bandpass reuse across combos
 
