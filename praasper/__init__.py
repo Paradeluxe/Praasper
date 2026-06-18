@@ -137,9 +137,21 @@ class init_model:
             self.ASR = ASR
 
             # ── Hardware detection ──────────────────────────────────────
-            if device == "cpu":
+            import platform as _platform
+            _system = _platform.system()
+
+            # macOS: no NVIDIA GPU support in modern macOS
+            if _system == "Darwin":
+                if device == "cuda":
+                    raise RuntimeError(
+                        "device='cuda' is not supported on macOS. "
+                        "Use device='cpu' or device='auto' instead."
+                    )
                 self.device = "cpu"
-                print(f"[{show_elapsed_time()}] Hardware: cpu")
+                print(f"[{show_elapsed_time()}] macOS detected. Using CPU.")
+            elif device == "cpu":
+                self.device = "cpu"
+                print(f"[{show_elapsed_time()}] Using CPU as requested.")
             else:
                 print(f"[{show_elapsed_time()}] Checking hardware ({device})...")
                 if torch.cuda.is_available():
@@ -183,28 +195,34 @@ class init_model:
 
         if cuda_ver:
             cu = cuda_ver.replace(".", "")  # "13.0" → "130"
-            msg = (
-                f"[{show_elapsed_time()}] GPU driver detected (CUDA {cuda_ver}), "
-                f"but PyTorch was not installed with CUDA support.\n"
-                f"[{show_elapsed_time()}] Run:\n"
-                f"[{show_elapsed_time()}]   pip install --force-reinstall torch torchaudio "
-                f"--index-url https://download.pytorch.org/whl/cu{cu}\n"
-                f"[{show_elapsed_time()}] Then restart your script."
+            print(
+                f"[{show_elapsed_time()}] GPU driver found (CUDA {cuda_ver}), "
+                f"but PyTorch was installed without CUDA."
             )
+            print(f"  Run:")
+            print(f"    pip install --force-reinstall torch torchaudio "
+                  f"--index-url https://download.pytorch.org/whl/cu{cu}")
+            print(f"  (Or other methods: https://pytorch.org/get-started/locally/)")
             if device == "cuda":
-                raise RuntimeError(msg)
+                raise RuntimeError(
+                    f"device='cuda' but torch has no CUDA. "
+                    f"Reinstall: pip install --force-reinstall torch torchaudio "
+                    f"--index-url https://download.pytorch.org/whl/cu{cu}"
+                )
             else:
                 self.device = "cpu"
-                print(msg)
                 print(f"[{show_elapsed_time()}] Falling back to CPU for now.")
         else:
             if device == "cuda":
                 raise RuntimeError(
-                    f"[{show_elapsed_time()}] device='cuda' but no NVIDIA GPU or driver detected."
+                    "device='cuda' but no NVIDIA GPU driver found.\n"
+                    "Download a driver from https://www.nvidia.com/drivers\n"
+                    "Or use device='cpu' to run without GPU."
                 )
             else:
                 self.device = "cpu"
-                print(f"[{show_elapsed_time()}] No NVIDIA GPU detected, using CPU.")
+                print(f"[{show_elapsed_time()}] No NVIDIA GPU/driver found. Using CPU.")
+                print(f"  For GPU acceleration, download a driver: https://www.nvidia.com/drivers")
 
     def annote(
         self,

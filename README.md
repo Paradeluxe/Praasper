@@ -173,86 +173,41 @@ pip install -U praasper
 
 ## GPU Acceleration (Windows/Linux)
 
-Currently, ***Praasper*** utilizes `Fun-ASR-Nano` from **[FunASR](https://github.com/modelscope/funasr)** as the default local ASR engine. Cloud ASR is also available via DashScope (`infer_mode="api"`).
+**Praasper** uses `Fun-ASR-Nano` from [FunASR](https://github.com/modelscope/funasr) as the default local ASR engine.
+Cloud ASR is also available via DashScope (`infer_mode="api"`).
 
-> `FunASR` automatically detects the best currently available device to use. But you still need to first install the GPU-support version of `torch` in order to enable CUDA acceleration.
+> FunASR needs a GPU build of `torch` for CUDA acceleration. Praasper auto-detects your hardware
+> at startup — if it finds a GPU driver but no CUDA torch, it prints the exact `pip` command you need.
 
-- For **macOS** users, only `CPU` is supported as the processing device.
-- For **Windows/Linux** users, the priority order should be: `CUDA` -> `CPU`.
+- **macOS**: CPU only.
+- **Windows/Linux**: CUDA → CPU fallback.
 
-If you have no experience in installing `CUDA`, follow the steps below:
+### Quick setup
 
-**First**, go to command line and check the latest CUDA version your system supports:
+Check your driver's CUDA version:
 
 ```bash
 nvidia-smi
 ```
 
-Results should pop up like this (It means that this device supports CUDA up to version 12.9).
+Example output (driver supports CUDA 13.0):
 
-```bash
-| NVIDIA-SMI 576.80                 Driver Version: 576.80         CUDA Version: 12.9     |
+```
+| NVIDIA-SMI 576.80    Driver Version: 576.80    CUDA Version: 13.0 |
 ```
 
-**Next**, go to **[NVIDIA CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit)** and download the latest version, or whichever version that fits your system/need.
-
-**Lastly**, install `torch` that fits your CUDA version. Find the correct `pip` command **[in this link](https://pytorch.org/get-started/locally/)**.
-
-Here is an example for CUDA 13.0:
+Install a `torch` build ≤ your driver version (e.g. driver 13.0 → `cu130`, `cu129`, `cu128` all work).
+See [all available CUDA builds](https://pytorch.org/get-started/previous-versions/) for a full list.
 
 ```bash
 pip install --force-reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu130
 ```
 
-After installation, verify that PyTorch can see your GPU:
-
-```bash
-python -c "import torch; print('CUDA available:', torch.cuda.is_available()); print('CUDA version:', torch.version.cuda); print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A')"
-```
-
-Expected output (example for RTX 3050):
-
-```
-CUDA available: True
-CUDA version: 13.0
-GPU: NVIDIA GeForce RTX 3050
-```
-
-If `CUDA available` shows `False`, double-check that you installed a CUDA-enabled `torch` wheel (from `https://download.pytorch.org/whl/cu*`) — **not** the CPU-only wheel from PyPI. Re-run the `pip install --force-reinstall` command above with the correct `--index-url` for your driver.
-
-You can also verify your CUDA toolkit installation:
-
-```bash
-nvcc --version
-```
-
-The `nvcc` version should match or be compatible with the CUDA version reported by `nvidia-smi` and `torch.version.cuda`. Note that `nvidia-smi` shows the *maximum* supported CUDA version (driver-level), while `nvcc --version` shows the installed toolkit version — either one works as long as PyTorch's CUDA is compatible with your driver.
-
-## (Advanced) uv installation
-
-`uv` is also highly recommended for a much **faster** installation. First, make sure `uv` is installed in your default environment:
-
-```bash
-pip install uv
-```
-
-Then, create a virtual environment (e.g., `.venv`):
-
-```bash
-uv venv .venv
-```
-
-You should see a new `.venv` folder appear in your project directory. (You may also want to restart the terminal.)
-
-Lastly, install `praasper` (by prefixing `pip` with `uv`):
-
-```bash
-uv pip install -U praasper
-```
-
-For `CUDA` support, here is an example for downloading `torch` that fits CUDA 12.9:
+Or with `uv`:
 
 ```bash
 uv pip install --force-reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu130
 ```
+
+> If you're unsure which version to use, just import `praasper` — it will tell you.
 
