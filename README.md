@@ -33,7 +33,7 @@ Here are the parameters you can pass to `init_model` and `annote`:
 |     `ASR`    | FunAudioLLM/Fun-ASR-Nano-2512 | Advanced: override the default local ASR model. See [FunASR model zoo](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo). |
 |   `api_key`  |             `None`            | DashScope API key. Required when `infer_mode="api"`. Can also be set via `DASHSCOPE_API_KEY` env var.                                      |
 | `cache_dir`  |             `None`            | Directory for caching ASR models. When set, `HF_HOME` / `MODELSCOPE_CACHE` / `TRANSFORMERS_CACHE` are redirected here.                      |
-|   `grid_search_effort`   |          `"normal"`          | Grid search level: `"normal"` (22 combos) or `"high"` (100 combos). `"high"` adds `cutoff0` sweep and 0.05-step `amp`. Can be set on `init_model` and overridden per-run via `annote()`. |
+|   `grid_search_effort`   |          `"normal"`          | Grid search level: `"low"` (3 combos), `"normal"` (22 combos), or `"high"` (100 combos). `"high"` adds `cutoff0` sweep and finer `amp` steps. Can be set on `init_model` and overridden per-run via `annote()`. |
 | `input_path` |               —               | Path to the folder where audio files are stored.                                                                                           |
 |   `seg_dur`  |              15.              | Segment large audio into pieces, in seconds.                                                                                               |
 |  `min_pause` |              0.2              | Minimum pause duration between two utterances, in seconds.                                                                                 |
@@ -142,7 +142,15 @@ model = praasper.init_model(infer_mode="api", api_key="sk-...")
 
 **1. Pause-aware chunking.** Long recordings are split into segments (default 15 s) at natural pauses detected by the VAD, placing boundaries at silence-gap midpoints. If no gap is found, the threshold relaxes until a boundary can be placed. This preserves utterance integrity across chunks.
 
-**2. Voice Activity Detection (VAD).** Praasper uses ***Praditor***, a DBSCAN-based detector. The first stage clusters the amplitude envelope to separate speech from silence into broad candidate segments. The second stage applies a sliding-window detector with locally estimated noise thresholds to place onset and offset boundaries at millisecond precision. By default, Praasper auto-calibrates per recording: a two-stage grid search selects the best parameters: Stage 1 sweeps `amp` (1.1–1.3) × `eps_ratio` (0.02–0.05) to maximise onset boundary SNR, then Stage 2 refines `numValid` (DBSCAN min points) around the winner. With `grid_search_effort="high"`, the grid expands to 8 `amp` values (0.05 step) and a `cutoff0` sweep [0, 200 Hz], totalling 100 combos. Manual tuning is available but not required.
+**2. Voice Activity Detection (VAD).** Praasper uses ***Praditor***, a DBSCAN-based detector. The first stage clusters the amplitude envelope to separate speech from silence into broad candidate segments. The second stage applies a sliding-window detector with locally estimated noise thresholds to place onset and offset boundaries at millisecond precision. By default, Praasper auto-calibrates per recording via `grid_search_effort`:
+
+| Effort    | Stage 1                              | Stage 2                | Total combos |
+|-----------|--------------------------------------|------------------------|:------------:|
+| `"low"`   | `amp`=[1.2] × `eps_ratio`=[0.02,0.03,0.04]            | skipped                | 3            |
+| `"normal"`| `amp`=[1.1,1.2,1.3] × `eps_ratio`=[0.02–0.05, 6 steps] | `numValid`=[500–5000]  | 22           |
+| `"high"`  | 8 `amp` × 6 `eps_ratio` × `cutoff0`=[0,200]            | `numValid`=[500–5000]  | 100          |
+
+Stage 1 maximises onset boundary SNR; Stage 2 refines `numValid` (DBSCAN min points) around the winner. Manual tuning is available but not required.
 
 **3. Automatic Speech Recognition (ASR).** Each VAD-bounded segment is transcribed by **Fun-ASR-Nano**, a lightweight model producing word-level timestamps. It supports Chinese (Mandarin and 7 dialects: Wu, Cantonese, Min, Hakka, Gan, Xiang, Jin), English, and Japanese. For higher accuracy, DashScope cloud ASR is available via `infer_mode="api"`.
 
@@ -192,6 +200,32 @@ Here is an example for CUDA 12.9:
 ```bash
 pip install --force-reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu129
 ```
+
+After installation, verify that PyTorch can see your GPU:
+
+```bash
+python -c "import torch; print('CUDA available:', torch.cuda.is_available()); print('CUDA version:', torch.version.cuda); print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A')"
+```
+
+Expected output (example for RTX 3050):
+
+```
+CUDA available: True
+CUDA version: 13.0
+GPU: NVIDIA GeForce RTX 3050
+```
+
+If `CUDA available` shows `False`, double-check that you installed a CUDA-enabled `torch` wheel (from `https://download.pytorch.org/whl/cu*`) — **not** the CPU-only wheel from PyPI. Re-run the `pip install --force-reinstall` command above with the correct `--index-url` for your driver.
+
+> **⚠️ RTX 30-series users:** Avoid `torch` 2.8.0 with `cu129` — a known CUDA 12.9 GPU dispatch bug causes 5× slower model loading and garbled output on Ampere GPUs. Use CUDA 12.6+ or 13.0+ instead (e.g., `--index-url https://download.pytorch.org/whl/cu130`).
+
+You can also verify your CUDA toolkit installation:
+
+```bash
+nvcc --version
+```
+
+The `nvcc` version should match or be compatible with the CUDA version reported by `nvidia-smi` and `torch.version.cuda`. Note that `nvidia-smi` shows the *maximum* supported CUDA version (driver-level), while `nvcc --version` shows the installed toolkit version — either one works as long as PyTorch's CUDA is compatible with your driver.
 
 ## (Advanced) uv installation
 
