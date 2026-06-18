@@ -136,18 +136,30 @@ class init_model:
                 ASR = "FunAudioLLM/Fun-ASR-Nano-2512"
             self.ASR = ASR
 
-            # Hardware detection
-            print(f"[{show_elapsed_time()}] Checking hardware ({device})...")
-            if device == "auto":
-                if torch.cuda.is_available():
-                    self.device = "cuda"
-                    print(f"[{show_elapsed_time()}] CUDA detected, using GPU.")
-                else:
-                    self.device = "cpu"
-                    print(f"[{show_elapsed_time()}] CUDA not available, using CPU. (If you want to use CUDA acceleration, see https://github.com/ParadeLuxe/Praasper#gpu-acceleration-windowslinux)")
+            # ── Hardware detection ──────────────────────────────────────
+            if device == "cpu":
+                self.device = "cpu"
+                print(f"[{show_elapsed_time()}] Hardware: cpu")
             else:
-                self.device = device
-                print(f"[{show_elapsed_time()}] Hardware: {self.device}")
+                print(f"[{show_elapsed_time()}] Checking hardware ({device})...")
+                if torch.cuda.is_available():
+                    # ✅ GPU OK
+                    self.device = "cuda"
+                    print(f"[{show_elapsed_time()}] CUDA detected, using GPU "
+                          f"({torch.cuda.get_device_name(0)}, "
+                          f"torch CUDA {torch.version.cuda})")
+
+                    # ⚠️ cu129 + Ampere = broken combo
+                    if torch.version.cuda == "12.9":
+                        cc = torch.cuda.get_device_capability(0)
+                        if cc[0] == 8:  # Ampere (RTX 30 series)
+                            print(f"[{show_elapsed_time()}] ⚠️  torch CUDA 12.9 + Ampere GPU — "
+                                  "known to cause slow loading & garbled output. "
+                                  "Upgrade: pip install --force-reinstall torch torchaudio "
+                                  "--index-url https://download.pytorch.org/whl/cu130")
+                else:
+                    # ❌ torch has no CUDA — diagnose and guide
+                    self._diagnose_cuda(device)
 
         self.model = SelectWord(
             model=self.ASR,
@@ -159,6 +171,48 @@ class init_model:
 
         self.params = _default_params.copy()
 
+
+    def _diagnose_cuda(self, device):
+        """Detect NVIDIA driver and print the exact pip command to fix CUDA torch."""
+        import subprocess, re
+
+        # ── Try nvidia-smi to read driver CUDA version ──
+        cuda_ver = None
+        try:
+            r = subprocess.run(
+                ["nvidia-smi"], capture_output=True, text=True, timeout=10
+            )
+            if r.returncode == 0:
+                m = re.search(r"CUDA Version:\s*(\d+\.\d+)", r.stdout)
+                if m:
+                    cuda_ver = m.group(1)
+        except Exception:
+            pass
+
+        if cuda_ver:
+            cu = cuda_ver.replace(".", "")  # "13.0" → "130"
+            msg = (
+                f"[{show_elapsed_time()}] GPU driver detected (CUDA {cuda_ver}), "
+                f"but PyTorch was not installed with CUDA support.\n"
+                f"[{show_elapsed_time()}] Run:\n"
+                f"[{show_elapsed_time()}]   pip install --force-reinstall torch torchaudio "
+                f"--index-url https://download.pytorch.org/whl/cu{cu}\n"
+                f"[{show_elapsed_time()}] Then restart your script."
+            )
+            if device == "cuda":
+                raise RuntimeError(msg)
+            else:
+                self.device = "cpu"
+                print(msg)
+                print(f"[{show_elapsed_time()}] Falling back to CPU for now.")
+        else:
+            if device == "cuda":
+                raise RuntimeError(
+                    f"[{show_elapsed_time()}] device='cuda' but no NVIDIA GPU or driver detected."
+                )
+            else:
+                self.device = "cpu"
+                print(f"[{show_elapsed_time()}] No NVIDIA GPU detected, using CPU.")
 
     def annote(
         self,
