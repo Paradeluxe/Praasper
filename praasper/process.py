@@ -44,7 +44,7 @@ def segment_audio(audio_obj, segment_duration=15, min_pause=0.2, params="folder"
     audio_obj = ReadSound(wav_path)
 
     folder_param_path = os.path.join(os.path.dirname(wav_path), "params_vad.txt")
-    file_txt_path = wav_path.replace(".wav", "_vad.txt")
+    file_txt_path = os.path.splitext(wav_path)[0] + "_vad.txt"
 
     match params:
         case "file":
@@ -161,7 +161,7 @@ def get_vad(wav_path, min_pause=0.2, params="folder", if_save=False, verbose=Fal
     audio_obj = ReadSound(wav_path)
 
     folder_param_path = os.path.join(os.path.dirname(wav_path), "params_vad.txt")
-    file_txt_path = wav_path.replace(".wav", "_vad.txt")
+    file_txt_path = os.path.splitext(wav_path)[0] + "_vad.txt"
 
     match params:
         case "file":
@@ -277,17 +277,17 @@ def get_vad(wav_path, min_pause=0.2, params="folder", if_save=False, verbose=Fal
 
 
     tg.append(interval_tier)
-    tg.write(wav_path.replace(".wav", "_vad.TextGrid"))  # 将TextGrid对象写入文件
+    tg.write(os.path.splitext(wav_path)[0] + "_vad.TextGrid")  # 将TextGrid对象写入文件
 
     # preserve _log before overwriting tg
     saved_log = getattr(tg, '_log', [])
 
     tg = TextGrid()
-    tg.read(wav_path.replace(".wav", "_vad.TextGrid"))
+    tg.read(os.path.splitext(wav_path)[0] + "_vad.TextGrid")
     tg._log = saved_log
 
     if not if_save:
-        os.remove(wav_path.replace(".wav", "_vad.TextGrid"))
+        os.remove(os.path.splitext(wav_path)[0] + "_vad.TextGrid")
     else:
         tg._log.append(f"[{show_elapsed_time()}] ({os.path.basename(wav_path)}) VAD results saved")
     

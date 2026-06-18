@@ -207,11 +207,13 @@ class init_model:
 
 
         if os.path.isdir(input_path):
-            fnames = [os.path.splitext(f)[0] for f in os.listdir(input_path) if f.endswith('.wav')]
+            file_map = {os.path.splitext(f)[0]: f for f in os.listdir(input_path) if f.lower().endswith('.wav')}
+            fnames = list(file_map.keys())
             print(f"[{show_elapsed_time()}] {len(fnames)} valid audio files detected in {input_path}")
 
         else:
             fnames = [os.path.splitext(os.path.basename(input_path))[0]]
+            file_map = {fnames[0]: os.path.basename(input_path)}
             input_path = os.path.dirname(input_path)
             print(f"[{show_elapsed_time()}] {fnames[0]} is detected in {input_path}")
 
@@ -220,7 +222,7 @@ class init_model:
             return
 
         for idx, fname in enumerate(fnames):
-            wav_path = os.path.join(input_path, fname + ".wav")
+            wav_path = os.path.join(input_path, file_map.get(fname, fname + ".wav"))
 
             dir_name = os.path.dirname(os.path.dirname(wav_path))
             # Thread-safe: unique tmp dir per input_path to avoid collisions
@@ -231,7 +233,7 @@ class init_model:
             input_folder_name = os.path.basename(input_path)
             # 在output目录下创建与输入文件夹同名的子目录
             output_path = os.path.join(dir_name, "output", input_folder_name)
-            final_path = os.path.join(output_path, os.path.basename(wav_path).replace(".wav", ".TextGrid"))
+            final_path = os.path.join(output_path, os.path.splitext(os.path.basename(wav_path))[0] + ".TextGrid")
 
 
             file_info = f"[{show_elapsed_time()}] {idx+1}/{len(fnames)} ({os.path.basename(wav_path)})"
@@ -286,7 +288,7 @@ class init_model:
 
                 # print(f"[{show_elapsed_time()}] Processing segment: {start/1000:.3f} - {end/1000:.3f} ({count})")
                 audio_clip = audio_obj[start:end]
-                clip_path = os.path.join(tmp_path, os.path.basename(wav_path).replace(".wav", f"_{start}_{end}.wav"))
+                clip_path = os.path.join(tmp_path, f"{os.path.splitext(os.path.basename(wav_path))[0]}_{start}_{end}.wav")
                 audio_clip.save(clip_path)
                 # WSL D: drive flush: ensure file is visible to reader threads
                 with open(clip_path, 'r+b') as _f:
@@ -552,7 +554,13 @@ class init_model:
         result = []
 
         # ── Effort-based grid selection ─────────────────────────────────────
-        if grid_search_effort == "normal":
+        if grid_search_effort == "low":
+            param_grid = {
+                "amp":       [1.2],
+                "eps_ratio": [0.02, 0.03, 0.04],
+            }
+            do_stage2 = False
+        elif grid_search_effort == "normal":
             param_grid = {
                 "amp":       [1.1, 1.2, 1.3],
                 "eps_ratio": [0.02, 0.025, 0.03, 0.035, 0.04, 0.05],
@@ -726,25 +734,28 @@ class init_model:
         best_eps = float(best1[3]['onset']['eps_ratio'])
 
         # ── Stage 2: Fix best amp/eps, vary numValid (DBSCAN min points) ──
-        fine_grid = {
-            "amp":       [best_amp],
-            "eps_ratio": [best_eps],
-            "numValid":  [500, 1000, 2000, 5000],
-        }
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-            stage2_combos = list(generate_param_grid(fine_grid))
-            stage2_results = []
-            futures = {executor.submit(grid_search_optimal_params, combo): combo for combo in stage2_combos}
-            for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures),
-                               desc=f"{file_info} Stage 2/2 numValid", leave=False):
-                result = future.result()
-                if verbose and result[4] is not None:
-                    _onsets, _offsets = result[4]
-                    print(f"[{show_elapsed_time()}] ({wav_name}) VAD onsets: {_onsets}")
-                    print(f"[{show_elapsed_time()}] ({wav_name}) VAD offsets: {_offsets}")
-                stage2_results.append(result)
+        if do_stage2:
+            fine_grid = {
+                "amp":       [best_amp],
+                "eps_ratio": [best_eps],
+                "numValid":  [500, 1000, 2000, 5000],
+            }
+            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+                stage2_combos = list(generate_param_grid(fine_grid))
+                stage2_results = []
+                futures = {executor.submit(grid_search_optimal_params, combo): combo for combo in stage2_combos}
+                for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures),
+                                   desc=f"{file_info} Stage 2/2 numValid", leave=False):
+                    r = future.result()
+                    if verbose and r[4] is not None:
+                        _onsets, _offsets = r[4]
+                        print(f"[{show_elapsed_time()}] ({wav_name}) VAD onsets: {_onsets}")
+                        print(f"[{show_elapsed_time()}] ({wav_name}) VAD offsets: {_offsets}")
+                    stage2_results.append(r)
 
-        result = stage1_results + stage2_results
+            result = stage1_results + stage2_results
+        else:
+            result = stage1_results
 
         # ── Rank by max mean_snr, then max total_overlap, then closest to mean #intval ─────
         all_intervals = [r[2] for r in result if r[2] > 0]
