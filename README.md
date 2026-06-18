@@ -198,10 +198,10 @@ Results should pop up like this (It means that this device supports CUDA up to v
 
 **Lastly**, install `torch` that fits your CUDA version. Find the correct `pip` command **[in this link](https://pytorch.org/get-started/locally/)**.
 
-Here is an example for CUDA 12.9:
+Here is an example for CUDA 13.0:
 
 ```bash
-pip install --force-reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu129
+pip install --force-reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu130
 ```
 
 After installation, verify that PyTorch can see your GPU:
@@ -219,8 +219,6 @@ GPU: NVIDIA GeForce RTX 3050
 ```
 
 If `CUDA available` shows `False`, double-check that you installed a CUDA-enabled `torch` wheel (from `https://download.pytorch.org/whl/cu*`) — **not** the CPU-only wheel from PyPI. Re-run the `pip install --force-reinstall` command above with the correct `--index-url` for your driver.
-
-> **⚠️ RTX 30-series users:** Avoid `torch` 2.8.0 with `cu129` — a known CUDA 12.9 GPU dispatch bug causes 5× slower model loading and garbled output on Ampere GPUs. Use CUDA 12.6+ or 13.0+ instead (e.g., `--index-url https://download.pytorch.org/whl/cu130`).
 
 You can also verify your CUDA toolkit installation:
 
@@ -255,6 +253,6 @@ uv pip install -U praasper
 For `CUDA` support, here is an example for downloading `torch` that fits CUDA 12.9:
 
 ```bash
-uv pip install --force-reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu129
+uv pip install --force-reinstall torch torchaudio --index-url https://download.pytorch.org/whl/cu130
 ```
 

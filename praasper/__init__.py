@@ -149,14 +149,6 @@ class init_model:
                           f"({torch.cuda.get_device_name(0)}, "
                           f"torch CUDA {torch.version.cuda})")
 
-                    # ⚠️ cu129 + Ampere = broken combo
-                    if torch.version.cuda == "12.9":
-                        cc = torch.cuda.get_device_capability(0)
-                        if cc[0] == 8:  # Ampere (RTX 30 series)
-                            print(f"[{show_elapsed_time()}] ⚠️  torch CUDA 12.9 + Ampere GPU — "
-                                  "known to cause slow loading & garbled output. "
-                                  "Upgrade: pip install --force-reinstall torch torchaudio "
-                                  "--index-url https://download.pytorch.org/whl/cu130")
                 else:
                     # ❌ torch has no CUDA — diagnose and guide
                     self._diagnose_cuda(device)
