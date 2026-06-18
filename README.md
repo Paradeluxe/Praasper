@@ -24,21 +24,28 @@ model = praasper.init_model()
 model.annote("data_folder")
 ```
 
-Here are the parameters you can pass to `init_model` and `annote`:
+### `init_model()` parameters
 
-|     Param    |            Default            | Description                                                                                                                                |
-| :----------: | :---------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| `infer_mode` |           `"local"`           | ASR backend: `"local"` for on-device FunASR-Nano, `"api"` for DashScope cloud API.                                                         |
-|   `device`   |            `"auto"`           | Hardware for local inference: `"auto"`, `"cuda"`, or `"cpu"`. Ignored in API mode.                                                         |
-|     `ASR`    | FunAudioLLM/Fun-ASR-Nano-2512 | Advanced: override the default local ASR model. See [FunASR model zoo](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo). |
-|   `api_key`  |             `None`            | DashScope API key. Required when `infer_mode="api"`. Can also be set via `DASHSCOPE_API_KEY` env var.                                      |
-| `cache_dir`  |             `None`            | Directory for caching ASR models. When set, `HF_HOME` / `MODELSCOPE_CACHE` / `TRANSFORMERS_CACHE` are redirected here.                      |
-|   `effort`   |          `"normal"`          | Grid search level: `"low"` (3 combos), `"normal"` (22 combos), or `"high"` (100 combos). `"high"` adds `cutoff0` sweep and finer `amp` steps. Can be set on `init_model` and overridden per-run via `annote()`. |
-| `input_path` |               —               | Path to the folder where audio files are stored.                                                                                           |
-|   `seg_dur`  |              15.              | Segment large audio into pieces, in seconds.                                                                                               |
-|  `min_pause` |              0.2              | Minimum pause duration between two utterances, in seconds.                                                                                 |
-| `skip_existing` |          `False`           | Skip files that already have an output `.TextGrid`.                                                                                        |
-|   `verbose`  |            `False`            | Print verbose progress messages during processing.                                                                                         |
+|     Param    |  Required?   |            Default            | Description                                                                                                                                |
+| :----------: | :----------: | :---------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------- |
+| `infer_mode` |   optional   |           `"local"`           | ASR backend: `"local"` for on-device FunASR-Nano, `"api"` for DashScope cloud API.                                                         |
+|   `device`   |   optional   |            `"auto"`           | Hardware for local inference: `"auto"`, `"cuda"`, or `"cpu"`. Ignored in API mode.                                                         |
+|     `ASR`    |   optional   | FunAudioLLM/Fun-ASR-Nano-2512 | Advanced: override the default local ASR model. See [FunASR model zoo](https://github.com/modelscope/funasr?tab=readme-ov-file#model-zoo). |
+|   `api_key`  | conditional  |             `None`            | Required when `infer_mode="api"`. Can also be set via `DASHSCOPE_API_KEY` env var.                                                          |
+| `cache_dir`  |   optional   |             `None`            | Directory for caching ASR models. When set, `HF_HOME` / `MODELSCOPE_CACHE` / `TRANSFORMERS_CACHE` are redirected here.                      |
+|   `effort`   |   optional   |          `"medium"`           | Grid search depth: `"low"` (3 combos), `"medium"` (22 combos), or `"high"` (100 combos). Can be overridden per-run via `annote()`.          |
+
+### `annote()` parameters
+
+|     Param      | Required? |   Default   | Description                                                       |
+| :------------: | :-------: | :---------: | :---------------------------------------------------------------- |
+| `input_path`   | required  |      —      | Path to a `.wav` file or a folder of `.wav` files.               |
+|   `seg_dur`   | optional  |    15.     | Maximum segment duration in seconds.                              |
+|  `min_pause`  | optional  |    0.2     | Minimum pause between utterances in seconds.                      |
+| `skip_existing` | optional |   `False`   | Skip files that already have an output `.TextGrid`.               |
+|   `verbose`   | optional  |   `False`   | Print verbose progress messages.                                  |
+|   `effort`    | optional  | (inherit)  | Override `init_model` effort for this run.                       |
+|   `params`    | optional  |   `None`    | Custom VAD params: a dict, a `.txt` file path, or `None` (auto). |
 
 Here are code examples showing how to use these parameters:
 
