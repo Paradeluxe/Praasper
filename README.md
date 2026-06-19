@@ -189,8 +189,6 @@ Cloud ASR is also available via DashScope (`infer_mode="api"`).
 - **macOS**: CPU only.
 - **Windows/Linux**: CUDA → CPU fallback.
 
-### Quick setup
-
 Check your driver's CUDA version:
 
 ```bash
