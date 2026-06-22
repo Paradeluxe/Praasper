@@ -184,7 +184,8 @@ Praasper uses FunASR-Nano for local ASR. FunASR needs an `ffmpeg` binary to
 decode audio on systems that lack the `torchcodec` backend for `torchaudio.load`.
 Praasper resolves `ffmpeg` automatically at `init_model()` time, in this order:
 
-1. **System `ffmpeg` on `PATH`** — free, no download, no overhead.
+1. **System `ffmpeg` on `PATH`** — Praasper skips the bundled binary entirely;
+   no download, no extraction, no overhead.
    Recommended: install via your OS package manager (`apt`, `choco`, `brew`, etc.).
 2. **Bundled binary** — installed automatically via the new `static-ffmpeg`
    dependency. On first call, Praasper extracts a ~90MB `ffmpeg` binary into
@@ -196,8 +197,8 @@ If neither source provides an `ffmpeg`, Praasper raises a `RuntimeError` at
 
 | Environment | First `init_model()` cost | Subsequent calls |
 |---|---|---|
-| System `ffmpeg` on PATH | 0ms | 0ms |
-| No system ffmpeg (clean venv, CI, Docker) | ~25s (downloads + extracts binary) | 0ms |
+| System `ffmpeg` on PATH (skips bundled binary) | 0ms | 0ms |
+| No system ffmpeg (clean venv, CI, Docker) | ~25s (downloads + extracts `static-ffmpeg` binary) | 0ms |
 | `static-ffmpeg` not installed | install it via `pip install static-ffmpeg` | n/a |
 
 ## GPU Acceleration (Windows/Linux)
