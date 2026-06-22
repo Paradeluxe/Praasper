@@ -178,6 +178,28 @@ pip install -U praasper
 
 > If you have a successful installation and don't care about GPU acceleration, you can stop right here.
 
+## ffmpeg requirement (new in 0.7.4.post1)
+
+Praasper uses FunASR-Nano for local ASR. FunASR needs an `ffmpeg` binary to
+decode audio on systems that lack the `torchcodec` backend for `torchaudio.load`.
+Praasper resolves `ffmpeg` automatically at `init_model()` time, in this order:
+
+1. **System `ffmpeg` on `PATH`** — free, no download, no overhead.
+   Recommended: install via your OS package manager (`apt`, `choco`, `brew`, etc.).
+2. **Bundled binary** — installed automatically via the new `static-ffmpeg`
+   dependency. On first call, Praasper extracts a ~90MB `ffmpeg` binary into
+   the active venv (`<venv>/Lib/site-packages/static_ffmpeg/bin/...`).
+   First-call latency: ~25s. Subsequent calls: 0s.
+
+If neither source provides an `ffmpeg`, Praasper raises a `RuntimeError` at
+`init_model()` time with the exact fix to install.
+
+| Environment | First `init_model()` cost | Subsequent calls |
+|---|---|---|
+| System `ffmpeg` on PATH | 0ms | 0ms |
+| No system ffmpeg (clean venv, CI, Docker) | ~25s (downloads + extracts binary) | 0ms |
+| `static-ffmpeg` not installed | install it via `pip install static-ffmpeg` | n/a |
+
 ## GPU Acceleration (Windows/Linux)
 
 **Praasper** uses `Fun-ASR-Nano` from [FunASR](https://github.com/modelscope/funasr) as the default local ASR engine.
