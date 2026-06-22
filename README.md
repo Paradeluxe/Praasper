@@ -222,19 +222,26 @@ Praasper uses FunASR-Nano for local ASR. FunASR needs an `ffmpeg` binary to
 decode audio on systems that lack the `torchcodec` backend for `torchaudio.load`.
 Praasper resolves `ffmpeg` automatically at `init_model()` time, in this order:
 
-1. **System `ffmpeg` on `PATH`** — Praasper skips the bundled binary entirely;
-   no download, no extraction, no overhead.
-   Recommended: install via your OS package manager (`apt`, `choco`, `brew`, etc.).
-2. **Bundled binary** — installed automatically via the new `static-ffmpeg`
-   dependency. On first call, Praasper extracts a ~90MB `ffmpeg` binary into
-   the active venv (`<venv>/Lib/site-packages/static_ffmpeg/bin/...`).
-   First-call latency: ~25s. Subsequent calls: 0s.
+1. **System `ffmpeg` on `PATH`** — Recommended for first-time users.
+   Install once via your OS package manager (`apt`, `choco`, `brew`, etc.):
+   ```bash
+   # Ubuntu / Debian
+   sudo apt install ffmpeg
+   # macOS
+   brew install ffmpeg
+   # Windows (Chocolatey)
+   choco install ffmpeg
+   ```
+   After that, Praasper uses it transparently on every run with no extra setup.
+2. **Bundled binary** — Automatic fallback if you don't install system ffmpeg.
+   Installed via the `static-ffmpeg` dependency; Praasper extracts a ~90MB
+   `ffmpeg` binary into the active venv on first `init_model()` (~25s one-time).
 
 If neither source provides an `ffmpeg`, Praasper raises a `RuntimeError` at
 `init_model()` time with the exact fix to install.
 
 | Your situation | What you need to do |
 |---|---|
-| System `ffmpeg` is on `PATH` | Nothing — Praasper uses it transparently |
-| No system `ffmpeg` (clean venv, CI, Docker) | None — Praasper fetches the bundled binary on first `init_model()` |
+| First time using Praasper | Install system `ffmpeg` (recommended, one-time setup) — see commands above |
+| You skipped system ffmpeg and just want it to work | None — Praasper fetches the bundled binary on first `init_model()` |
 | `static-ffmpeg` was uninstalled / blocked | `pip install static-ffmpeg`, then call `init_model()` again |
