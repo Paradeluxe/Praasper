@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='praasper',
-    version='0.7.4',
+version='0.7.4.post1',
     description='VAD-Enhanced ASR Framework for Researchers',
     long_description=open('README.md', encoding='utf-8').read(),
     long_description_content_type='text/markdown',
@@ -11,6 +11,10 @@ setup(
     url='https://github.com/ParadeLuxe/Praasper',
     packages=find_packages(),
     install_requires=[
+        # NOTE: TestPyPI keeps stale copies of numpy/librosa/scipy/funasr/scikit-learn
+        # that break install on Python 3.12. Full e2e install from TestPyPI fails
+        # due to TestPyPI infrastructure — use `--no-deps` for structural verification
+        # only. Real PyPI installs use the unconstrained bounds below.
         'numpy',
         'scipy',
         'torch',
@@ -24,6 +28,7 @@ setup(
         'scikit-learn',
         'librosa',
         'soundfile',
+        'static-ffmpeg>=3.0',
     ],
     license='MIT',
     classifiers=[

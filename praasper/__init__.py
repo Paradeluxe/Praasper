@@ -136,6 +136,18 @@ class init_model:
                 ASR = "FunAudioLLM/Fun-ASR-Nano-2512"
             self.ASR = ASR
 
+            # ── Resolve ffmpeg: prefer system PATH, fall back to bundled static-ffmpeg ──
+            # Prevents UnboundLocalError in funasr when both torchaudio backend
+            # (torchcodec) and system ffmpeg are missing.
+            from ._ffmpeg import resolve_ffmpeg
+            _ffmpeg_path = resolve_ffmpeg(
+                log_func=lambda msg: print(f"[{show_elapsed_time()}] {msg}")
+            )
+            if not _ffmpeg_path:
+                print(f"[{show_elapsed_time()}] WARNING: no ffmpeg available — "
+                      f"FunASR audio loading may fail. "
+                      f"Install ffmpeg system-wide, or `pip install static-ffmpeg`.")
+
             # ── Hardware detection ──────────────────────────────────────
             import platform as _platform
             _system = _platform.system()
