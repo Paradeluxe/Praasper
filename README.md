@@ -222,26 +222,20 @@ Praasper uses FunASR-Nano for local ASR. FunASR needs an `ffmpeg` binary to
 decode audio on systems that lack the `torchcodec` backend for `torchaudio.load`.
 Praasper resolves `ffmpeg` automatically at `init_model()` time, in this order:
 
-1. **System `ffmpeg` on `PATH`** — Recommended for first-time users.
-   Install once via your OS package manager (`apt`, `choco`, `brew`, etc.):
-   ```bash
-   # Ubuntu / Debian
-   sudo apt install ffmpeg
-   # macOS
-   brew install ffmpeg
-   # Windows (Chocolatey)
-   choco install ffmpeg
-   ```
-   After that, Praasper uses it transparently on every run with no extra setup.
-2. **Bundled binary** — Automatic fallback if you don't install system ffmpeg.
-   Installed via the `static-ffmpeg` dependency; Praasper extracts a ~90MB
-   `ffmpeg` binary into the active venv on first `init_model()` (~25s one-time).
+1. **System `ffmpeg` on `PATH`** — Fastest path. Install once via your OS
+   package manager (`apt`, `choco`, `brew`, etc.) — see [ffmpeg.org/download.html](https://ffmpeg.org/download.html)
+   for binaries and instructions for every platform.
+2. **Bundled binary** — Praasper automatically detects that no system `ffmpeg`
+   is present and downloads a bundled `ffmpeg` (~90MB) into the active venv
+   on first `init_model()`. This happens transparently — you don't need to
+   install anything manually.
 
-If neither source provides an `ffmpeg`, Praasper raises a `RuntimeError` at
-`init_model()` time with the exact fix to install.
+If both sources fail (e.g. `static-ffmpeg` was uninstalled or blocked),
+Praasper raises a `RuntimeError` at `init_model()` time with the exact
+fix to install.
 
 | Your situation | What you need to do |
 |---|---|
-| First time using Praasper | Install system `ffmpeg` (recommended, one-time setup) — see commands above |
-| You skipped system ffmpeg and just want it to work | None — Praasper fetches the bundled binary on first `init_model()` |
+| I'm comfortable installing system software | Install `ffmpeg` once — see [ffmpeg.org/download.html](https://ffmpeg.org/download.html) |
+| I don't want to install anything manually | None — Praasper auto-detects missing ffmpeg and downloads the bundled binary on first `init_model()` |
 | `static-ffmpeg` was uninstalled / blocked | `pip install static-ffmpeg`, then call `init_model()` again |
