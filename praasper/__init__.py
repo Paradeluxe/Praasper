@@ -147,6 +147,9 @@ class init_model:
                 print(f"[{show_elapsed_time()}] WARNING: no ffmpeg available — "
                       f"FunASR audio loading may fail. "
                       f"Install ffmpeg system-wide, or `pip install static-ffmpeg`.")
+            # Cache for reuse: annote()'s ffmpeg transcode path reads self.ffmpeg_exe
+            # instead of re-resolving per file (avoids duplicate probe logs).
+            self.ffmpeg_exe = _ffmpeg_path
 
             # ── Hardware detection ──────────────────────────────────────
             import platform as _platform
@@ -282,13 +285,78 @@ class init_model:
 
 
         if os.path.isdir(input_path):
-            file_map = {os.path.splitext(f)[0]: f for f in os.listdir(input_path) if f.lower().endswith('.wav')}
+            # Multi-format support: accept .wav and any ffmpeg-decodable format.
+            # Non-wav inputs are converted to wav in tmp_path before being passed
+            # to ReadSound (which only handles wav).
+            #
+            # Conflict resolution (C3a + F2):
+            #   1. Scan directory, group files by stem.
+            #   2. Single-stem groups (no conflict) → use as-is.
+            #   3. Multi-ext groups with .wav → keep .wav, warn + skip others.
+            #   4. Multi-ext groups without .wav → keep the highest-quality format
+            #      (per _QUALITY_ORDER: flac > wav > aiff > ogg > opus > mp3 > m4a),
+            #      warn + skip the rest. This means a directory containing
+            #      `test_audio.flac` and `test_audio.mp3` will process .flac.
+            #   5. Files with unsupported extensions are silently ignored.
+            #
+            # Downstream TextGrid filenames keep the bare stem (e.g. test_audio.TextGrid),
+            # matching pre-multi-format behavior.
+            _QUALITY_ORDER = ('.flac', '.wav', '.aiff', '.ogg', '.opus', '.mp3', '.m4a')
+            _allowed_exts = _QUALITY_ORDER  # same set; quality order = whitelist order
+            from collections import defaultdict
+            _stem_groups = defaultdict(list)
+            for f in os.listdir(input_path):
+                ext = os.path.splitext(f)[1].lower()
+                if ext in _allowed_exts:
+                    stem = os.path.splitext(f)[0]
+                    _stem_groups[stem].append((f, ext))
+            file_map = {}
+            for stem, files in _stem_groups.items():
+                if len(files) == 1:
+                    file_map[stem] = files[0]
+                    continue
+                # Conflict: pick highest-quality (lowest _QUALITY_ORDER index).
+                # .wav is bumped to the front whenever it's present, regardless of
+                # its position in _QUALITY_ORDER (so wav always wins over flac).
+                has_wav = any(ext == '.wav' for _, ext in files)
+                if has_wav:
+                    kept = next(fe for fe in files if fe[1] == '.wav')
+                    no_wav_note = ""
+                else:
+                    kept = min(files, key=lambda fe: _QUALITY_ORDER.index(fe[1]))
+                    no_wav_note = ", no .wav found"
+                skipped = [fe for fe in files if fe != kept]
+                file_map[stem] = kept
+                _sorted_files = sorted(
+                    [kept] + skipped,
+                    key=lambda fe: _QUALITY_ORDER.index(fe[1])
+                )
+                print(
+                    f"[warn] Stem '{stem}' has {len(files)} files with different "
+                    f"extensions{no_wav_note}:"
+                )
+                for _f, _e in _sorted_files:
+                    if (_f, _e) == kept:
+                        if has_wav:
+                            marker = " (kept)"
+                        else:
+                            marker = " (kept, highest quality)"
+                    else:
+                        marker = " (skipped)"
+                    print(f"        {_f}{marker}")
             fnames = list(file_map.keys())
             print(f"[{show_elapsed_time()}] {len(fnames)} valid audio files detected in {input_path}")
 
         else:
+            _single_ext = os.path.splitext(input_path)[1].lower()
+            _allowed_exts = ('.wav', '.flac', '.mp3', '.m4a', '.ogg', '.opus', '.aiff')
+            if _single_ext not in _allowed_exts:
+                raise ValueError(
+                    f"Unsupported audio extension: {_single_ext!r}. "
+                    f"Supported: {_allowed_exts}"
+                )
             fnames = [os.path.splitext(os.path.basename(input_path))[0]]
-            file_map = {fnames[0]: os.path.basename(input_path)}
+            file_map = {fnames[0]: (os.path.basename(input_path), _single_ext)}
             input_path = os.path.dirname(input_path)
             print(f"[{show_elapsed_time()}] {fnames[0]} is detected in {input_path}")
 
@@ -297,9 +365,10 @@ class init_model:
             return
 
         for idx, fname in enumerate(fnames):
-            wav_path = os.path.join(input_path, file_map.get(fname, fname + ".wav"))
+            actual_fname, actual_ext = file_map[fname]   # (filename, ext) tuple
+            src_path = os.path.join(input_path, actual_fname)
 
-            dir_name = os.path.dirname(os.path.dirname(wav_path))
+            dir_name = os.path.dirname(os.path.dirname(src_path))
             # Thread-safe: unique tmp dir per input_path to avoid collisions
             # when multiple annote() calls run concurrently (e.g., grid search).
             _safe_name = __import__('hashlib').md5(input_path.encode()).hexdigest()[:8]
@@ -308,15 +377,53 @@ class init_model:
             input_folder_name = os.path.basename(input_path)
             # 在output目录下创建与输入文件夹同名的子目录
             output_path = os.path.join(dir_name, "output", input_folder_name)
-            final_path = os.path.join(output_path, os.path.splitext(os.path.basename(wav_path))[0] + ".TextGrid")
+            final_path = os.path.join(output_path, os.path.splitext(os.path.basename(src_path))[0] + ".TextGrid")
 
 
-            file_info = f"[{show_elapsed_time()}] {idx+1}/{len(fnames)} ({os.path.basename(wav_path)})"
+            file_info = f"[{show_elapsed_time()}] {idx+1}/{len(fnames)} ({os.path.basename(src_path)})"
 
             # 检查结果文件是否已存在，如果存在且skip_existing为True则跳过处理
             if skip_existing and os.path.exists(final_path):
                 print(f"{file_info} Result exists, skipped")
                 continue
+
+            # ── Multi-format: convert non-wav to wav via ffmpeg into tmp_path ──
+            # wav files are read in-place; everything else (flac/mp3/m4a/ogg/opus/aiff)
+            # is decoded to mono wav (preserving original sample rate) and ReadSound'd
+            # from there. The converted wav is cleaned up when tmp_path is rmtree'd
+            # at the end of the per-file loop (see the rmtree call below the final_tg.write).
+            # We must NOT rmtree tmp_path between ReadSound and auto_vad because auto_vad
+            # re-reads wav_path from disk.
+            if actual_ext == '.wav':
+                wav_path = src_path
+            else:
+                # Ensure tmp_path exists before writing the converted wav into it
+                os.makedirs(tmp_path, exist_ok=True)
+                converted = os.path.join(tmp_path, fname + '.wav')
+                if not os.path.exists(converted):
+                    # Use cached ffmpeg path resolved once in init_model.__init__
+                    # (avoids re-probing system PATH / static-ffmpeg per file).
+                    ffmpeg_exe = self.ffmpeg_exe
+                    if ffmpeg_exe is None:
+                        raise RuntimeError(
+                            f"Cannot decode {actual_ext!r} file {actual_fname!r}: "
+                            f"ffmpeg not found on PATH and static-ffmpeg fallback unavailable. "
+                            f"Install ffmpeg (https://ffmpeg.org) or pre-convert the file to .wav."
+                        )
+                    if verbose:
+                        print(f"[{show_elapsed_time()}] Converting {actual_fname} -> {os.path.basename(converted)} via ffmpeg")
+                    import subprocess
+                    r = subprocess.run(
+                        [ffmpeg_exe, '-y', '-nostdin', '-loglevel', 'error',
+                         '-i', src_path, '-ac', '1', converted],
+                        capture_output=True,
+                    )
+                    if r.returncode != 0:
+                        raise RuntimeError(
+                            f"ffmpeg failed to convert {actual_fname!r} to wav "
+                            f"(exit {r.returncode}): {r.stderr.decode(errors='replace')}"
+                        )
+                wav_path = converted
 
             try:
                 # 尝试加载音频文件
@@ -325,12 +432,12 @@ class init_model:
                 print(f"[{show_elapsed_time()}] Error loading audio file {wav_path}: {str(e)}")
                 continue
 
-            # 仅在音频加载成功后创建临时目录（很正确）
-            if os.path.exists(tmp_path):
-                shutil.rmtree(tmp_path)
-                if verbose:
-                    print(f"[{show_elapsed_time()}] Temporary directory {tmp_path} removed.")
-            os.makedirs(tmp_path, exist_ok=False)
+            # 仅在音频加载成功后确保临时目录存在（转码 wav 写在里面，必须保留到文件处理完）
+            # NOTE: we deliberately do NOT rmtree tmp_path here — the converted wav
+            # (and the auto_vad-selected clip) live in tmp_path and auto_vad will
+            # re-read wav_path from disk later. Cleanup happens after final_tg.write
+            # (see the rmtree call below).
+            os.makedirs(tmp_path, exist_ok=True)
 
             os.makedirs(output_path, exist_ok=True)
 
