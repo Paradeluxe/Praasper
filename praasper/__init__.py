@@ -244,7 +244,6 @@ class init_model:
         skip_existing: bool=False,
         verbose: bool=False,
         params=None,
-        effort=None,
     ):
         """
         Annotate audio file(s) with word-level timestamps.
@@ -338,13 +337,12 @@ class init_model:
 
             # auto search best params — only run when params was not provided
             if params is None:
-                _effort = effort if effort is not None else self.effort
                 self.auto_vad(
                     wav_path=wav_path,
                     min_pause=min_pause,
                     file_info=file_info,
                     seg_dur=seg_dur,
-                    effort=_effort,
+                    effort=self.effort,
                 )
 
             final_tg = TextGrid()
@@ -566,9 +564,10 @@ class init_model:
             n_parts = min(NUM_PARTS_TARGET, max_parts)
             part_len = audio_obj.duration_seconds / n_parts
 
-            # pick one random candidate per part, then choose the one with highest energy
-            best_start = 0.0
-            best_energy = -1.0
+            # pick one random candidate per part, then choose the one with MEDIAN energy
+            # (closest to "middle ground" — robust against picking a single loud
+            # non-speech burst that would dominate a max-energy selection)
+            candidates = []
             for b in range(n_parts):
                 part_start = b * part_len
                 part_end = (b + 1) * part_len
@@ -585,10 +584,17 @@ class init_model:
                 if hasattr(arr, 'numpy'):
                     arr = arr.numpy()
                 energy = float(np.mean(arr ** 2))
-                if energy > best_energy:
-                    best_energy = energy
-                    best_start = candidate_start
-            start_time = best_start
+                candidates.append((candidate_start, energy))
+
+            if not candidates:
+                start_time = 0.0
+            elif len(candidates) == 1:
+                start_time = candidates[0][0]
+            else:
+                # Sort by energy, pick the median candidate (upper median for even N)
+                candidates.sort(key=lambda c: c[1])
+                median_idx = len(candidates) // 2
+                start_time = candidates[median_idx][0]
             end_time = start_time + sample_dur
         else:
             start_time = 0
