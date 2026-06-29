@@ -640,7 +640,8 @@ class init_model:
     def _check_speech(self, audio_obj, start_time, seg_dur, wav_name, tmp_path, verbose=False):
         """Verify that a candidate segment contains recognizable speech using FunASR Nano.
 
-        Saves segment to temp WAV, transcribes, and checks if output has ≥3 characters.
+        Saves segment to temp WAV, transcribes, and checks if output has meaningful
+        text after stripping FunASR noise/silence tokens (e.g. "sil", "<unk>").
         API mode (DashScope) is skipped — assumes speech to avoid blocking the pipeline.
         """
         if getattr(self, 'infer_mode', 'local') == 'api':
@@ -652,11 +653,12 @@ class init_model:
             cand_audio = audio_obj[start_time*1000:(start_time+seg_dur)*1000]
             cand_audio.save(tmp_wav)
             result = self.model.transcribe(tmp_wav)
-            text = result[0][0].get("text_tn", "").strip()
-            has_speech = len(text) >= 3
+            raw_text = result[0][0].get("text_tn", "").strip()
+            ctc_ts = result[0][0].get("ctc_timestamps", [])
+            # Require non-trivial CTC timestamps (not just one silence token)
+            has_speech = len(ctc_ts) >= 3
             if verbose:
-                status = f"'{text}' -> speech" if has_speech else f"'{text}' -> noise/music"
-                print(f"[{show_elapsed_time()}] ({wav_name}) speech-check> {status}")
+                print(f"[{show_elapsed_time()}] ({wav_name}) speech-check> text='{raw_text}' ts={len(ctc_ts)} -> {'speech' if has_speech else 'noise/music'}")
             return has_speech
         except Exception as e:
             if verbose:
