@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='praasper',
-version='0.8.0.post1',
+version='0.8.0.post2',
     description='VAD-Enhanced ASR Framework for Researchers',
     long_description=open('README.md', encoding='utf-8').read(),
     long_description_content_type='text/markdown',
