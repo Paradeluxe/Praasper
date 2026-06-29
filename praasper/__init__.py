@@ -637,6 +637,37 @@ class init_model:
             f.write(repr(self.params))
         print(f"[{show_elapsed_time()}] Params exported to {path}")
 
+    def _check_speech(self, audio_obj, start_time, seg_dur, wav_name, tmp_path, verbose=False):
+        """Verify that a candidate segment contains recognizable speech using FunASR Nano.
+
+        Saves segment to temp WAV, transcribes, and checks if output has ≥3 characters.
+        API mode (DashScope) is skipped — assumes speech to avoid blocking the pipeline.
+        """
+        if getattr(self, 'infer_mode', 'local') == 'api':
+            return True  # DashScope API needs public URLs; skip local speech check
+
+        base_name = os.path.splitext(wav_name)[0] if '.' in wav_name else wav_name
+        tmp_wav = os.path.join(tmp_path, f"{base_name}_sc_{int(start_time)}_{random.randint(1000,9999)}.wav")
+        try:
+            cand_audio = audio_obj[start_time*1000:(start_time+seg_dur)*1000]
+            cand_audio.save(tmp_wav)
+            result = self.model.transcribe(tmp_wav)
+            text = result[0][0].get("text_tn", "").strip()
+            has_speech = len(text) >= 3
+            if verbose:
+                status = f"'{text}' -> speech" if has_speech else f"'{text}' -> noise/music"
+                print(f"[{show_elapsed_time()}] ({wav_name}) speech-check> {status}")
+            return has_speech
+        except Exception as e:
+            if verbose:
+                print(f"[{show_elapsed_time()}] ({wav_name}) speech-check> ERROR: {e}")
+            return False
+        finally:
+            if os.path.exists(tmp_wav):
+                try:
+                    os.remove(tmp_wav)
+                except Exception:
+                    pass
 
     def auto_vad(self, wav_path, min_pause=0.2, verbose=False, file_info="", seg_dur=10., effort="normal"):
         """
@@ -698,10 +729,72 @@ class init_model:
             elif len(candidates) == 1:
                 start_time = candidates[0][0]
             else:
-                # Sort by energy, pick the median candidate (upper median for even N)
+                # Sort by energy, then verify with FunASR Nano.
+                # Fallback chain: median → lowest-energy → highest-energy → re-pick (≤5).
+                MAX_RETRIES = 5
+                os.makedirs(tmp_path, exist_ok=True)
                 candidates.sort(key=lambda c: c[1])
-                median_idx = len(candidates) // 2
-                start_time = candidates[median_idx][0]
+
+                for attempt in range(MAX_RETRIES):
+                    if attempt > 0:
+                        if verbose:
+                            print(f"[{show_elapsed_time()}] ({wav_name}) speech-check> re-pick attempt {attempt+1}/{MAX_RETRIES}")
+                        # Re-pick fresh candidates
+                        candidates = []
+                        for b in range(n_parts):
+                            part_start = b * part_len
+                            part_end = (b + 1) * part_len
+                            cand_min = part_start
+                            cand_max = min(part_end, max_start + sample_dur) - sample_dur
+                            if cand_max < cand_min:
+                                continue
+                            cs = random.uniform(cand_min, cand_max)
+                            ce = cs + sample_dur
+                            caudio = audio_obj[cs*1000:ce*1000]
+                            arr = caudio.arr
+                            if hasattr(arr, 'numpy'):
+                                arr = arr.numpy()
+                            energy = float(np.mean(arr ** 2))
+                            candidates.append((cs, energy))
+                        candidates.sort(key=lambda c: c[1])
+                        if not candidates:
+                            start_time = 0.0
+                            break
+
+                    n = len(candidates)
+                    if n == 0:
+                        start_time = 0.0
+                        break
+
+                    median_i = n // 2
+                    trial_order = [median_i]           # 1st: median energy
+                    if n >= 2:
+                        trial_order.append(0)          # 2nd: lowest energy
+                    if n >= 3:
+                        trial_order.append(n - 1)      # 3rd: highest energy
+
+                    found = False
+                    for ti in trial_order:
+                        t_start = candidates[ti][0]
+                        if self._check_speech(audio_obj, t_start, sample_dur, wav_name, tmp_path, verbose):
+                            start_time = t_start
+                            found = True
+                            label = {median_i: 'median', 0: 'lowest', n-1: 'highest'}.get(ti, str(ti))
+                            if verbose:
+                                print(f"[{show_elapsed_time()}] ({wav_name}) speech-check> using {label}-energy candidate (start={t_start:.1f}s)")
+                            break
+                        else:
+                            if verbose:
+                                label = {median_i: 'median', 0: 'lowest', n-1: 'highest'}.get(ti, str(ti))
+                                print(f"[{show_elapsed_time()}] ({wav_name}) speech-check> {label}-energy: no speech")
+
+                    if found:
+                        break
+                else:
+                    # Exhausted retries — fall back to median
+                    if verbose:
+                        print(f"[{show_elapsed_time()}] ({wav_name}) speech-check> exhausted {MAX_RETRIES} retries, using median-energy")
+                    start_time = candidates[n // 2][0]
             end_time = start_time + sample_dur
         else:
             start_time = 0
