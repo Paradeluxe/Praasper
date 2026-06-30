@@ -654,11 +654,10 @@ class init_model:
             cand_audio.save(tmp_wav)
             result = self.model.transcribe(tmp_wav)
             raw_text = result[0][0].get("text_tn", "").strip()
-            ctc_ts = result[0][0].get("ctc_timestamps", [])
-            # Require non-trivial CTC timestamps (not just one silence token)
-            has_speech = len(ctc_ts) >= 3
+            # "sil" or empty = silence/noise/music → no speech
+            has_speech = raw_text and raw_text != "sil"
             if verbose:
-                print(f"[{show_elapsed_time()}] ({wav_name}) speech-check> text='{raw_text}' ts={len(ctc_ts)} -> {'speech' if has_speech else 'noise/music'}")
+                print(f"[{show_elapsed_time()}] ({wav_name}) speech-check> text='{raw_text}' -> {'speech' if has_speech else 'noise/music'}")
             return has_speech
         except Exception as e:
             if verbose:
