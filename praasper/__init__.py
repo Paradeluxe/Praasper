@@ -442,6 +442,10 @@ class init_model:
             os.makedirs(output_path, exist_ok=True)
 
 
+            # Percentage-based progress bar: total=100. Each step drives a known %.
+            # Grid search → 0%-60%, Segmenting → 60%-65%, ASR → 65%-100%.
+            self.pbar = tqdm(total=100, desc=f"{file_info}", unit="", leave=False, bar_format="{l_bar}{bar}| {percentage:3.0f}%")
+
             # auto search best params — only run when params was not provided
             if params is None:
                 self.auto_vad(
@@ -450,13 +454,22 @@ class init_model:
                     file_info=file_info,
                     seg_dur=seg_dur,
                     effort=self.effort,
+                    pbar=self.pbar,
                 )
+                self._pbar_grid_done = True
 
             final_tg = TextGrid()
             final_tg.tiers.append(IntervalTier(name="words", minTime=0., maxTime=audio_obj.duration_seconds))
             final_tg.tiers[0].strict = False
 
             segments = segment_audio(audio_obj, segment_duration=seg_dur, params=self.params, min_pause=min_pause, file_info=file_info)
+            # Segmenting done: jump from current % to 65% as a single step
+            self.pbar.set_description(f"{file_info} Segmenting")
+            _cur = self.pbar.n
+            self.pbar.update(65 - _cur)
+            # Allocate the remaining 35% across ASR segments
+            _seg_count = max(1, len(segments)) if segments else 1
+            _asr_step = 35.0 / _seg_count
 
             # shared log collector for verbose output from worker threads
             vad_logs = []
@@ -572,8 +585,14 @@ class init_model:
 
                 return timestamps
 
-            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:  # 使用线程池并发处理
-                result = list(tqdm(executor.map(process_segments, segments), total=len(segments), desc=f"{file_info} Processing segments", leave=False))
+            self.pbar.set_description(f"{file_info} Processing")
+            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+                _futures = [executor.submit(process_segments, seg) for seg in segments]
+                result = []
+                for _fut in concurrent.futures.as_completed(_futures):
+                    result.append(_fut.result())
+                    if hasattr(self, 'pbar') and self.pbar is not None:
+                        self.pbar.update(_asr_step)
 
             # print collected verbose logs from main thread
             if verbose and vad_logs:
@@ -615,6 +634,16 @@ class init_model:
 
             # ----------------------------
             final_tg.write(final_path)
+
+            if hasattr(self, 'pbar') and self.pbar is not None:
+                self.pbar.n = self.pbar.total
+                self.pbar.refresh()
+                self.pbar.close()
+                self.pbar = None
+
+            # Release GPU memory between files to prevent CUDA OOM
+            # during batch processing.
+            clear_resources()
 
         if os.path.exists(tmp_path):
             shutil.rmtree(tmp_path)
@@ -670,7 +699,7 @@ class init_model:
                 except Exception:
                     pass
 
-    def auto_vad(self, wav_path, min_pause=0.2, verbose=False, file_info="", seg_dur=10., effort="normal"):
+    def auto_vad(self, wav_path, min_pause=0.2, verbose=False, file_info="", seg_dur=10., effort="normal", pbar=None):
         """
         自动选取最优的VAD参数，根据随机选取的 seg_dur 秒音频。
 
@@ -1000,15 +1029,28 @@ class init_model:
         stage1_results = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             futures = {executor.submit(grid_search_optimal_params, combo): combo for combo in stage1_combos}
-            for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures),
-                               desc=f"{file_info} Stage 1/2 coarse", leave=False):
+            _stage_iter = concurrent.futures.as_completed(futures)
+            if pbar is not None:
+                pbar.set_description(f"{file_info} Grid search")
+                # Allocate 60% to grid search. We only know stage1 count now;
+                # estimate stage2 as 4 (the constant in the code below).
+                _stage2_count = 4 if do_stage2 else 0
+                _step_pct = 60.0 / max(1, len(stage1_combos) + _stage2_count)
+            else:
+                _step_pct = 0
+            for future in _stage_iter:
                 result = future.result()
+                if pbar is not None:
+                    pbar.update(_step_pct)
                 if verbose and result[4] is not None:
                     _onsets, _offsets = result[4]
                     print(f"[{show_elapsed_time()}] ({wav_name}) VAD onsets: {_onsets}")
                     print(f"[{show_elapsed_time()}] ({wav_name}) VAD offsets: {_offsets}")
                 stage1_results.append(result)
 
+        # Transition label to Segmenting before any further progress updates
+        if pbar is not None:
+            pbar.set_description(f"{file_info} Segmenting")
         import statistics
         all_intervals_1 = [r[2] for r in stage1_results if r[2] > 0]
         mean_intval_1 = statistics.mean(all_intervals_1) if all_intervals_1 else 1.0
@@ -1027,9 +1069,11 @@ class init_model:
                 stage2_combos = list(generate_param_grid(fine_grid))
                 stage2_results = []
                 futures = {executor.submit(grid_search_optimal_params, combo): combo for combo in stage2_combos}
-                for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures),
-                                   desc=f"{file_info} Stage 2/2 numValid", leave=False):
+                _stage2_iter = concurrent.futures.as_completed(futures)
+                for future in _stage2_iter:
                     r = future.result()
+                    if pbar is not None:
+                        pbar.update(_step_pct)
                     if verbose and r[4] is not None:
                         _onsets, _offsets = r[4]
                         print(f"[{show_elapsed_time()}] ({wav_name}) VAD onsets: {_onsets}")
@@ -1065,4 +1109,5 @@ class init_model:
         print("Resources released successfully")
 
 # 导出clear_resources函数
+__version__ = '0.8.1'
 __all__ = ['init_model', 'clear_resources']

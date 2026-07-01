@@ -10,6 +10,11 @@ version='0.8.1',
     author_email='paradeluxe3726@gmail.com',
     url='https://github.com/ParadeLuxe/Praasper',
     packages=find_packages(),
+    entry_points={
+        'console_scripts': [
+            'praasper=praasper.cli:main',
+        ],
+    },
     install_requires=[
         # NOTE: TestPyPI keeps stale copies of numpy/librosa/scipy/funasr/scikit-learn
         # that break install on Python 3.12. Full e2e install from TestPyPI fails

@@ -83,7 +83,7 @@ def segment_audio(audio_obj, segment_duration=15, min_pause=0.2, params="folder"
     total_length = audio_len * 1000
     
     desc = f"{file_info} Segmenting..."
-    with tqdm(total=total_length, desc=desc, unit="%", bar_format="{l_bar}{bar}", leave=False) as pbar:
+    with tqdm(total=total_length, desc=desc, unit="%", bar_format="{l_bar}{bar}", leave=False, disable=True) as pbar:
         while end <= total_length:
             segment = audio_obj[start:end]
             # print(type(segment) == type(audio_obj))
