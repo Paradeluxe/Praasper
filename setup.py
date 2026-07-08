@@ -35,7 +35,7 @@ version='0.8.1',
         'soundfile',
         'static-ffmpeg>=3.0',
     ],
-    license='MIT',
+    license='Custom (source-available, see LICENSE file)',
     classifiers=[
         'Programming Language :: Python :: 3',
         'Operating System :: OS Independent',

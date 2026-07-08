@@ -1,9 +1,9 @@
 # Praasper
 
+[![License: Custom (Free for personal + small org, Commercial License required)](https://img.shields.io/badge/License-Custom%20%28source--available%29-blue.svg)](./LICENSE)
 [![PyPI version](https://img.shields.io/pypi/v/praasper.svg)](https://pypi.org/project/praasper/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/praasper.svg?label=downloads)](https://pypi.org/project/praasper/)
 ![Python](https://img.shields.io/badge/python-3.10_|_3.11_|_3.12-blue.svg)
-![GitHub License](https://img.shields.io/github/license/Paradeluxe/Praasper)
 
 **[Setup](#setup)** | **[Usage](#how-to-use)** | **[Mechanism](#mechanism)**
 
@@ -12,6 +12,16 @@
 ![mechanism](promote/mechanism.png)
 
 In ***Praasper***, the pipeline has four stages. **First**, long recordings are split at natural pauses via pause-aware chunking. **Second**, **VAD** (*Praditor*) performs coarse DBSCAN clustering followed by fine sliding-window boundary detection — automatically calibrated per file via a two-stage grid search (amp × eps_ratio → numValid refinement). **Third**, **ASR** (*Fun-ASR-Nano*) transcribes each VAD-bounded segment with word-level timestamps. **Fourth**, timestamps are aligned to VAD intervals by temporal overlap and exported as a Praat TextGrid file.
+
+## License
+
+This project uses a **Custom (source-available) license** ([LICENSE](./LICENSE)):
+
+- ✅ **Free for non-commercial use**: personal / academic / research / non-profit /
+  small organizations (revenue < USD 1M/year AND headcount < 10)
+- ❌ **Commercial License required for**: commercial products / SaaS services /
+  organizations above the size threshold / paid client work
+- 💼 **Commercial licensing**: open a GitHub issue tagged `commercial-license`
 
 # How to use
 
