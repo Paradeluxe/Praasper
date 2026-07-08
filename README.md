@@ -1,6 +1,6 @@
 # Praasper
 
-[![License: Custom (Free for personal + small org, Commercial License required)](https://img.shields.io/badge/License-Custom%20%28source--available%29-blue.svg)](./LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](./LICENSE)
 [![PyPI version](https://img.shields.io/pypi/v/praasper.svg)](https://pypi.org/project/praasper/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/praasper.svg?label=downloads)](https://pypi.org/project/praasper/)
 ![Python](https://img.shields.io/badge/python-3.10_|_3.11_|_3.12-blue.svg)
@@ -15,13 +15,16 @@ In ***Praasper***, the pipeline has four stages. **First**, long recordings are 
 
 ## License
 
-This project uses a **Custom (source-available) license** ([LICENSE](./LICENSE)):
+Praasper is **dual-licensed** under AGPL v3 + a commercial license ([LICENSE](./LICENSE)):
 
-- ✅ **Free for non-commercial use**: personal / academic / research / non-profit /
-  small organizations (revenue < USD 1M/year AND headcount < 10)
-- ❌ **Commercial License required for**: commercial products / SaaS services /
-  organizations above the size threshold / paid client work
-- 💼 **Commercial licensing**: open a GitHub issue tagged `commercial-license`
+- **AGPL v3** (default): free, open source. Academic / personal / non-profit /
+  small orgs can use it directly. Only requirement: if you offer Praasper as a
+  network service, you must make the source available.
+- **Commercial License**: if you cannot accept AGPL copyleft obligations (e.g.
+  commercial products, SaaS, large org internal use), purchase a commercial
+  license to waive AGPL terms.
+
+See [COMMERCIAL-LICENSE.md](./COMMERCIAL-LICENSE.md) for details.
 
 # How to use
 
