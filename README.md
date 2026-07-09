@@ -12,20 +12,6 @@
 ![mechanism](promote/mechanism.png)
 
 In ***Praasper***, the pipeline has four stages. **First**, long recordings are split at natural pauses via pause-aware chunking. **Second**, **VAD** (*Praditor*) performs coarse DBSCAN clustering followed by fine sliding-window boundary detection — automatically calibrated per file via a two-stage grid search (amp × eps_ratio → numValid refinement). **Third**, **ASR** (*Fun-ASR-Nano*) transcribes each VAD-bounded segment with word-level timestamps. **Fourth**, timestamps are aligned to VAD intervals by temporal overlap and exported as a Praat TextGrid file.
-
-## License
-
-Praasper is **dual-licensed** under AGPL v3 + a commercial license ([LICENSE](./LICENSE)):
-
-- **AGPL v3** (default): free, open source. Academic / personal / non-profit /
-  small orgs can use it directly. Only requirement: if you offer Praasper as a
-  network service, you must make the source available.
-- **Commercial License**: if you cannot accept AGPL copyleft obligations (e.g.
-  commercial products, SaaS, large org internal use), purchase a commercial
-  license to waive AGPL terms.
-
-See [COMMERCIAL-LICENSE.md](./COMMERCIAL-LICENSE.md) for details.
-
 # How to use
 
 Here is one of the **simplest** examples:
@@ -252,3 +238,17 @@ fix to install.
 | I'm comfortable installing system software | Install `ffmpeg` once — see [ffmpeg.org/download.html](https://ffmpeg.org/download.html) |
 | I don't want to install anything manually | None — Praasper auto-detects missing ffmpeg and downloads the bundled binary on first `init_model()` |
 | `static-ffmpeg` was uninstalled / blocked | `pip install static-ffmpeg`, then call `init_model()` again |
+
+
+## License
+
+Praasper is **dual-licensed** under AGPL v3 + a commercial license ([LICENSE](./LICENSE)):
+
+- **AGPL v3** (default): free, open source. Academic / personal / non-profit /
+  small orgs can use it directly. Only requirement: if you offer Praasper as a
+  network service, you must make the source available.
+- **Commercial License**: if you cannot accept AGPL copyleft obligations (e.g.
+  commercial products, SaaS, large org internal use), purchase a commercial
+  license to waive AGPL terms.
+
+See [COMMERCIAL-LICENSE.md](./COMMERCIAL-LICENSE.md) for details.
